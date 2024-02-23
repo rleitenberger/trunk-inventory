@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: #f1f1f1;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+.nav-icon {
+  width:40px;
+  min-width:40px;
+  overflow: hidden;
+}
+
+.show-text {
+  animation: showText .3s forwards;
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow:hidden;
+}
+
+.hide-text {
+  animation: hideText .1s forwards;
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow:hidden;
+}
+
+@keyframes showText {
+  0% {
+    opacity: 0;
+    display:none;
+  }
+
+  20% {
+    opacity: 0;
+    display:block
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes hideText {
+  0% {
+    opacity: 1;
+    display:block;
+  }
+
+  99% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}

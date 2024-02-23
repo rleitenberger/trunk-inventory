@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admins {
+  user_id         String  @db.VarChar(36)
+  organization_id String  @db.VarChar(36)
+  active          Boolean @default(true)
+
+  @@id([user_id, organization_id])
+}
+
+model items {
+  item_id         String   @db.VarChar(36)
+  organization_id String   @db.VarChar(36)
+  name            String   @db.VarChar(100)
+  sku             String?  @db.VarChar(100)
+  description     String?  @db.Text
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  active          Boolean  @default(true)
+
+  @@id([item_id, organization_id])
+}
+
+model locations {
+  location_id     String   @db.VarChar(36)
+  organization_id String   @db.VarChar(36)
+  name            String   @db.VarChar(50)
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  active          Boolean  @default(true)
+
+  @@id([location_id, organization_id])
+}
+
+model locations_items_qty {
+  location_id String @db.VarChar(36)
+  item_id     String @db.VarChar(36)
+  qty         Int
+
+  @@id([location_id, item_id])
+}
+
+model organization_users {
+  organization_id String   @db.VarChar(36)
+  user_id         String   @db.VarChar(36)
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  active          Boolean  @default(true)
+
+  @@id([organization_id, user_id])
+}
+
+model organizations {
+  organization_id String   @id @db.VarChar(36)
+  name            String   @db.VarChar(100)
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  active          Boolean  @default(true)
+}
+
+model transactions {
+  transaction_id String   @id @db.VarChar(36)
+  from_location  String   @db.VarChar(36)
+  to_location    String   @db.VarChar(36)
+  item_id        String   @db.VarChar(36)
+  reason_id      String   @db.VarChar(36)
+  notes          String?  @db.Text
+  created        DateTime @default(now()) @db.Timestamp(0)
+}
+
+model users {
+  user_id  String   @id @db.VarChar(36)
+  name     String   @db.VarChar(50)
+  username String   @db.VarChar(30)
+  email    String   @db.VarChar(100)
+  password String   @db.VarChar(255)
+  created  DateTime @default(now()) @db.Timestamp(0)
+  modified DateTime @default(now()) @db.Timestamp(0)
+  active   Boolean  @default(true)
+}

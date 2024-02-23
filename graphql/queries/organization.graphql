@@ -1,0 +1,8 @@
+query getOrganizations {
+    getOrganizations {
+        organization_id
+        users {
+            user_id
+        }
+    }
+}

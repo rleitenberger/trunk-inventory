@@ -1,0 +1,49 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    getUsers: [User]!
+    getOrganizations: [Organization]!
+    getLocations(organizationId: String!, search: String): [Location]!
+    getItems: [Item]!
+}
+
+type Mutation {
+    createOrganization(name: String!): Organization
+    createLocation(name: String!): Location
+    createItem(name: String!, sku: String, description: String): Item
+    createUser(name: String!, email:String!, username:String!, password:String!): User
+}
+
+type Organization {
+    organization_id: String!
+    name: String!
+    created: String
+    modified: String
+    active: Boolean!
+    locations: [Location]!
+}
+
+type User {
+    user_id: String
+    name: String
+    email: String
+    created: String
+    active: Boolean
+}
+
+type Location {
+    location_id: String!
+    name: String!
+    active: Boolean!
+}
+
+type Item {
+    item_id: String!
+    name: String!
+    description: String
+    sku: String
+    active: Boolean!
+}
