@@ -65,3 +65,23 @@ body {
     display: none;
   }
 }
+
+.loader-sm {
+  width: 1.09rem;
+  height: 1rem;
+  border: 3px solid #90a1eb;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  }
+
+  @keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+  } 

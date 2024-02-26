@@ -8,9 +8,13 @@ type Query {
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
+    getTransactionType(organizationId: String!, slug: String!): TransactionType
+    getReasons(transactionTypeId: String!): [Reason]!
+    getTransactions(organizationId: String!, locationId: String, itemId: String, first: Int, after: String): TransactionConnection!
 }
 
 type Mutation {
+    createTransaction(orgId: String!, from: String!, to: String!, itemId: String!, reasonId: String!, qty: Int!, notes: String): String!
     createOrganization(name: String!): Organization
     createLocation(name: String!): Location
     createItem(name: String!, sku: String, description: String): Item
@@ -64,4 +68,43 @@ type ItemEdge {
 type PageInfo {
     hasNextPage: Boolean!
     endCursor: String
+}
+
+type TransactionType {
+    transaction_type_id: String!
+    organization_id: String!
+    type: String!
+    description: String
+}
+
+type Reason {
+    reason_id: String!
+    transaction_type_id: String!
+    name: String!
+    description: String
+    created: String
+    modified: String
+    active: Boolean!
+}
+
+type Transaction {
+    transaction_id: String!
+    organization_id: String!
+    from_location: Location!
+    to_location: Location!
+    qty: Int!
+    item: Item!
+    reason: Reason!
+    notes: String!
+    created: String!
+}
+
+type TransactionConnection {
+    edges: [TransactionEdge],
+    pageInfo: PageInfo
+}
+
+type TransactionEdge {
+    node: Transaction!
+    cursor: String!
 }

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { BiChevronDown, BiSearch, BiTransfer } from 'react-icons/bi';
 import type { DropDownSearchOption, PaginatedDropDownSearchOptions } from '@/types/DropDownSearchOption';
+import Loader from '../Loader';
 
 const MAX_DISPLAY: number = 10;
 
@@ -84,6 +85,8 @@ export default function DropDownSearch({ refetch, onChange, name, defaultValue }
         const updateOptions = async (): Promise<any> => {
             const res: any = await refetch(searchQuery, newPageInfo);
 
+            setIsLoading(false);
+
             if ('nodes' in res){
                 setOptions(res.nodes);
                 setPageInfo(res.pageInfo);
@@ -95,6 +98,18 @@ export default function DropDownSearch({ refetch, onChange, name, defaultValue }
 
         updateOptions();
     }, [searchQuery]);
+
+    useEffect(() => {
+        if (!defaultValue){
+            return;
+        }
+
+        if (typeof onChange === 'undefined'){
+            return;
+        }
+
+        onChange(defaultValue.value, name);
+    }, []);
 
     const setOption = (e: DropDownSearchOption): void => {
         setSelectedOption(e);
@@ -109,6 +124,10 @@ export default function DropDownSearch({ refetch, onChange, name, defaultValue }
                     <BiSearch className=' text-slate-500' />
                     <input type='text' className={`outline-none w-full text-sm ${textboxHidden}`} ref={textBoxRef}
                         value={searchQuery} onChange={updateSearchQuery} onBlur={onFocusOut} />
+                    
+                    {isLoading && (
+                        <Loader size='sm' />
+                    )}
                     
                     <div className='absolute w-full top-full left-0 grid grid-cols-1 max-h-[200px] overflow-y-auto mt-2 rounded-lg
                         --nice-scroll shadow-md'>

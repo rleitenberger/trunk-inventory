@@ -2,15 +2,17 @@
 
 import DropDownSearch from '@/components/form/DropDownSearch';
 import React, { useEffect, useState } from 'react';
-import type { Location } from '@/types/Location';
-import type { Item } from '@/types/Item';
-import { ApolloQueryResult, useApolloClient } from '@apollo/client';
-import { getLocations, getItems } from '@/graphql/queries';
+import { useApolloClient } from '@apollo/client';
+import { getReasons } from '@/graphql/queries';
 import type { TransferOptions } from '@/types/TransferOptions';
 import { BiRightArrow, BiRightArrowAlt, BiTransfer } from 'react-icons/bi';
-import { DropDownSearchOption, PaginatedDropDownSearchOptions } from '@/types/DropDownSearchOption';
 import useOrganization from '@/components/providers/useOrganization';
-import { PageInfo } from '@/types/getItemsTypes';
+import { getTransactionType } from '@/graphql/queries';
+import { Reason } from '@/types/Reason';
+import { createTransaction } from '@/graphql/mutations';
+import ItemSearch from '@/components/form/ItemSearch';
+import LocationSearch from '@/components/form/LocationSearch';
+import Loader from '@/components/Loader';
 
 export default function PageTransfer() {
     const client = useApolloClient();
@@ -20,62 +22,19 @@ export default function PageTransfer() {
         from: '',
         to: '',
         item: '',
-        qty: 0
+        qty: 0,
+        reasonId: '',
     });
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-
-    const fetchLocations = async(search: string): Promise<DropDownSearchOption[]> => {
-        const res: ApolloQueryResult<any> = await client.query({
-            query: getLocations,
-            variables: {
-                organizationId: orgId,
-                search: search
-            }
-        });
-
-        if (!res.data) {
-            //error
-        }
-
-        const results: any = res.data?.getLocations;
-        return results.map((e: Location) => {
-            return {
-                name: e.name,
-                value:e.location_id,
-                object: e
-            };
-        });
-    }
-
-    const fetchItems = async(search: string, pageInfo: PageInfo|undefined = undefined): Promise<PaginatedDropDownSearchOptions> => {
-        const res: ApolloQueryResult<any> = await client.query({
-            query: getItems,
-            variables: {
-                organizationId: orgId,
-                search: search,
-                after: pageInfo?.endCursor ? pageInfo.endCursor : undefined
-            }
-        });
-
-        if (!res.data){
-            //error
-        }
-
-        const results: any = res.data?.getItems;
-        const nodes = results?.edges?.map((e: any) => {
-            return {
-                name: e.node.name,
-                value: e.node.item_id,
-                object: e.node
-            }
-        });
-        return {
-            nodes: nodes,
-            pageInfo: results?.pageInfo
-        }
-    }
+    const [reasons, setReasons] = useState([]);
+    const [transactionId, setTransactionId] = useState('');
 
     const onFieldChange = (value: string|null, name: string): void  => {
+        if (!value || !name) {
+            return;
+        }
+        
         setTransferOptions({
             ...transferOptions,
             [name]: value
@@ -89,22 +48,100 @@ export default function PageTransfer() {
         });
     }
 
-    const transferItem = async () => {
-        console.log(transferOptions);
+    const onReasonChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        const { options, selectedIndex } = e.target;
+
+        setTransferOptions({
+            ...transferOptions,
+            reasonId: options[selectedIndex].value
+        });
     }
+
+    const transferItem = async () => {
+        if (!transferOptions.from || !transferOptions.to){
+            return;
+        }
+
+        if (!transferOptions.item){
+            return;
+        }
+
+        if (!transferOptions.qty){
+            return;
+        }
+
+        if (!transferOptions.reasonId){
+            return;
+        }
+
+        const res = await client.mutate({
+            mutation: createTransaction,
+            variables: {
+                orgId: orgId,
+                from: transferOptions.from,
+                to: transferOptions.to,
+                qty: transferOptions.qty,
+                reasonId: transferOptions.reasonId,
+                itemId: transferOptions.item,
+                notes: ''
+            }
+        });
+
+        const tId = res.data?.createTransaction;
+        if (!tId) {
+            return;
+        }
+
+        setTransactionId(tId);
+    }
+
+    useEffect(() => {
+        async function loadReasons() {
+            const transactionType = await client.query({
+                query: getTransactionType,
+                variables: {
+                    organizationId: orgId,
+                    slug: 'transfer'
+                }
+            });
+
+            const { transaction_type_id } = transactionType.data?.getTransactionType;
+            if (!transaction_type_id){
+                //error
+                return;
+            }
+
+            const reasons = await client.query({
+                query: getReasons,
+                variables: {
+                    transactionTypeId: transaction_type_id
+                }
+            });
+
+            const allReasons = reasons.data?.getReasons;
+            if (!allReasons || !allReasons?.length) {
+                return;
+                //error
+            }
+
+            setReasons(allReasons);
+        }
+
+        loadReasons();
+    }, []);
 
     return (
         <>
             <h1 className='text-xl font-medium'>Transfer to Trunk Inventory</h1>
-
             <div className='grid grid-cols-1 gap-2'>
                 <div className='grid grid-cols-12 gap-4'>
                     <div className='col-span-12 md:col-span-6'>
-                        <label className='text-sm'>Item</label>
-                        <DropDownSearch
+                        <ItemSearch
+                            onChange={onFieldChange}
+                            organizationId={orgId}
+                            apolloClient={client}
                             name='item'
-                            refetch={fetchItems}
-                            onChange={onFieldChange} />
+                        />
                     </div>
                     <div className='col-span-12 md:col-span-6'>
                         <div>
@@ -118,30 +155,37 @@ export default function PageTransfer() {
                 </div>
                 <div className='grid grid-cols-11'>
                     <div className='col-span-12 md:col-span-5'>
-                        <label className='text-sm'>From location</label>
-                        <DropDownSearch
+                        <LocationSearch
                             name='from'
-                            refetch={fetchLocations}
+                            apolloClient={client}
+                            organizationId={orgId}
                             onChange={onFieldChange}
                             defaultValue={{
                                 name: 'Parts Room',
                                 value: 'd0223790-565d-440e-8667-5c05228afe33',
-                            }} />
+                            }}
+                            title='From location' />
                     </div>
                     <BiRightArrowAlt className='text-lg col-span-1 self-center mx-auto hidden md:block' />
                     <div className='col-span-12 md:col-span-5'>
-                        <label className='text-sm'>To location</label>
-                        <DropDownSearch
+                        <LocationSearch
                             name='to'
-                            refetch={fetchLocations}
-                            onChange={onFieldChange} />
+                            apolloClient={client}
+                            organizationId={orgId}
+                            onChange={onFieldChange}
+                            title='To location' />
                     </div>
                 </div>
                 <div className="grid grid-cols-12">
                     <div>
                         <p className='text-sm'>Reason</p>
-                        <select>
-                            <option></option>
+                        <select value={transferOptions.reasonId} onChange={onReasonChange} className='px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg'>
+                            <option value=''>Select reason</option>
+                            {reasons.map((e: Reason) => {
+                                return (
+                                    <option key={`reason-${e.reason_id}`} value={e.reason_id}>{e.name}</option>
+                                )
+                            })}
                         </select>
                     </div>
                 </div>
@@ -156,6 +200,18 @@ export default function PageTransfer() {
                         )}
                     </button>
                 </div>
+                {transactionId && (
+                    <div className='p-4 rounded-md bg-green-300/20'>
+                        <p className='text-green-600 text-sm text-center'>
+                            The transaction was created. <span className='text-xs font-semibold'>(#{transactionId})</span>
+                        </p>
+                    </div>
+                )}
+                {isLoading && (
+                    <div>
+                        <Loader size='md' />
+                    </div>
+                )}
             </div>
         </>
     )

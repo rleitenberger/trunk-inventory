@@ -22,12 +22,15 @@ model admins {
 model items {
   item_id         String   @db.VarChar(36)
   organization_id String   @db.VarChar(36)
-  name            String   @db.VarChar(100)
-  sku             String?  @db.VarChar(100)
-  description     String?  @db.Text
+  zi_item_id      String   @db.VarChar(50)
+  name            String   @db.Text
+  item_price      String?  @db.VarChar(10)
+  item_cost       String?  @db.VarChar(10)
+  sku             String?  @db.Text
   created         DateTime @default(now()) @db.Timestamp(0)
   modified        DateTime @default(now()) @db.Timestamp(0)
   active          Boolean  @default(true)
+  description     String?  @db.Text
 
   @@id([item_id, organization_id])
 }
@@ -39,6 +42,7 @@ model locations {
   created         DateTime @default(now()) @db.Timestamp(0)
   modified        DateTime @default(now()) @db.Timestamp(0)
   active          Boolean  @default(true)
+  orderPriority   Int
 
   @@id([location_id, organization_id])
 }
@@ -70,13 +74,17 @@ model organizations {
 }
 
 model transactions {
-  transaction_id String   @id @db.VarChar(36)
-  from_location  String   @db.VarChar(36)
-  to_location    String   @db.VarChar(36)
-  item_id        String   @db.VarChar(36)
-  reason_id      String   @db.VarChar(36)
-  notes          String?  @db.Text
-  created        DateTime @default(now()) @db.Timestamp(0)
+  transaction_id  String   @db.VarChar(36)
+  organization_id String   @db.VarChar(36)
+  from_location   String   @db.VarChar(36)
+  to_location     String   @db.VarChar(36)
+  item_id         String   @db.VarChar(36)
+  reason_id       String   @db.VarChar(36)
+  qty             Int
+  notes           String?  @db.Text
+  created         DateTime @default(now()) @db.Timestamp(0)
+
+  @@id([transaction_id, organization_id])
 }
 
 model users {
@@ -88,4 +96,25 @@ model users {
   created  DateTime @default(now()) @db.Timestamp(0)
   modified DateTime @default(now()) @db.Timestamp(0)
   active   Boolean  @default(true)
+}
+
+model reasons {
+  reason_id           String   @db.VarChar(36)
+  transaction_type_id String   @db.VarChar(36)
+  name                String   @db.VarChar(100)
+  description         String?  @db.Text
+  created             DateTime @default(now()) @db.Timestamp(0)
+  modified            DateTime @default(now()) @db.Timestamp(0)
+  active              Boolean  @default(true)
+
+  @@id([reason_id, transaction_type_id])
+}
+
+model transaction_types {
+  transaction_type_id String  @db.VarChar(36)
+  organization_id     String  @db.VarChar(36)
+  type                String  @db.VarChar(20)
+  description         String? @db.Text
+
+  @@id([transaction_type_id, organization_id])
 }

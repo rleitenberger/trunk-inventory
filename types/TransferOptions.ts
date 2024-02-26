@@ -3,4 +3,5 @@ export interface TransferOptions {
     to: string
     item: string
     qty: number
+    reasonId: string
 }
