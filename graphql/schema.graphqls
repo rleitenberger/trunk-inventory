@@ -7,7 +7,7 @@ type Query {
     getUsers: [User]!
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!
-    getItems: [Item]!
+    getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
 }
 
 type Mutation {
@@ -42,8 +42,26 @@ type Location {
 
 type Item {
     item_id: String!
+    organization_id: String!
     name: String!
-    description: String
     sku: String
-    active: Boolean!
+    description: String
+    created: String
+    modified: String
+    active: Boolean
+}
+
+type ItemConnection {
+    edges: [ItemEdge],
+    pageInfo: PageInfo
+}
+
+type ItemEdge {
+    node: Item!
+    cursor: String!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    endCursor: String
 }

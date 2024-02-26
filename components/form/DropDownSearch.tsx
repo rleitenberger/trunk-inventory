@@ -1,31 +1,40 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { BiSearch } from 'react-icons/bi';
-import type { DropDownSearchOption } from '@/types/DropDownSearchOption';
+import { BiChevronDown, BiSearch, BiTransfer } from 'react-icons/bi';
+import type { DropDownSearchOption, PaginatedDropDownSearchOptions } from '@/types/DropDownSearchOption';
 
 const MAX_DISPLAY: number = 10;
 
-export default function DropDownSearch({ refetch, onChange, name }: {
-    refetch: (search: string) => Promise<any>
-    onChange: (value: string, name: string) => void,
-    name: string
+type PageInfo = {
+    endCursor: string
+    hasNextPage: boolean
+}
+
+export default function DropDownSearch({ refetch, onChange, name, defaultValue }: {
+    refetch: (search: string, pageInfo?: PageInfo) => Promise<any>
+    onChange: (value: string|null, name: string) => void,
+    name: string,
+    defaultValue?: DropDownSearchOption
 }) {
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [selectedOption, setSelectedOption] = useState<DropDownSearchOption<any>>({
+    const [selectedOption, setSelectedOption] = useState<DropDownSearchOption>(defaultValue === undefined ? {
         name: '',
         value: '',
-        object: {}
-    });
+    } : defaultValue);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const textBoxRef = useRef<HTMLInputElement>(null);
-    const [options, setOptions] = useState<DropDownSearchOption<Location>[]>([]);
+    const [options, setOptions] = useState<DropDownSearchOption[]>([]);
+    const [pageInfo, setPageInfo] = useState<PageInfo>({
+        endCursor: '',
+        hasNextPage:false
+    });
 
     const onClick = (): void => {
         setIsSearching(true);
         focusTextBox()
     }
 
-    const onBlur = (): void => {
+    const onFocusOut = () => {
         setIsSearching(false);
     }
 
@@ -65,15 +74,32 @@ export default function DropDownSearch({ refetch, onChange, name }: {
             return;
         }
 
+        const newPageInfo = {
+            endCursor: '',
+            hasNextPage: false
+        };
+
         setIsLoading(true);
+        setPageInfo(newPageInfo);
         const updateOptions = async (): Promise<any> => {
-            const res: any = await refetch(searchQuery);
+            const res: any = await refetch(searchQuery, newPageInfo);
+
+            if ('nodes' in res){
+                setOptions(res.nodes);
+                setPageInfo(res.pageInfo);
+                return;
+            }
+
             setOptions(res);
-            setIsLoading(false);
         }
 
         updateOptions();
     }, [searchQuery]);
+
+    const setOption = (e: DropDownSearchOption): void => {
+        setSelectedOption(e);
+        setIsSearching(false);
+    }
 
     return (
         <div className='rounded-lg bg-white'>
@@ -81,22 +107,25 @@ export default function DropDownSearch({ refetch, onChange, name }: {
                 <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
                     rounded-lg relative'>
                     <BiSearch className=' text-slate-500' />
-                    <input type='text' onBlur={onBlur} className={`outline-none w-full ${textboxHidden}`} ref={textBoxRef}
-                        value={searchQuery} onChange={updateSearchQuery} />
+                    <input type='text' className={`outline-none w-full text-sm ${textboxHidden}`} ref={textBoxRef}
+                        value={searchQuery} onChange={updateSearchQuery} onBlur={onFocusOut} />
                     
-                    <div className='absolute w-full top-full left-0 grid grid-cols-1 max-h-[200px] overflow-y-auto'>
+                    <div className='absolute w-full top-full left-0 grid grid-cols-1 max-h-[200px] overflow-y-auto mt-2 rounded-lg
+                        --nice-scroll shadow-md'>
                         {options.length ? (
                             <>
-                                {options.map((e: DropDownSearchOption<Location> ) => {
+                                {options.map((e: DropDownSearchOption ) => {
                                     return (
-                                        <button key={`loc-${e.value}`} className='bg-white px-2 py-1 hover:bg-slate-100 text-left'
-                                            onClick={() => {setSelectedOption(e)}}>{e.name}</button>
+                                        <button key={`loc-${e.value}`} className='bg-white px-2 py-1 hover:bg-slate-100 text-left text-sm'
+                                            onClick={() => {setOption(e)}} onMouseDown={(e) => {
+                                                e.preventDefault();
+                                            }}>{e.name}</button>
                                     )
                                 })}
                             </>
                         ) : (
                             <>
-                                {searchQuery.length > 2 && !isLoading && (<p>No results found</p>)}
+                                {searchQuery.length > 2 && !isLoading && (<div className='bg-white px-2 py-1 text-sm'>No results found</div>)}
                             </>
                         )}
                     </div>
@@ -104,12 +133,15 @@ export default function DropDownSearch({ refetch, onChange, name }: {
             ) : (
                 <> 
                     <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
-                        cursor-pointer rounded-lg' onClick={onClick}>
+                        cursor-pointer rounded-lg text-sm' onClick={onClick}>
                         {selectedOption?.value ? (
-                            <p>{selectedOption.name}</p>
+                            <> 
+                                <p className=''>{selectedOption.name}</p>
+                            </>
                         ) : (
                             <p className='text-slate-400'>No option selected</p>
                         )}
+                        <BiChevronDown className='ml-auto' />
                     </div>
                 </>
             )}

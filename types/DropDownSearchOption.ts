@@ -1,5 +1,14 @@
-export interface DropDownSearchOption<T> {
+export interface DropDownSearchOption {
     name: string
     value: string
-    object: T
+}
+
+export type PageInfo = {
+    hasNextPage: boolean
+    endCursor: string
+}
+
+export type PaginatedDropDownSearchOptions = {
+    nodes: DropDownSearchOption[]
+    pageInfo: PageInfo
 }

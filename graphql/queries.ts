@@ -8,3 +8,24 @@ export const getLocations = gql`
         }
     }
 `;
+
+export const getItems = gql`
+    query getItems($organizationId: String!, $search: String, $after: String, $first: Int) {
+        getItems(organizationId: $organizationId, search: $search, after: $after, first: $first) {
+            edges {
+                node {
+                    item_id
+                    name
+                    description
+                    sku
+                    active
+                }
+                cursor
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+`;
