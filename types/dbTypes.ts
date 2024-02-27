@@ -38,9 +38,18 @@ export interface LocationItem {
     location: Location;
     qty: number;
 }
+
 export type Reason = {
     reason_id: string
     name: string
     description: string|null
     requires_project: boolean
+    reasons_fields: ReasonsFields[];
+}
+
+export type ReasonsFields = {
+    reason_id: string;
+    reasons_fields_id: string;
+    field_name: string;
+    field_type: string;
 }

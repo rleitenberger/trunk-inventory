@@ -46,6 +46,11 @@ export const getReasons = gql`
             reason_id
             name
             requires_project
+            reasons_fields {
+                reasons_fields_id
+                field_name
+                field_type
+            }
         }
     }
 `;

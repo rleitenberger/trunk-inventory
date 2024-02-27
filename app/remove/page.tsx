@@ -120,7 +120,6 @@ export default function PageRemove() {
         const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(transferOptions.reasonId);
         const selectedReason: Reason = reasons[index];
 
-        console.log(selectedReason);
         if (selectedReason.requires_project) {
             setRequiresProject(true);
             return;

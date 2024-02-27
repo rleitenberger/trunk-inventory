@@ -97,6 +97,7 @@ type Reason {
     modified: String
     active: Boolean!
     requires_project: Boolean!
+    reasons_fields: [ReasonFields]!
 }
 
 type Transaction {
@@ -127,4 +128,11 @@ type LocationItem {
     item: Item
     location: Location
     qty: Int!
+}
+
+type ReasonFields {
+    reasons_fields_id: String!
+    reason_id: String!
+    field_name: String!
+    field_type: String!
 }

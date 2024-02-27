@@ -86,9 +86,6 @@ export default function DropDownSearch({ refetch, onChange, name, defaultValue }
             setShowWhenEmpty(opts);
             setOptions(opts);
         } else {
-            console.log('reached ', showWhenEmpty);
-            console.log('realpageinfo', pageInfo);
-            console.log('emptypageinfo', showWhenEmptyPageInfo)
             setOptions(showWhenEmpty);
         }
     }

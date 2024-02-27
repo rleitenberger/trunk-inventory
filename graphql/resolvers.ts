@@ -92,13 +92,21 @@ export const resolvers = {
         getReasons: async(_:any, { transactionTypeId }: {
             transactionTypeId: string
         }) => {
-            return await prisma.reasons.findMany({
+            const gg = await prisma.reasons.findMany({
                 where: {
                     transaction_type_id: {
                         equals: transactionTypeId
                     }
+                },
+                select: {
+                    reason_id: true,
+                    name: true,
+                    requires_project: true,
+                    reasons_fields: true,
                 }
             });
+            //console.log(gg);
+            return gg;
         },
         getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType }: TransactionArgs) => {
             const take = first || 25;
@@ -219,11 +227,6 @@ export const resolvers = {
             }
 
             return locationItemConnection;
-        },
-        getReasonsFields: async(_:any, { reasonId }: {
-            reasonId: string
-        }) => {
-            
         }
     },
     Mutation: {
@@ -308,6 +311,11 @@ export const resolvers = {
         },
         item: async(parent: any, args: any, context: any) => {
             return context.loaders.item.load(parent.item_id);
+        }
+    },
+    Reason: {
+        reasons_fields: async(parent: any, args: any, context: any) => {
+            return context.loaders.reasonFields.load(parent.reason_id);
         }
     }
 }

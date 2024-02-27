@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { getReasons } from '@/graphql/queries';
 import type { TransferOptions } from '@/types/TransferOptions';
 import { BiTransfer } from 'react-icons/bi';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactionType } from '@/graphql/queries';
-import { Reason } from '@/types/dbTypes';
+import { Reason, ReasonsFields } from '@/types/dbTypes';
 import { createTransaction } from '@/graphql/mutations';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import Loader from '@/components/Loader';
 import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons/hi';
+import DynamicInputField from '@/components/form/DynamicInputField';
+import apolloClient from '@/lib/apollo';
 
 export default function PageTransfer() {
     const client = useApolloClient();
@@ -49,6 +51,28 @@ export default function PageTransfer() {
             qty: parseInt(e.target.value)
         });
     }
+
+    const requiredFields = useMemo(() => {
+        const idx = reasons.map(e => e.reason_id).indexOf(transferOptions.reasonId);
+        if (idx===-1){
+            return [];
+        }
+        const fields = reasons[idx].reasons_fields;
+        return fields;
+    }, [transferOptions.reasonId]);
+
+    const [fieldsEntries, setFieldsEntries] = useState({});
+
+    useEffect(() => {
+        if (transferOptions.reasonId){
+            setFieldsEntries({});
+            return;
+        }
+        setFieldsEntries(requiredFields.reduce((acc: any, item: ReasonsFields) => {
+            acc[item.field_name] = '';
+            return acc;
+        }, {}));
+    }, [transferOptions.reasonId]);
 
     const onReasonChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const { options, selectedIndex } = e.target;
@@ -100,7 +124,7 @@ export default function PageTransfer() {
                 reasonId: transferOptions.reasonId,
                 itemId: transferOptions.item,
                 notes: transferOptions.notes,
-                transferType: 'transfer',
+                transferType: 'pull',
                 project: transferOptions.project
             }
         });
@@ -119,7 +143,7 @@ export default function PageTransfer() {
                 query: getTransactionType,
                 variables: {
                     organizationId: orgId,
-                    slug: 'transfer'
+                    slug: 'pull'
                 }
             });
 
@@ -167,6 +191,13 @@ export default function PageTransfer() {
             project: ''
         });
     }, [transferOptions.reasonId]);
+
+    const updateDynamicField = (val: string, name: string): any => {
+        console.log(val, name);
+        setFieldsEntries({
+            [name]: val
+        });
+    }
 
     return (
         <>
@@ -242,6 +273,17 @@ export default function PageTransfer() {
                                 className='border border-slate-300 px-2 py-1 text-sm outline-none rounded-lg w-full' />
                         </div>
                     )}
+                </div>
+                <div className='grid grid-cols-12 gap-2'>
+                    {requiredFields.map(e => {
+                        return (
+                            <div key={`rf-${e.reasons_fields_id}`} className='col-span-12 md:col-span-6'>
+                                <DynamicInputField fieldName={e.field_name} fieldType={e.field_type} apolloClient={apolloClient}
+                                organizationId={orgId} onChange={updateDynamicField}/>
+                            </div>
+                            
+                        )
+                    })}
                 </div>
                 <div className="grid grid-cols-12 gap-2">
                     <div className='col-span-12 md:col-span-6'>

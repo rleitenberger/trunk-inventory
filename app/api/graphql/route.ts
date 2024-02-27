@@ -6,7 +6,7 @@ import { readFileSync } from "fs";
 import type { DocumentNode } from "graphql";
 import type { NextApiRequest, NextApiResponse } from "next/types";
 import { resolvers } from "@/graphql/resolvers";
-import { itemLoader, locationLoader, reasonLoader, transactionLoader } from "@/graphql/loaders";
+import { itemLoader, locationLoader, reasonLoader, reasonsFieldsLoader, transactionLoader } from "@/graphql/loaders";
 
 const typeDefs = `${readFileSync(`graphql/schema.graphqls`)}`;
 const apolloServer = new ApolloServer({
@@ -21,7 +21,8 @@ const handler = startServerAndCreateNextHandler<NextRequest>(apolloServer, {
           transaction: transactionLoader,
           reason: reasonLoader,
           location: locationLoader,
-          item: itemLoader
+          item: itemLoader,
+          reasonFields: reasonsFieldsLoader
         }
       }
     }
