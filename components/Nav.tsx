@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo } from 'react';
 import { IconType } from 'react-icons';
@@ -20,6 +21,7 @@ export default function Nav({ isExpanded, children }: {
     return (
         <div className='bg-primary relative'>
             <div className='grid grid-cols-1 gap-2 py-4 px-2'>
+                <Image src="/logo.webp" width="50" height="50" alt="logo" />
                 <MenuItem href='/' Icon={BiHome} text='Home' textClass={textAnimation} />
                 <MenuItem href='/transfer' Icon={BiTransfer} text='Transfer' textClass={textAnimation} />
                 <MenuItem href='/remove' Icon={AiFillMinusCircle} text='Remove Item' textClass={textAnimation} />

@@ -2,7 +2,7 @@ import { ApolloClient, ApolloQueryResult } from "@apollo/client"
 import DropDownSearch from "./DropDownSearch"
 import { getLocations } from "@/graphql/queries"
 import { DropDownSearchOption } from "@/types/DropDownSearchOption"
-import type { Location } from '@/types/Location';
+import type { Location } from '@/types/dbTypes';
 
 export default function LocationSearch ({ name, organizationId, apolloClient, onChange, defaultValue, title }: {
     name: string

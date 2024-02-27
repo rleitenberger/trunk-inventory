@@ -33,7 +33,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
             <div className={`h-screen grid overflow-hidden ${navInfo.navClass} transition-all duration-200`}>
                 <Nav isExpanded={navExpanded}>
                     <div className='absolute bottom-0 left-0 py-3 px-5'>
-                        <button onClick={updateMenuSize} className="w-full nav-icon">
+                        <button onClick={updateMenuSize} className="w-full nav-icon" title={navExpanded ? 'Shrink' : 'Expand'}>
                             <BiChevronRight className={`text-3xl text-main-bg transition-all ml-auto duration-300 mx-auto ${navInfo.chevronClass}`} />
                         </button>
                     </div>

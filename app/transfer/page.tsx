@@ -1,18 +1,18 @@
 'use client';
 
-import DropDownSearch from '@/components/form/DropDownSearch';
 import React, { useEffect, useState } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { getReasons } from '@/graphql/queries';
 import type { TransferOptions } from '@/types/TransferOptions';
-import { BiRightArrow, BiRightArrowAlt, BiTransfer } from 'react-icons/bi';
+import { BiTransfer } from 'react-icons/bi';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactionType } from '@/graphql/queries';
-import { Reason } from '@/types/Reason';
+import { Reason } from '@/types/dbTypes';
 import { createTransaction } from '@/graphql/mutations';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import Loader from '@/components/Loader';
+import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons/hi';
 
 export default function PageTransfer() {
     const client = useApolloClient();
@@ -24,11 +24,13 @@ export default function PageTransfer() {
         item: '',
         qty: 0,
         reasonId: '',
+        notes: '',
+        project: ''
     });
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
-    const [reasons, setReasons] = useState([]);
-    const [transactionId, setTransactionId] = useState('');
+    const [reasons, setReasons] = useState<Reason[]>([]);
+    const [transactionId, setTransactionId] = useState<string>('');
+    const [requiresProject, setRequiresProject] = useState<boolean>(false);
 
     const onFieldChange = (value: string|null, name: string): void  => {
         if (!value || !name) {
@@ -54,6 +56,20 @@ export default function PageTransfer() {
         setTransferOptions({
             ...transferOptions,
             reasonId: options[selectedIndex].value
+        });
+    }
+
+    const onProjectChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        setTransferOptions({
+            ...transferOptions,
+            project: e.target.value
+        });
+    }
+
+    const onNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+        setTransferOptions({
+            ...transferOptions,
+            notes: e.target.value
         });
     }
 
@@ -83,7 +99,9 @@ export default function PageTransfer() {
                 qty: transferOptions.qty,
                 reasonId: transferOptions.reasonId,
                 itemId: transferOptions.item,
-                notes: ''
+                notes: transferOptions.notes,
+                transferType: 'transfer',
+                project: transferOptions.project
             }
         });
 
@@ -130,11 +148,31 @@ export default function PageTransfer() {
         loadReasons();
     }, []);
 
+    useEffect(() => {
+        if (!transferOptions.reasonId){
+            return;
+        }
+
+        const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(transferOptions.reasonId);
+        const selectedReason: Reason = reasons[index];
+
+        if (selectedReason.requires_project) {
+            setRequiresProject(true);
+            return;
+        }
+
+        setRequiresProject(false);
+        setTransferOptions({
+            ...transferOptions,
+            project: ''
+        });
+    }, [transferOptions.reasonId]);
+
     return (
         <>
             <h1 className='text-xl font-medium'>Transfer to Trunk Inventory</h1>
             <div className='grid grid-cols-1 gap-2'>
-                <div className='grid grid-cols-12 gap-4'>
+                <div className='grid grid-cols-12 gap-2'>
                     <div className='col-span-12 md:col-span-6'>
                         <ItemSearch
                             onChange={onFieldChange}
@@ -166,7 +204,11 @@ export default function PageTransfer() {
                             }}
                             title='From location' />
                     </div>
-                    <BiRightArrowAlt className='text-lg col-span-1 self-center mx-auto hidden md:block' />
+                    <div className='col-span-12 md:col-span-1'>
+                        <p>&nbsp;</p>
+                        <HiOutlineArrowNarrowRight className='text-lg col-span-1 self-center mx-auto hidden md:block' />
+                        <HiOutlineArrowNarrowDown className='text-lg col-span-1 self-center mx-auto block md:hidden' />
+                    </div>
                     <div className='col-span-12 md:col-span-5'>
                         <LocationSearch
                             name='to'
@@ -176,11 +218,12 @@ export default function PageTransfer() {
                             title='To location' />
                     </div>
                 </div>
-                <div className="grid grid-cols-12">
-                    <div>
+                <div className="grid grid-cols-12 gap-2">
+                    <div className='col-span-12 md:col-span-6'>
                         <p className='text-sm'>Reason</p>
-                        <select value={transferOptions.reasonId} onChange={onReasonChange} className='px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg'>
-                            <option value=''>Select reason</option>
+                        <select value={transferOptions.reasonId} onChange={onReasonChange} className='w-full 
+                            px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg'>
+                            <option value='' className='hidden'>Select reason</option>
                             {reasons.map((e: Reason) => {
                                 return (
                                     <option key={`reason-${e.reason_id}`} value={e.reason_id}>{e.name}</option>
@@ -188,10 +231,25 @@ export default function PageTransfer() {
                             })}
                         </select>
                     </div>
+                    {requiresProject && (
+                        <div className='col-span-12 md:col-span-6'>
+                            <p className='text-sm'>Project</p>
+                            <input type='text' value={transferOptions.project} onChange={onProjectChange}
+                                className='border border-slate-300 px-2 py-1 text-sm outline-none rounded-lg w-full' />
+                        </div>
+                    )}
+                </div>
+                <div className="grid grid-cols-12 gap-2">
+                    <div className='col-span-12 md:col-span-6'>
+                        <p className='text-sm'>Notes</p>
+                        <textarea className='w-full px-2 py-1 text-sm rounded-lg border
+                            border-slate-300 outline-none resize-none' value={transferOptions.notes}
+                            name='notes' onChange={onNotesChange}></textarea>
+                    </div>
                 </div>
                 <div>
                     <button className=' bg-blue-500 transition-colors hover:bg-blue-600 flex items-center gap-2
-                    text-sm text-white px-3 py-1 rounded-lg duration-100' onClick={transferItem}>
+                    text-sm text-white px-4 py-2 rounded-lg duration-100' onClick={transferItem}>
                         <BiTransfer />
                         Transfer Item{transferOptions.qty === 1 || transferOptions.qty === -1 ? (
                             ''

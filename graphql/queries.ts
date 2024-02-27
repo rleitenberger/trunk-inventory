@@ -45,13 +45,14 @@ export const getReasons = gql`
         getReasons(transactionTypeId: $transactionTypeId) {
             reason_id
             name
+            requires_project
         }
     }
 `;
 
 export const getTransactions = gql`
-    query getTransactions($organizationId: String!, $locationId: String, $itemId: String, $first: Int, $after: String) {
-        getTransactions (organizationId: $organizationId, locationId: $locationId, itemId: $itemId, first: $first, after: $after) {
+    query getTransactions($organizationId: String!, $locationId: String, $itemId: String, $first: Int, $after: String, $transferType: String) {
+        getTransactions (organizationId: $organizationId, locationId: $locationId, itemId: $itemId, first: $first, after: $after, transferType: $transferType) {
             edges {
                 node {
                     transaction_id
@@ -73,6 +74,27 @@ export const getTransactions = gql`
                         item_id
                         name
                     }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+`;
+
+export const getItemsAtLocation = gql`
+    query getItemsAtLocation($locationId: String!, $search: String, $first: Int, $after: String) {
+        getItemsAtLocation(locationId: $locationId, search: $search, first: $first, after: $after) {
+            edges {
+                node {
+                    item {
+                      item_id
+                      name
+                      sku
+                    }
+                    qty
                 }
             }
             pageInfo {

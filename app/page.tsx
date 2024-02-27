@@ -31,7 +31,7 @@ export default function Home() {
         <Link href='/pull' className="p-4 block">
           <div>
             <LuMoveUpRight className="mx-auto text-xl text-blue-500 my-2" />
-            <p>Pull Item for Service Call</p>
+            <p>Pull Item for Project</p>
           </div>
         </Link>
       </HomeCard>

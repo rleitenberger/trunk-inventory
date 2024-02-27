@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
-import type { PageInfo,ItemArgs, ItemEdge, ItemConnection, TransactionEdge } from '@/types/paginationTypes';
+import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
+import type { Item, Location, LocationItem, Transaction } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 
 export const resolvers = {
@@ -19,15 +20,14 @@ export const resolvers = {
                     name: search ? {
                         contains: search
                     } : undefined
-                }
+                },
+                orderBy: [
+                    { orderPriority: 'asc' },
+                    { name: 'asc' }
+                ]
             });
         },
-        getItems: async(_: any, {organizationId, search, first, after }: {
-            organizationId: string
-            search: string
-            first: number
-            after:string
-        }) => {
+        getItems: async(_: any, {organizationId, search, first, after }: ItemArgs) => {
             const take = first || 10;
             let cursorCondition = {};
             if (after) {
@@ -58,7 +58,7 @@ export const resolvers = {
             });
 
             const hasNextPage = items.length > take;
-            const edges: ItemEdge[] = (hasNextPage ? items.slice(0, -1) : items).map(item => ({
+            const edges: Edge<Item>[] = (hasNextPage ? items.slice(0, -1) : items).map(item => ({
                 node: item,
                 cursor: item.item_id, // Use the item_id as the cursor
             }));
@@ -100,13 +100,7 @@ export const resolvers = {
                 }
             });
         },
-        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after }: {
-            organizationId: string
-            locationId: string
-            itemId: string
-            first: number
-            after: string
-        }) => {
+        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType }: TransactionArgs) => {
             const take = first || 25;
             let cursorCondition = {};
             if (after) {
@@ -122,6 +116,7 @@ export const resolvers = {
                     AND: [
                         { organization_id: { equals: organizationId } },
                         { item_id: { equals: itemId ? itemId : undefined } },
+                        { transfer_type: { equals: transferType && transferType !== '--' ? transferType : undefined } },
                         {
                             OR: [
                                 { from_location: { equals: locationId ? locationId : undefined } },
@@ -138,12 +133,12 @@ export const resolvers = {
             });
 
             const hasNextPage = transactions.length > take;
-            const edges: TransactionEdge[] = (hasNextPage ? transactions.slice(0, -1) : transactions).map(transaction => ({
+            const edges: Edge<Transaction>[] = (hasNextPage ? transactions.slice(0, -1) : transactions).map(transaction => ({
                 node: transaction,
-                cursor: transaction.transaction_id, // Use the item_id as the cursor
+                cursor: transaction.transaction_id,
             }));
 
-            return { 
+            let transactionConnection: Connection<Transaction> = { 
                 edges: edges.map((item, index) => {
                     return{
                         node: item.node,
@@ -154,13 +149,85 @@ export const resolvers = {
                     hasNextPage: hasNextPage,
                     endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
                 }
+            };
+
+            return transactionConnection;
+        },
+        getItemsAtLocation: async (_: any, { locationId, search, first, after } : {
+            locationId: string
+            search?: string
+            first?: number
+            after?: string
+        }) => {
+            const take = first || 25;
+            let cursorCondition = {};
+
+            if (after) {
+                cursorCondition = {
+                    item_id: {
+                        gt: after
+                    }
+                }
             }
 
-            return transactions;
+            const items = await prisma.locations_items_qty.findMany({
+                where: {
+                    qty: {
+                        gt: 0
+                    },
+                    location_id: locationId,
+                    items: {
+                        name: {
+                            contains: search ? search : undefined,
+                        }
+                    }
+                },
+                select: {
+                    item_id: true,
+                    items: true,
+                    locations: true,
+                    qty: true
+                },
+                take: take + 1,
+                orderBy: {
+                    item_id: 'asc'
+                }
+            });
+
+
+            const hasNextPage = items.length > take;
+            const edges: Edge<LocationItem>[] = (hasNextPage ? items.slice(0, -1) : items).map(li => ({
+                node: {
+                    item: li.items,
+                    location: li.locations,
+                    qty: li.qty
+                },
+                cursor: li.item_id, // Use the item_id as the cursor
+            }));
+
+            let locationItemConnection: Connection<LocationItem> = {
+                edges: edges.map((item: any, index: number) => {
+                    return {
+                        node: item.node,
+                        cursor: item.node.item_id
+                    }
+                }),
+                pageInfo: {
+                    hasNextPage: hasNextPage,
+                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
+                }
+            }
+
+            return locationItemConnection;
+        },
+        getReasonsFields: async(_:any, { reasonId }: {
+            reasonId: string
+        }) => {
+            
         }
     },
     Mutation: {
-        createTransaction: async (_:any, { orgId, from, to, qty, itemId, reasonId, notes }: {
+        createTransaction: async (_:any, { orgId, from, to, qty, itemId, reasonId, notes, transferType, project }: {
             orgId: string
             from: string
             to: string
@@ -168,6 +235,8 @@ export const resolvers = {
             itemId: string
             reasonId: string
             notes?: string
+            transferType: string
+            project: string
         }) => {
             const newTransaction = await prisma.transactions.create({
                 data: {
@@ -178,7 +247,9 @@ export const resolvers = {
                     qty: qty,
                     item_id: itemId,
                     reason_id: reasonId,
-                    notes: notes ? notes : ''
+                    notes: notes ? notes : '',
+                    transfer_type: transferType,
+                    project_id: project
                 }
             });
 

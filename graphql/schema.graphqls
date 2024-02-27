@@ -10,11 +10,12 @@ type Query {
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
     getTransactionType(organizationId: String!, slug: String!): TransactionType
     getReasons(transactionTypeId: String!): [Reason]!
-    getTransactions(organizationId: String!, locationId: String, itemId: String, first: Int, after: String): TransactionConnection!
+    getTransactions(organizationId: String!, locationId: String, itemId: String, first: Int, after: String, transferType: String): TransactionConnection!
+    getItemsAtLocation(locationId: String!, search: String, first: Int, after: String): LocationItemConnection!
 }
 
 type Mutation {
-    createTransaction(orgId: String!, from: String!, to: String!, itemId: String!, reasonId: String!, qty: Int!, notes: String): String!
+    createTransaction(orgId: String!, from: String!, to: String!, itemId: String!, reasonId: String!, qty: Int!, notes: String, transferType: String!, project: String): String!
     createOrganization(name: String!): Organization
     createLocation(name: String!): Location
     createItem(name: String!, sku: String, description: String): Item
@@ -56,12 +57,22 @@ type Item {
 }
 
 type ItemConnection {
-    edges: [ItemEdge],
+    edges: [ItemEdge]
     pageInfo: PageInfo
 }
 
 type ItemEdge {
     node: Item!
+    cursor: String!
+}
+
+type LocationItemConnection {
+    edges: [LocationItemEdge]
+    pageInfo: PageInfo
+}
+
+type LocationItemEdge {
+    node: LocationItem!
     cursor: String!
 }
 
@@ -85,6 +96,7 @@ type Reason {
     created: String
     modified: String
     active: Boolean!
+    requires_project: Boolean!
 }
 
 type Transaction {
@@ -97,14 +109,22 @@ type Transaction {
     reason: Reason!
     notes: String!
     created: String!
+    project: String
+    transfer_type: String!
 }
 
 type TransactionConnection {
-    edges: [TransactionEdge],
+    edges: [TransactionEdge]
     pageInfo: PageInfo
 }
 
 type TransactionEdge {
     node: Transaction!
     cursor: String!
+}
+
+type LocationItem {
+    item: Item
+    location: Location
+    qty: Int!
 }
