@@ -12,6 +12,7 @@ type Query {
     getReasons(transactionTypeId: String!): [Reason]!
     getTransactions(organizationId: String!, locationId: String, itemId: String, first: Int, after: String, transferType: String): TransactionConnection!
     getItemsAtLocation(locationId: String!, search: String, first: Int, after: String): LocationItemConnection!
+    getTransactionTypes(organizationId: String): [TransactionType]!
 }
 
 type Mutation {
@@ -20,6 +21,9 @@ type Mutation {
     createLocation(name: String!): Location
     createItem(name: String!, sku: String, description: String): Item
     createUser(name: String!, email:String!, username:String!, password:String!): User
+    
+    updateReasonName(reasonId: String!, newName: String!): Boolean
+    updateReasonField(reasonFieldId: String!, fieldName: String!, fieldType: String!): ReasonFields
 }
 
 type Organization {
@@ -135,4 +139,5 @@ type ReasonFields {
     reason_id: String!
     field_name: String!
     field_type: String!
+    updated: Boolean
 }

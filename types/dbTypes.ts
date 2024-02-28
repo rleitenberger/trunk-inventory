@@ -52,4 +52,16 @@ export type ReasonsFields = {
     reasons_fields_id: string;
     field_name: string;
     field_type: string;
+    updated?: boolean;
+}
+
+export type DynamicInputField = {
+    field_type: string
+    field_name: string
+}
+
+export type TransactionType = {
+    type: string;
+    transaction_type_id: string
+    description?: string
 }

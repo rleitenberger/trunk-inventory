@@ -1,17 +1,21 @@
 import { PageInfo } from "@/types/paginationTypes"
 import DropDownSearch from "./DropDownSearch"
-import { ApolloClient, ApolloQueryResult } from "@apollo/client"
+import { ApolloClient, ApolloQueryResult, useApolloClient } from "@apollo/client"
 import { getItems, getItemsAtLocation } from "@/graphql/queries"
-import { PaginatedDropDownSearchOptions } from "@/types/DropDownSearchOption"
+import { DropDownSearchOption, PaginatedDropDownSearchOptions } from "@/types/DropDownSearchOption"
+import useOrganization from "../providers/useOrganization"
+import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown"
 
-export default function ItemSearch ({ name='item', organizationId, apolloClient, onChange, title, locationId=undefined }: {
-    name: string
-    apolloClient: ApolloClient<object>
-    organizationId: string
-    onChange: (value: string|null, name: string) => void
-    title?: string
+export default function ItemSearch ({ val, fn, displayOptions, locationId=undefined }: {
+    displayOptions: DropDownDisplayGroup
+    fn: DropDownValueFunctionGroup
+    val: DropDownSearchOption,
     locationId?: string
 }) {
+
+    
+    const apolloClient = useApolloClient();
+    const organizationId = useOrganization();
 
     const fetchItems = async(search: string, pageInfo: PageInfo|undefined = undefined): Promise<PaginatedDropDownSearchOptions> => {
         
@@ -77,11 +81,14 @@ export default function ItemSearch ({ name='item', organizationId, apolloClient,
 
     return (
         <>
-            <label className='text-sm'>{title ? title : 'Item'}</label>
+            <label className='text-sm'>{displayOptions?.title ? displayOptions.title : 'Item'}</label>
             <DropDownSearch
-                name={name}
-                refetch={fetchItems}
-                onChange={onChange} />
+                fn={{
+                    refetch: fetchItems,
+                    ...fn
+                }}
+                objectName={displayOptions.name}
+                val={val} />
         </>
     )
 }

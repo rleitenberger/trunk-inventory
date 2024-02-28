@@ -5,16 +5,21 @@ import Loader from '../Loader';
 import OutsideClickHandler from '../OutsideClickHandler';
 import { PageInfo } from '@/types/paginationTypes';
 import { title } from 'process';
-import { DropDownDisplayGroup, DropDownFunctionGroup } from '@/types/dropDown';
 
 const MAX_DISPLAY: number = 10;
 
-export default function DropDownSearch({ val, fn, objectName }: { 
-    val: DropDownSearchOption
-    fn: DropDownFunctionGroup
-    objectName: string
+export default function DropDownSearch({ refetch, onChange, name, defaultValue, fieldName=undefined }: {
+    refetch: (search: string, pageInfo?: PageInfo) => Promise<any>
+    onChange: (value: string|null, name: string) => void,
+    name: string,
+    defaultValue?: DropDownSearchOption
+    fieldName?: string
 }) {
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [selectedOption, setSelectedOption] = useState<DropDownSearchOption>(defaultValue === undefined ? {
+        name: '',
+        value: '',
+    } : defaultValue);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const textBoxRef = useRef<HTMLInputElement>(null);
@@ -28,6 +33,11 @@ export default function DropDownSearch({ val, fn, objectName }: {
         return pageInfo?.hasNextPage;
     }, [pageInfo]);
 
+    const [showWhenEmpty, setShowWhenEmpty] = useState<DropDownSearchOption[]>([]);
+    const [showWhenEmptyPageInfo, setShowWhenEmptyPageInfo] = useState<PageInfo>({
+        endCursor: null,
+        hasNextPage: false
+    });
     const [focusedItem, setFocusedItem] = useState<string>('');
     const [isLoadingScroll, setIsLoadingScroll] = useState<boolean>(false);
     const scrollRef = useRef<HTMLInputElement>(null);
@@ -59,6 +69,28 @@ export default function DropDownSearch({ val, fn, objectName }: {
             scrollElement.removeEventListener('scroll', checkScrollEnd);
         }
     }, [checkScrollEnd, scrollRef.current]);
+
+    async function fetchEmpty() {
+        return;
+
+
+        if (!showWhenEmpty.length) {
+            const opts = await refetch('', pageInfo);
+
+            if ('nodes' in opts){
+                setShowWhenEmpty(opts.nodes);
+                setShowWhenEmptyPageInfo(opts.pageInfo);
+                setOptions(opts.nodes);
+                setPageInfo(opts.pageInfo);
+                return;
+            }
+
+            setShowWhenEmpty(opts);
+            setOptions(opts);
+        } else {
+            setOptions(showWhenEmpty);
+        }
+    }
 
     const onClick = (): void => {
         setIsSearching(true);
@@ -109,7 +141,10 @@ export default function DropDownSearch({ val, fn, objectName }: {
 
     const clearSelectedOption = (): void => {
         setSearchQuery('');
-        fn.clear();
+        setSelectedOption({
+            name: '',
+            value: ''
+        });
     }
 
     useEffect(() => {
@@ -119,6 +154,12 @@ export default function DropDownSearch({ val, fn, objectName }: {
 
         focusTextBox()
     }, [isSearching]);
+
+    const updateSelectedOption = (e: any): void => {
+        setSelectedOption(e);
+        onChange(e.value, name);
+    }
+    
 
     useEffect(() => {
         if (searchQuery.length <= 2){
@@ -133,7 +174,7 @@ export default function DropDownSearch({ val, fn, objectName }: {
         setIsLoading(true);
         setPageInfo(newPageInfo);
         const updateOptions = async (): Promise<any> => {
-            const res: any = await fn.refetch(searchQuery, newPageInfo);
+            const res: any = await refetch(searchQuery, newPageInfo);
 
             setIsLoading(false);
 
@@ -162,7 +203,7 @@ export default function DropDownSearch({ val, fn, objectName }: {
     }, [options]);
 
     const setOption = (e: DropDownSearchOption): void => {
-        fn.onChange(e, objectName);
+        updateSelectedOption(e);
         setIsSearching(false);
     }
 
@@ -176,7 +217,7 @@ export default function DropDownSearch({ val, fn, objectName }: {
             return;
         }
 
-        const opts = await fn.refetch(searchQuery, pageInfo);
+        const opts = await refetch(searchQuery, pageInfo);
 
         if ('nodes' in opts){
             setOptions([
@@ -256,11 +297,11 @@ export default function DropDownSearch({ val, fn, objectName }: {
                 <> 
                     <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
                         cursor-pointer rounded-lg text-sm' onClick={onClick}>
-                        {val?.value ? (
+                        {selectedOption?.value ? (
                             <> 
                                 <button className='bg-gray-100 px-2 rounded-sm flex items-center gap-2'
                                     onClick={clearSelectedOption} title="Clear selection">
-                                    {val.name}
+                                    {selectedOption.name}
                                     <BiX className='text-lg text-red-600' />
                                 </button>
                             </>

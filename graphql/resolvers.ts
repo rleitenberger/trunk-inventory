@@ -227,6 +227,17 @@ export const resolvers = {
             }
 
             return locationItemConnection;
+        },
+        getTransactionTypes: async (_:any, { organizationId }: {
+            organizationId: string
+        }) => {
+            return await prisma.transaction_types.findMany({
+                where: {
+                    organization_id: {
+                        equals: organizationId
+                    }
+                }
+            });
         }
     },
     Mutation: {
@@ -297,6 +308,42 @@ export const resolvers = {
 
             const { transaction_id } = newTransaction;
             return transaction_id;
+        },
+        updateReasonName: async (_: any, { reasonId, newName }: {
+            reasonId: string
+            newName: string
+        }) => {
+            const res = await prisma.reasons.update({
+                data: {
+                    name: newName
+                },
+                where: {
+                    reason_id: reasonId
+                }
+            });
+
+            return res?.name === newName;
+        },
+        updateReasonField: async(_: any, { reasonFieldId, fieldName, fieldType }: {
+            reasonFieldId: string
+            fieldName: string,
+            fieldType: string
+        }) => {
+            const res = await prisma.reasons_fields.update({
+                data: {
+                    field_name: fieldName,
+                    field_type: fieldType
+                },
+                where: {
+                    reasons_fields_id: reasonFieldId
+                }
+            });
+
+            return {
+                ...res,
+                updated: res?.field_name === fieldName
+                    && res?.field_type === fieldType
+            };
         }
     },
     Transaction: {

@@ -4,22 +4,29 @@ import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
+import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 export default function PageTransactions() {
     const apollo = useApolloClient();
     const [transactionOptions, setTransactionOptions] = useState({
-        locationId: '',
-        itemId: '',
+        locationId: {
+            name: '',
+            value: ''
+        },
+        itemId: {
+            name: '',
+            value: ''
+        },
         transferType: '--'
     });
 
     const [transactions, setTransactions] = useState([]);
-    const onFieldChange = (value: string|null, name: string): void => {
+    const onFieldChange = (e: DropDownSearchOption, objectName: string): void => {
         setTransactionOptions({
             ...transactionOptions,
-            [name]:value
+            [objectName]: e
         });
     }
     const [pageInfo, setPageInfo] = useState({
@@ -51,8 +58,8 @@ export default function PageTransactions() {
                 query: getTransactions,
                 variables: {
                     organizationId: orgId,
-                    locationId: transactionOptions.locationId,
-                    itemId: transactionOptions.itemId,
+                    locationId: transactionOptions.locationId.value,
+                    itemId: transactionOptions.itemId.value,
                     first: 25,
                     transferType: transactionOptions.transferType
                 }
@@ -71,6 +78,26 @@ export default function PageTransactions() {
         loadTransactions();
     }, [transactionOptions, orgId]);
 
+    const clearLocation = (): void => {
+        setTransactionOptions({
+            ...transactionOptions,
+            locationId: {
+                name: '',
+                value: ''
+            }
+        });
+    }
+
+    const clearItem = (): void => {
+        setTransactionOptions({
+            ...transactionOptions,
+            itemId: {
+                name: '',
+                value: ''
+            }
+        });
+    }
+
     return (
         <>
             <h1 className='text-xl font-medium'>Transactions</h1>
@@ -80,17 +107,25 @@ export default function PageTransactions() {
                 <div className="grid gap-2 grid-cols-12">
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
                         <LocationSearch
-                            onChange={onFieldChange}
-                            name='locationId'
-                            apolloClient={apollo}
-                            organizationId={orgId} />
+                            fn={{
+                                onChange: onFieldChange,
+                                clear: clearLocation
+                            }}
+                            displayOptions={{
+                                name: 'locationId'
+                            }}
+                            val={transactionOptions.locationId} />
                     </div>
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
                         <ItemSearch
-                            onChange={onFieldChange}
-                            name='itemId'
-                            apolloClient={apollo}
-                            organizationId={orgId} />
+                            fn={{
+                                onChange: onFieldChange,
+                                clear: clearItem
+                            }}
+                            displayOptions={{
+                                name: 'itemId'
+                            }}
+                            val={transactionOptions.itemId} />
                     </div>
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
                         <label className='text-sm'>Transfer Type</label>

@@ -3,42 +3,40 @@ import LocationSearch from "./LocationSearch";
 import { ApolloClient } from "@apollo/client";
 import useOrganization from "../providers/useOrganization";
 import ItemSearch from "./ItemSearch";
+import { DropDownValueFunctionGroup } from "@/types/dropDown";
+import { DropDownSearchOption } from "@/types/DropDownSearchOption";
+import { DynamicInputField } from "@/types/dbTypes";
 
-export default function DynamicInputField({ fieldType, fieldName, onChange, apolloClient,
-    organizationId }: {
-    fieldType: string;
-    fieldName: string;
-    onChange: CallableFunction
-    apolloClient: ApolloClient<object>
-    organizationId: string
+
+export default function DynamicInputField({ fn, field, val }: {
+    fn: DropDownValueFunctionGroup
+    field: DynamicInputField
+    val: DropDownSearchOption
 }) {
-    const [val, setVal] = useState<string>('');
-
-    const handleOnNullChange = (newValue: string|null, name:string): any => {
-        updateVal(newValue === null ? '' : newValue);
-    }
-
-    const updateVal = (newValue: string): any => {
-        setVal(newValue);
-    }
-
     const GetComponent = () => {
-        switch (fieldType) {
+        switch (field.field_type) {
             case 'textarea':
                 break;
             case 'itemSearch':
-                return <ItemSearch name={fieldName} apolloClient={apolloClient} organizationId={organizationId}
-                    onChange={handleOnNullChange} title={fieldName} />
+                return <ItemSearch
+                            fn={fn} 
+                            val={val} 
+                            displayOptions={{
+                                name:field.field_name,
+                                title:field.field_name
+                            }} />
             case 'locationSearch':
-                return <LocationSearch name={fieldName} apolloClient={apolloClient} organizationId={organizationId}
-                    onChange={handleOnNullChange} title={fieldName} />
+                return <LocationSearch
+                            fn={fn}
+                            val={val}
+                            displayOptions={{
+                                name:field.field_name,
+                                title:field.field_name
+                            }} />
             default:
                 return (
                     <>
-                        <label className="text-sm">{fieldName}</label>
-                        <input type='text' value={val} onChange={(e) => {
-                            updateVal(e.target.value)
-                        }} />
+                        <label className="text-sm">{field.field_name}</label>
                     </>
                 )
         }

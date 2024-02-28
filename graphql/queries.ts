@@ -40,6 +40,16 @@ export const getTransactionType = gql`
     }
 `;
 
+export const getTransactionTypes = gql`
+    query getTransactionTypes($organizationId: String!) {
+        getTransactionTypes (organizationId: $organizationId) {
+            transaction_type_id
+            type
+            description
+        }
+    }
+`
+
 export const getReasons = gql`
     query getReasons($transactionTypeId: String!) {
         getReasons(transactionTypeId: $transactionTypeId) {

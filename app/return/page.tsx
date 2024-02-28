@@ -1,9 +1,10 @@
-import React from 'react';
+'use client';
+
+import MoveItemsForm from "@/components/form/MoveItemsForm";
 
 export default function PageReturn() {
+
     return (
-        <>
-            <h1 className='text-xl font-medium'>Return Item from Project</h1>
-        </>
+        <MoveItemsForm transferType="return" />
     )
 }
