@@ -1,3 +1,19 @@
+export interface Organization {
+    organization_id: string;
+    name: string;
+}
+
+export interface User {
+    user_id: string;
+    name: string;
+    username: string;
+    email: string;
+    created?: Date;
+    modified?: Date;
+    password?: string;
+    active?: boolean;
+}
+
 export interface Transaction {
     transaction_id: string;
     organization_id: string;
@@ -43,8 +59,9 @@ export type Reason = {
     reason_id: string
     name: string
     description: string|null
-    requires_project: boolean
+    sends_email: boolean
     reasons_fields: ReasonsFields[];
+    transaction_type_id: string;
 }
 
 export type ReasonsFields = {
@@ -53,6 +70,7 @@ export type ReasonsFields = {
     field_name: string;
     field_type: string;
     updated?: boolean;
+    conditions: Condition[];
 }
 
 export type DynamicInputField = {
@@ -64,4 +82,33 @@ export type TransactionType = {
     type: string;
     transaction_type_id: string
     description?: string
+}
+
+export type OrgUser = {
+    organization: Organization;
+    user: User;
+}
+
+export interface Condition {
+    condition_id: string;
+    condition_field: string;
+    dependent_field: string;
+    required_value: string;
+    condition_type_id: string;
+    active?:boolean;
+    created?: Date;
+    modified?: Date;
+}
+
+export interface ConditionType {
+    condition_type_id: string;
+    target_data_type: string;
+    type: string;
+    name: string;
+}
+
+export interface FieldType {
+    field_type_id: string;
+    name: string;
+    data_type: string;
 }

@@ -1,10 +1,86 @@
 import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Item, Location, LocationItem, Transaction } from "@/types/dbTypes";
+import type { Condition, Item, Location, LocationItem, Transaction, User } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 
 export const resolvers = {
     Query: {
+        getUsers: async(_: any, { organizationId, role, search, first, after }: {
+            organizationId: string,
+            role?: string
+            search?: string
+            first?: number
+            after?: string
+        }) => {
+            const take = first || 25;
+            let cursorCondition = {};
+            if (after) {
+                cursorCondition = {
+                    item_id: {
+                        gt: after,
+                    },
+                };
+            }
+
+            const users = await prisma.organization_users.findMany({
+                where: {
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { active: { equals: true } },
+                        {
+                            users: { 
+                                AND: [
+                                    { active: { equals: true } },
+                                    {
+                                        OR: [
+                                            { username: { contains: search ? search: undefined } },
+                                            { name: { contains: search ? search : undefined } },
+                                            { email: { contains: search ? search : undefined } }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                select: {
+                    user_id: true,
+                    users: {
+                        select: {
+                            user_id: true,
+                            username: true,
+                            email: true,
+                            name:true
+                        }
+                    }
+                }
+            });
+
+            
+
+            const hasNextPage = users.length > take;
+            const edges: Edge<User>[] = (hasNextPage ? users.slice(0, -1) : users).map(user => {
+                return {
+                     node: user.users,
+                    cursor: user.user_id
+                }
+            });
+
+            const res = { 
+                edges: edges.map((item, index) => {
+                    return{
+                        node: item.node,
+                        cursor: item.node.user_id
+                    }
+                }),
+                pageInfo: {
+                    hasNextPage: hasNextPage,
+                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
+                }
+            }
+
+            return res;
+        },
         getOrganizations: async () => {
             return await prisma.organizations.findMany();
         },
@@ -14,12 +90,10 @@ export const resolvers = {
         }) => {
             return await prisma.locations.findMany({
                 where: {
-                    organization_id: {
-                        equals: organizationId
-                    },
-                    name: search ? {
-                        contains: search
-                    } : undefined
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { name: { contains: search ? search : undefined } }
+                    ]
                 },
                 orderBy: [
                     { orderPriority: 'asc' },
@@ -94,14 +168,15 @@ export const resolvers = {
         }) => {
             const gg = await prisma.reasons.findMany({
                 where: {
-                    transaction_type_id: {
-                        equals: transactionTypeId
-                    }
+                    AND: [
+                        { transaction_type_id: { equals: transactionTypeId } },
+                        { active: { equals: true } }
+                    ]
                 },
                 select: {
                     reason_id: true,
                     name: true,
-                    requires_project: true,
+                    sends_email:true,
                     reasons_fields: true,
                 }
             });
@@ -180,15 +255,12 @@ export const resolvers = {
 
             const items = await prisma.locations_items_qty.findMany({
                 where: {
-                    qty: {
-                        gt: 0
-                    },
-                    location_id: locationId,
-                    items: {
-                        name: {
-                            contains: search ? search : undefined,
-                        }
-                    }
+                    AND: [
+                        { qty: { gt: 0 } },
+                        { location_id: { equals: locationId } },
+                        { items: { name: { contains: search ? search : undefined } } },
+                        { locations: { active: { equals: true } } }
+                    ]
                 },
                 select: {
                     item_id: true,
@@ -236,6 +308,45 @@ export const resolvers = {
                     organization_id: {
                         equals: organizationId
                     }
+                }
+            });
+        },
+        getConditionTypes: async(_:any, { targetDataType }: {
+            targetDataType: string
+        }) => {
+            return await prisma.condition_types.findMany({
+                where: {
+                    target_data_type: {
+                        equals: targetDataType
+                    }
+                }
+            });
+        },
+        getFieldConditions: async(_:any, { conditionField }: {
+            conditionField: string
+        }) => {
+            return prisma.conditions.findMany({
+                where: {
+                    AND: [
+                        { condition_field: { equals: conditionField } },
+                        { active: { equals: true } }
+                    ]
+                }
+            });
+        },
+        getFieldTypes: async(_:any) => {
+            return prisma.field_types.findMany();
+        },
+        getOtherReasonFields: async(_:any, { reasonId, reasonFieldId }: {
+            reasonId: string;
+            reasonFieldId?: string;
+        }) => {
+            return await prisma.reasons_fields.findMany({
+                where: {
+                    AND: [
+                        { reason_id: { equals: reasonId } },
+                        { reasons_fields_id: { not: reasonFieldId } }
+                    ]
                 }
             });
         }
@@ -324,6 +435,26 @@ export const resolvers = {
 
             return res?.name === newName;
         },
+        createReasonField: async(_:any, { reasonId, fieldName, fieldType, conditions }: {
+            reasonId: string;
+            fieldName: string;
+            fieldType: string;
+            conditions: Condition[]
+        }) => {
+
+            console.log(conditions);
+
+            const res = await prisma.reasons_fields.create({
+                data: {
+                    reasons_fields_id: randomUUID(),
+                    reason_id: reasonId,
+                    field_name: fieldName,
+                    field_type: fieldType
+                }
+            });
+
+            return res;
+        },
         updateReasonField: async(_: any, { reasonFieldId, fieldName, fieldType }: {
             reasonFieldId: string
             fieldName: string,
@@ -344,7 +475,115 @@ export const resolvers = {
                 updated: res?.field_name === fieldName
                     && res?.field_type === fieldType
             };
-        }
+        },
+        deleteReasonField: async(_:any, { reasonFieldId }: {
+            reasonFieldId: string
+        }) => {
+            const res = await prisma.reasons_fields.update({
+                data: {
+                    active: false
+                },
+                where: {
+                    reasons_fields_id: reasonFieldId
+                },
+                select: {
+                    active: true
+                }
+            });
+
+            return !res.active;
+        },
+        createReason: async (_:any, { reasonName, transactionTypeId, description }: {
+            reasonName: string;
+            transactionTypeId: string;
+            description?: string;
+        }) => {
+            const res = await prisma.reasons.create({
+                data: {
+                    reason_id: randomUUID(),
+                    transaction_type_id: transactionTypeId,
+                    name: reasonName,
+                    description: description
+                }
+            });
+
+            return res;
+        },
+        deleteReason: async(_:any, { reasonId }: {
+            reasonId: string
+        }) => {
+            const res = await prisma.reasons.update({
+                data: {
+                    active: false
+                },
+                where: {
+                    reason_id: reasonId
+                }
+            });
+
+            return res.active === false;
+        },
+        updateReasonSendsEmail: async (_:any, { reasonId, sendsEmail }: {
+            reasonId: string;
+            sendsEmail: boolean;
+        }) => {
+            const res = await prisma.reasons.update({
+                data: {
+                    sends_email: sendsEmail
+                },
+                where: {
+                    reason_id: reasonId
+                }
+            });
+
+            return res.sends_email === sendsEmail;
+        },
+        createFieldCondition: async(_: any, { conditionField, dependentField, requiredValue, conditionTypeId }: {
+            conditionField: string;
+            dependentField: string;
+            requiredValue: string;
+            conditionTypeId: string;
+        }) => {
+            return await prisma.conditions.create({
+                data: {
+                    condition_id: randomUUID(),
+                    condition_field: conditionField,
+                    dependent_field: dependentField,
+                    required_value: requiredValue,
+                    condition_type_id: conditionTypeId
+                }
+            });
+        },
+        updateFieldCondition: async(_: any, { conditionId, requiredValue, conditionTypeId }: {
+            conditionId: string;
+            requiredValue: string;
+            conditionTypeId: string;
+        }) => {
+            const res = await prisma.conditions.update({
+                data: {
+                    required_value: requiredValue,
+                    condition_type_id: conditionTypeId
+                },
+                where: {
+                    condition_id: conditionId
+                }
+            });
+
+            return res.required_value === requiredValue &&
+                res.condition_type_id === conditionTypeId;
+        },
+        deleteFieldCondition: async(_: any, { conditionId }: {
+            conditionId: string
+        }) => {
+            const res = await prisma.conditions.update({
+                data: {
+                    active: false
+                },
+                where: {
+                    condition_id: conditionId
+                }
+            });
+        },
     },
     Transaction: {
         reason: async (parent: any, args: any, context: any) => {
@@ -363,6 +602,25 @@ export const resolvers = {
     Reason: {
         reasons_fields: async(parent: any, args: any, context: any) => {
             return context.loaders.reasonFields.load(parent.reason_id);
+        },
+        transaction_type: async(parent:any, args:any, context:any) => {
+            return context.loaders.transactionTypes.load(parent.transaction_type_id);
+        }
+    },
+    Condition: {
+        condition_field: async(parent: any, args: any, context: any) => {
+            return context.loaders.reasonsFields.load(parent.condition_field);
+        },
+        dependent_field: async(parent: any, args: any, context: any) => {
+            return context.loaders.reasonsFields.load(parent.dependent_field);
+        },
+        condition_type: async (parent: any, args: any, context: any) => {
+            return context.loaders.conditionTypes.load(parent.condition_type_id);
+        }
+    },
+    ReasonFields: {
+        conditions: async (parent:any, args: any, context: any) => {
+            return context.loaders.condition.load(parent.reasons_fields_id);
         }
     }
 }

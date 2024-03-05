@@ -27,7 +27,6 @@ export default function MoveItemsForm({ transferType }: {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [reasons, setReasons] = useState<Reason[]>([]);
     const [transactionId, setTransactionId] = useState<string>('');
-    const [requiresProject, setRequiresProject] = useState<boolean>(false);
 
     const onFieldChange = (e:DropDownSearchOption, objectName: string): void  => {
         setTransferOptions({
@@ -161,13 +160,6 @@ export default function MoveItemsForm({ transferType }: {
 
         const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(reasonId);
         const selectedReason: Reason = reasons[index];
-
-        if (selectedReason.requires_project) {
-            setRequiresProject(true);
-            return;
-        }
-
-        setRequiresProject(false);
         setTransferOptions({
             ...transferOptions,
             project: {
@@ -216,7 +208,7 @@ export default function MoveItemsForm({ transferType }: {
 
     return (
         <>
-            <h1 className='text-xl font-medium'>Transfer to Trunk Inventory</h1>
+            <h1 className='text-xl font-medium'>{getTitle()}</h1>
             <div className='grid grid-cols-1 gap-2'>
                 <div className='grid grid-cols-12 gap-2'>
                     <div className='col-span-12 md:col-span-6'>
@@ -285,13 +277,6 @@ export default function MoveItemsForm({ transferType }: {
                             })}
                         </select>
                     </div>
-                    {requiresProject && (
-                        <div className='col-span-12 md:col-span-6'>
-                            <p className='text-sm'>Project</p>
-                            <input type='text' value={transferOptions.project.value} onChange={onProjectChange}
-                                className='border border-slate-300 px-2 py-1 text-sm outline-none rounded-lg w-full' />
-                        </div>
-                    )}
                 </div>
                 <div className="grid grid-cols-12 gap-2">
                     <div className='col-span-12 md:col-span-6'>

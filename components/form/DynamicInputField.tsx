@@ -1,11 +1,11 @@
 import { useState } from "react";
 import LocationSearch from "./LocationSearch";
-import { ApolloClient } from "@apollo/client";
-import useOrganization from "../providers/useOrganization";
 import ItemSearch from "./ItemSearch";
 import { DropDownValueFunctionGroup } from "@/types/dropDown";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { DynamicInputField } from "@/types/dbTypes";
+import Textarea from "./Textarea";
+import Checkbox from "./Checkbox";
 
 
 export default function DynamicInputField({ fn, field, val }: {
@@ -16,7 +16,10 @@ export default function DynamicInputField({ fn, field, val }: {
     const GetComponent = () => {
         switch (field.field_type) {
             case 'textarea':
-                break;
+                return <Textarea
+                            val={val}
+                            fn={fn}
+                            name={field.field_name} />
             case 'itemSearch':
                 return <ItemSearch
                             fn={fn} 
@@ -33,6 +36,15 @@ export default function DynamicInputField({ fn, field, val }: {
                                 name:field.field_name,
                                 title:field.field_name
                             }} />
+            case 'checkbox':
+                return <Checkbox
+                            fn={fn}
+                            val={val}
+                            displayOptions={{
+                                name:field.field_name,
+                                title: field.field_name
+                            }} />
+                break;
             default:
                 return (
                     <>

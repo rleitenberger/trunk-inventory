@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-    getUsers: [User]!
+    getUsers(organizationId: String!, role: String, search: String): UserConnection!
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
@@ -13,6 +13,10 @@ type Query {
     getTransactions(organizationId: String!, locationId: String, itemId: String, first: Int, after: String, transferType: String): TransactionConnection!
     getItemsAtLocation(locationId: String!, search: String, first: Int, after: String): LocationItemConnection!
     getTransactionTypes(organizationId: String): [TransactionType]!
+    getConditionTypes(targetDataType: String!): [ConditionType]!
+    getFieldConditions(conditionField: String!): [Condition]!
+    getFieldTypes: [FieldType]!
+    getOtherReasonFields(reasonId: String!, reasonFieldId: String): [ReasonFields]!
 }
 
 type Mutation {
@@ -22,8 +26,18 @@ type Mutation {
     createItem(name: String!, sku: String, description: String): Item
     createUser(name: String!, email:String!, username:String!, password:String!): User
     
+    createReason(reasonName: String!, transactionTypeId: String!, description: String): Reason
     updateReasonName(reasonId: String!, newName: String!): Boolean
-    updateReasonField(reasonFieldId: String!, fieldName: String!, fieldType: String!): ReasonFields
+    updateReasonSendsEmail(reasonId: String!, sendsEmail: Boolean!): Boolean
+    deleteReason(reasonId: String!): Boolean
+
+    createReasonField(reasonId: String!, fieldName: String!, fieldType: String!, conditions: [ConditionInput]!): ReasonFields
+    updateReasonField(reasonFieldId: String!, fieldName: String!, fieldType: String!, conditions: [ConditionInput]!): ReasonFields
+    deleteReasonField(reasonFieldId: String!): Boolean
+
+    createFieldCondition(conditionField: String!, dependentField: String!, requiredValue: String!, conditionTypeId: String!): Condition
+    updateFieldCondition(conditionId: String!, requiredValue: String!, conditionTypeId: String!): Boolean
+    deleteFieldCondition(conditionId: String): Boolean
 }
 
 type Organization {
@@ -36,9 +50,10 @@ type Organization {
 }
 
 type User {
-    user_id: String
-    name: String
-    email: String
+    user_id: String!
+    name: String!
+    username: String!
+    email: String!
     created: String
     active: Boolean
 }
@@ -95,12 +110,13 @@ type TransactionType {
 type Reason {
     reason_id: String!
     transaction_type_id: String!
+    transaction_type: TransactionType!
     name: String!
     description: String
     created: String
     modified: String
     active: Boolean!
-    requires_project: Boolean!
+    sends_email: Boolean!
     reasons_fields: [ReasonFields]!
 }
 
@@ -140,4 +156,46 @@ type ReasonFields {
     field_name: String!
     field_type: String!
     updated: Boolean
+    conditions: [Condition]!
+}
+
+type UserConnection {
+    edges: [UserEdge]
+    pageInfo: PageInfo
+}
+
+type UserEdge {
+    node: User!
+    cursor: String!
+}
+
+type ConditionType {
+    condition_type_id: String!
+    target_data_type: String!
+    type: String!
+    name: String!
+}
+
+type Condition {
+    condition_id: String!
+    condition_field: ReasonFields!
+    dependent_field: ReasonFields!
+    required_value: String!
+    condition_type_id: String!
+    condition_type: ConditionType!
+    active: Boolean!
+    created: String!
+    modified: String!
+}
+
+type FieldType {
+    field_type_id: String!
+    name: String!
+    data_type: String!
+}
+
+input ConditionInput {
+    dependent_field: String!
+    required_value: String!
+    condition_type_id: String!
 }

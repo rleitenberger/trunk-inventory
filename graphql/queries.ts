@@ -55,11 +55,15 @@ export const getReasons = gql`
         getReasons(transactionTypeId: $transactionTypeId) {
             reason_id
             name
-            requires_project
+            sends_email
             reasons_fields {
                 reasons_fields_id
+                reason_id
                 field_name
                 field_type
+                conditions {
+                    condition_id
+                }
             }
         }
     }
@@ -116,6 +120,53 @@ export const getItemsAtLocation = gql`
                 hasNextPage
                 endCursor
             }
+        }
+    }
+`;
+
+export const getUsers = gql`
+    query getUsers($organizationId: String!, $role: String, $search: String) {
+        getUsers(organizationId: $organizationId, role: $role, search: $search) {
+            user_id
+            name
+            username
+            email
+        }
+    }
+`;
+
+export const getConditionTypes = gql`
+    query getConditionTypes($targetDataType: String!) {
+        getConditionTypes(targetDataType: $targetDataType) {
+            condition_type_id
+            name
+            type
+        }
+    }
+`;
+
+export const getFieldConditions = gql`
+    query getFieldCondition($conditionField: String!) {
+        getFieldConditions(conditionField: $conditionField)
+    }
+`;
+
+export const getFieldTypes = gql`
+    query getFieldTypes {
+        getFieldTypes {
+            field_type_id
+            name
+            data_type
+        }
+    }
+`;
+
+export const getOtherReasonFields = gql`
+    query getOtherReasonFields($reasonId: String!, $reasonFieldId: String) {
+        getOtherReasonFields(reasonId: $reasonId, reasonFieldId: $reasonFieldId) {
+            reasons_fields_id
+            field_name
+            field_type
         }
     }
 `;

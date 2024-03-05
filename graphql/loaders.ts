@@ -4,9 +4,10 @@ import prisma from '@/lib/prisma';
 const batchLocations = async (locationIds: any) => {
     const locations = await prisma.locations.findMany({
         where: {
-            location_id: {
-                in: locationIds
-            }
+            AND: [
+                { location_id: { in: locationIds } },
+                { active: { equals: true } }
+            ]
         }
     });
 
@@ -56,9 +57,10 @@ const batchTransactions = async (transactionIds:any) => {
 const batchReasons = async (reasonIds: any) => {
     const reasons = await prisma.reasons.findMany({
         where: {
-            reason_id: {
-                in: reasonIds
-            }
+            AND: [
+                { reason_id: { in: reasonIds } },
+                { active: { equals: true } }
+            ]
         }
     });
 
@@ -73,9 +75,10 @@ const batchReasons = async (reasonIds: any) => {
 const batchReasonsFields = async(reasonsFieldsIds: any) => {
     const reasonsFields = await prisma.reasons_fields.findMany({
         where: {
-            reason_id: {
-                in: reasonsFieldsIds
-            }
+            AND: [
+                { reason_id: { in: reasonsFieldsIds } },
+                { active: { equals: true } }
+            ]
         }
     });
 
@@ -91,8 +94,53 @@ const batchReasonsFields = async(reasonsFieldsIds: any) => {
     return res;
 }
 
+const batchTransactionTypes = async(transactionTypeIds: any) => {
+    const transactionTypes = await prisma.transaction_types.findMany({
+        where: {
+            transaction_type_id: {
+                in: transactionTypeIds
+            },
+        }
+    });
+
+    const transactionTypesMap: any = {};
+    transactionTypes.forEach((transactionType) => {
+        if (!transactionTypesMap[transactionType.transaction_type_id]) {
+            transactionTypesMap[transactionType.transaction_type_id] = [];
+        }
+        transactionTypesMap[transactionType.transaction_type_id].push(transactionType);
+    })
+
+    const res = transactionTypeIds.map((id: string) => transactionTypesMap[id] ?? []);
+    return res;
+}
+
+const batchConditions = async (reasonFieldsIds: any) => {
+    const conditions = await prisma.conditions.findMany({
+        where: {
+            AND: [
+                { condition_field: { in: reasonFieldsIds } },
+                { active: { equals: true } }
+            ]
+        }
+    });
+
+    const conditionsMap: any = {};
+    conditions.forEach((condition) => {
+        if (!conditionsMap[condition.condition_id]){
+            conditionsMap[condition.condition_id] = [];
+        }
+        conditionsMap[condition.condition_id].push(condition);
+    })
+
+    const res = reasonFieldsIds.map((id: string) => conditionsMap[id] ?? []);
+    return res;
+}
+
 export const transactionLoader = new DataLoader(batchTransactions);
 export const reasonLoader = new DataLoader(batchReasons);
 export const locationLoader = new DataLoader(batchLocations);
 export const itemLoader = new DataLoader(batchItems);
 export const reasonsFieldsLoader = new DataLoader(batchReasonsFields);
+export const transactionTypesLoader = new DataLoader(batchTransactionTypes);
+export const conditionsLoader=new DataLoader(batchConditions);

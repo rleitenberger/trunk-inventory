@@ -15,8 +15,8 @@ model admins {
   user_id         String        @db.VarChar(36)
   organization_id String        @db.VarChar(36)
   active          Boolean       @default(true)
-  organizations   organizations @relation(fields: [organization_id], references: [organization_id], onUpdate: Restrict, map: "fk_organization_id")
-  users           users         @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_user_id")
+  organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_organization_id")
+  users           users         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
 
   @@id([user_id, organization_id])
   @@index([organization_id], map: "fk_organization_id")
@@ -45,7 +45,7 @@ model locations {
   modified                                           DateTime              @default(now()) @db.Timestamp(0)
   active                                             Boolean               @default(true)
   orderPriority                                      Int
-  organizations                                      organizations         @relation(fields: [organization_id], references: [organization_id], onUpdate: Restrict, map: "fk_org_id")
+  organizations                                      organizations         @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_id")
   locations_items_qty                                locations_items_qty[]
   transactions_transactions_from_locationTolocations transactions[]        @relation("transactions_from_locationTolocations")
   transactions_transactions_to_locationTolocations   transactions[]        @relation("transactions_to_locationTolocations")
@@ -57,8 +57,8 @@ model locations_items_qty {
   location_id String    @db.VarChar(36)
   item_id     String    @db.VarChar(36)
   qty         Int
-  items       items     @relation(fields: [item_id], references: [item_id], onUpdate: Restrict, map: "fk_item_id")
-  locations   locations @relation(fields: [location_id], references: [location_id], onUpdate: Restrict, map: "fk_location_id")
+  items       items     @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_id")
+  locations   locations @relation(fields: [location_id], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_location_id")
 
   @@id([location_id, item_id])
   @@index([item_id], map: "fk_locations_items_item_id")
@@ -70,8 +70,8 @@ model organization_users {
   created         DateTime      @default(now()) @db.Timestamp(0)
   modified        DateTime      @default(now()) @db.Timestamp(0)
   active          Boolean       @default(true)
-  organizations   organizations @relation(fields: [organization_id], references: [organization_id], onUpdate: Restrict, map: "fk_org_users_org_id")
-  users           users         @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_usr_id")
+  organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_users_org_id")
+  users           users         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usr_id")
 
   @@id([organization_id, user_id])
   @@index([user_id], map: "fk_org_users_user_id")
@@ -103,10 +103,10 @@ model transactions {
   notes                                           String?                 @db.Text
   created                                         DateTime                @default(now()) @db.Timestamp(0)
   reasons_fields_entries                          reasons_fields_entries?
-  locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onUpdate: Restrict, map: "fk_transactions_from_location_id")
-  organizations                                   organizations           @relation(fields: [organization_id], references: [organization_id], onUpdate: Restrict, map: "fk_transactions_org_id")
-  reasons                                         reasons                 @relation(fields: [reason_id], references: [reason_id], onUpdate: Restrict, map: "fk_transactions_reason_id")
-  locations_transactions_to_locationTolocations   locations               @relation("transactions_to_locationTolocations", fields: [to_location], references: [location_id], onUpdate: Restrict, map: "fk_transactions_to_location_id")
+  locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
+  organizations                                   organizations           @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_org_id")
+  reasons                                         reasons                 @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_reason_id")
+  locations_transactions_to_locationTolocations   locations               @relation("transactions_to_locationTolocations", fields: [to_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_to_location_id")
 
   @@index([from_location], map: "fk_transactions_from_location_id")
   @@index([organization_id], map: "fk_transactions_org_id")
@@ -132,11 +132,11 @@ model reasons {
   transaction_type_id String            @db.VarChar(36)
   name                String            @db.VarChar(100)
   description         String?           @db.Text
-  requires_project    Boolean           @default(false)
+  sends_email         Boolean           @default(false)
   created             DateTime          @default(now()) @db.Timestamp(0)
   modified            DateTime          @default(now()) @db.Timestamp(0)
   active              Boolean           @default(true)
-  transaction_types   transaction_types @relation(fields: [transaction_type_id], references: [transaction_type_id], onUpdate: Restrict, map: "fk_reasons_transaction_type_id")
+  transaction_types   transaction_types @relation(fields: [transaction_type_id], references: [transaction_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_transaction_type_id")
   reasons_fields      reasons_fields[]
   transactions        transactions[]
 
@@ -149,28 +149,80 @@ model transaction_types {
   type                String        @db.VarChar(20)
   description         String?       @db.Text
   reasons             reasons[]
-  organizations       organizations @relation(fields: [organization_id], references: [organization_id], onUpdate: Restrict, map: "fk_transaction_types_org_id")
+  organizations       organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaction_types_org_id")
 
   @@index([organization_id], map: "fk_transaction_types_org_id")
 }
 
 model reasons_fields {
-  reasons_fields_id      String                   @id @db.VarChar(36)
-  reason_id              String                   @db.VarChar(36)
-  field_name             String                   @db.VarChar(50)
-  field_type             String                   @db.VarChar(10)
-  reasons                reasons                  @relation(fields: [reason_id], references: [reason_id], onUpdate: Restrict, map: "fk_reasons_fields_reason_id")
-  reasons_fields_entries reasons_fields_entries[]
+  reasons_fields_id                                     String                   @id @db.VarChar(36)
+  reason_id                                             String                   @db.VarChar(36)
+  field_name                                            String                   @db.VarChar(50)
+  field_type                                            String                   @db.VarChar(20)
+  active                                                Boolean                  @default(true)
+  created                                               DateTime                 @default(now()) @db.Timestamp(0)
+  modified                                              DateTime                 @default(now()) @db.Timestamp(0)
+  conditions_conditions_condition_fieldToreasons_fields conditions[]             @relation("conditions_condition_fieldToreasons_fields")
+  conditions_conditions_dependent_fieldToreasons_fields conditions[]             @relation("conditions_dependent_fieldToreasons_fields")
+  field_types                                           field_types              @relation(fields: [field_type], references: [field_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_field_type")
+  reasons                                               reasons                  @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_reason_id")
+  reasons_fields_entries                                reasons_fields_entries[]
 
   @@index([reason_id], map: "fk_reasons_fields_reason_id")
+  @@index([field_type], map: "fk_reasons_fields_field_type")
 }
 
 model reasons_fields_entries {
   transaction_id    String         @id @db.VarChar(36)
   reasons_fields_id String         @db.VarChar(36)
   field_value       String         @db.VarChar(100)
-  transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onUpdate: Restrict, map: "fk_reasons_fields_entries_transaction_id")
-  reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onUpdate: Restrict, map: "fk_reasons_fields_id")
+  transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_entries_transaction_id")
+  reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_id")
 
   @@index([reasons_fields_id], map: "fk_reasons_fields_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model reason_emails {
+  reason_id Int
+  email     Int
+  active    Boolean  @default(false)
+  created   DateTime @default(now()) @db.Timestamp(0)
+  modified  DateTime @default(now()) @db.Timestamp(0)
+
+  @@id([reason_id, email])
+  @@ignore
+}
+
+model condition_types {
+  condition_type_id String       @id @db.VarChar(36)
+  target_data_type  String       @db.VarChar(10)
+  type              String       @db.VarChar(5)
+  name              String       @db.VarChar(30)
+  conditions        conditions[]
+}
+
+model conditions {
+  condition_id                                              String          @id @db.VarChar(36)
+  condition_field                                           String          @db.VarChar(36)
+  dependent_field                                           String          @db.VarChar(36)
+  required_value                                            String          @db.VarChar(255)
+  condition_type_id                                         String          @db.VarChar(36)
+  active                                                    Boolean         @default(true)
+  created                                                   DateTime        @default(now()) @db.Timestamp(0)
+  modified                                                  DateTime        @default(now()) @db.Timestamp(0)
+  reasons_fields_conditions_condition_fieldToreasons_fields reasons_fields  @relation("conditions_condition_fieldToreasons_fields", fields: [condition_field], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_fields_conditions_condition_field")
+  condition_types                                           condition_types @relation(fields: [condition_type_id], references: [condition_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_fields_conditions_condition_type")
+  reasons_fields_conditions_dependent_fieldToreasons_fields reasons_fields  @relation("conditions_dependent_fieldToreasons_fields", fields: [dependent_field], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_fields_conditions_dependent_field")
+
+  @@index([condition_field], map: "fk_fields_conditions_condition_field")
+  @@index([condition_type_id], map: "fk_fields_conditions_condition_type")
+  @@index([dependent_field], map: "fk_fields_conditions_dependent_field")
+}
+
+model field_types {
+  field_type_id  String           @id @db.VarChar(36)
+  name           String           @db.VarChar(30)
+  data_type      String           @db.VarChar(10)
+  reasons_fields reasons_fields[]
 }

@@ -5,7 +5,9 @@ export default function Loader({ size='sm' }) {
         )
     }
 
+    const sizeClass = `loader-${size}`;
+
     return (
-        <span className="loader-sm"></span>
+        <span className={sizeClass}></span>
     )
 }

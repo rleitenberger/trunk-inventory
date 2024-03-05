@@ -5,14 +5,17 @@ import { getTransactionTypes } from "@/graphql/queries";
 import { FormEvent, FormEventHandler, SetStateAction, useEffect, useState } from "react";
 import { common } from "@/lib/common";
 
-import { Reason, ReasonsFields, type TransactionType } from '@/types/dbTypes';
-import { updateReasonName } from "@/graphql/mutations";
+import { ConditionType, Reason, ReasonsFields, type TransactionType } from '@/types/dbTypes';
+import { deleteReason, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
 import EditableText from "@/components/form/EditableText";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
-import { BiPen, BiPencil, BiPlus } from "react-icons/bi";
+import { BiPen, BiPencil, BiPlus, BiTrash } from "react-icons/bi";
 import Modal from "@/components/modal/Modal";
 import ReasonFieldModal from "@/components/modal/ReasonFieldModal";
 import { useApolloClient } from "@apollo/client";
+import Loader from "@/components/Loader";
+import { sendEmail } from "@/lib/emailer";
+import CreateReasonForm from "@/components/form/CreateReasonForm";
 
 export default function PageAdmin() {
     const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>([]);
@@ -25,11 +28,19 @@ export default function PageAdmin() {
 
     const [reasons, setReasons] = useState<Reason[]>([]);
     const [editingReasonField, setEditingReasonField] = useState<ReasonsFields|null>(null);
+    
+    const [showingCreateReason, setShowingCreateReason] = useState<boolean>(false);
+    const [showingCreateField, setShowingCreateField] = useState<boolean>(false);
     const [showingEditField, setShowingEditField] = useState<boolean>(false);
 
     const organizationId = useOrganization();
     
     const apolloClient = useApolloClient();
+
+    const [loadingReasons, setLoadingReasons] = useState<boolean>(false);
+    const [modalReasonId, setModalReasonId] = useState<string>('');
+
+    const [conditionTypes, setConditionTypes] = useState<ConditionType[]>([]);
 
     useEffect(() => {
         async function getTypes () {
@@ -45,9 +56,13 @@ export default function PageAdmin() {
             return;
         }
 
+        setLoadingReasons(true);
+
         async function getReasons() {
             const res = await common.getReasons(selectedTransactionTypeId, apolloClient);
             setReasons(res);
+
+            setLoadingReasons(false);
         }
 
         getReasons();
@@ -79,14 +94,54 @@ export default function PageAdmin() {
             case 'locationSearch':
                 return 'Location Search Box';
             case 'itemSearch':
-                return 'Item Search Box'
+                return 'Item Search Box';
+            case 'checkbox':
+                return 'Checkbox';
             default:
                 return 'Textbox'
         }
     }
 
     const removeField = async(reasonsFieldId: string): Promise<void> => {
+        const { data }  = await apolloClient.mutate({
+            mutation: deleteReasonField,
+            variables: {
+                reasonFieldId: reasonsFieldId
+            }
+        });
 
+        if (!data?.deleteReasonField){
+            return;
+        }
+
+        let reasonIdx=-1;
+
+        reasons?.forEach((e: Reason) => {
+            const fieldMap = e.reasons_fields.map((rf: ReasonsFields) => rf.reasons_fields_id).indexOf(reasonsFieldId);
+
+            if (fieldMap !== -1){
+                reasonIdx=fieldMap;
+                return;
+            }
+        });
+
+        if (reasonIdx === -1){
+            console.error('Could not find reason');
+            return;
+        }
+
+        setReasons((prev: Reason[]): Reason[] => {
+            const tmp: Reason[] = prev.map(reason => ({
+                ...reason,
+                reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
+            }));
+
+            tmp[reasonIdx].reasons_fields = tmp[reasonIdx].reasons_fields.filter(e => {
+                return e.reasons_fields_id !== reasonsFieldId
+            });
+
+            return tmp;
+        });
     }
 
     const editField = (reasonId: string, reasonsFieldsId: string): void => {
@@ -109,6 +164,10 @@ export default function PageAdmin() {
 
     const hideEditFieldModal = (): void => {
         setShowingEditField(false);
+    }
+
+    const hideCreateFieldModal = (): void => {
+        setShowingCreateField(false);
     }
 
     const updateFieldInfo = (response: ReasonsFields|null) => {
@@ -147,6 +206,130 @@ export default function PageAdmin() {
         }
     }
 
+    const createReasonField = (response: ReasonsFields|null): void => {
+        setShowingCreateField(false);
+
+        if (response === null){
+            return;
+        }
+
+        if (response.reasons_fields_id){
+            const reasonIdx = reasons?.map(e => e.reason_id).indexOf(response.reason_id);
+            if(reasonIdx === -1){
+                console.error('Reason index not found.');
+                return;
+            }
+            
+            setReasons((prev: Reason[]): Reason[] => {
+                const tmp: Reason[] = prev.map(reason => ({
+                    ...reason,
+                    reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
+                }));
+
+                tmp[reasonIdx].reasons_fields = [
+                    ...tmp[reasonIdx].reasons_fields,
+                    response
+                ];
+
+                return tmp;
+            })
+        }
+    }
+
+    const showCreateReason = (): void => {
+        setShowingCreateReason(true);
+    }
+
+    const hideCreateReasonModal = () => {
+        setShowingCreateReason(false);
+    }
+
+    const updateModalReasonId = (reasonId: string): void => {
+        setModalReasonId(reasonId);
+        setShowingCreateField(true);
+    }
+
+    const addNewReason = (response: Reason|null): void => {
+        setShowingCreateReason(false);
+
+        if (response === null){
+            return;
+        }
+
+        if (response.transaction_type_id !== selectedTransactionTypeId){
+            return;
+        }
+
+        setReasons(
+            [...reasons, response]
+        );
+    }
+
+    const removeReason = async (reasonId: string) => {
+        if (typeof window === 'undefined'){
+            console.log('Window object not found.');
+            return;
+        }
+
+        const conf = window.confirm('Are you sure you want to remove this reason?');
+
+        if (!conf){
+            return;
+        }
+
+        const { data } = await apolloClient.mutate({
+            mutation: deleteReason,
+            variables: {
+                reasonId: reasonId
+            }
+        });
+
+        if (!data?.deleteReason){
+            return;
+        }
+
+        setReasons(
+            reasons.filter((e: Reason) => {
+                return e.reason_id !== reasonId
+            })
+        );
+    }
+
+    const modifyReasonSendsEmail = async (ev: React.ChangeEvent<HTMLInputElement>, reasonId: string): Promise<void> => {
+        const { checked } = ev.target;
+        
+        const { data } = await apolloClient.mutate({
+            mutation: updateReasonSendsEmail,
+            variables: {
+                reasonId: reasonId,
+                sendsEmail: checked
+            }
+        });
+
+        if (!data?.updateReasonSendsEmail){
+            return;
+        }
+
+        const reasonIdx = reasons.map(e => e.reason_id).indexOf(reasonId);
+
+        if (reasonIdx === -1){
+            console.error('Reason was not found');
+            return;
+        }
+
+        console.log(checked);
+
+        setReasons((prev: Reason[]): Reason[] => {
+            const tmp: Reason[] = prev.map(reason => ({
+                ...reason,
+                reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
+            }));
+            tmp[reasonIdx].sends_email = checked;
+            return tmp;
+        });
+
+    }
+
     return (
         <>
             {showingEditField && (
@@ -160,10 +343,40 @@ export default function PageAdmin() {
                     type='update' />
             )}
 
+            {showingCreateField && (
+                <ReasonFieldModal
+                    fn={{
+                        hide: hideCreateFieldModal,
+                        onSave: createReasonField,
+                    }}
+                    showing={showingCreateField}
+                    obj={{
+                        reason_id: modalReasonId,
+                        field_type: '',
+                        field_name: '',
+                        reasons_fields_id: '',
+                        conditions: []
+                    }}
+                    type="create" />
+            )}
+
+            {showingCreateReason && (
+                <Modal
+                    title="Add New Reason"
+                    showing={showingCreateReason}
+                    hide={hideCreateReasonModal}>
+                    <CreateReasonForm
+                        types={transactionTypes}
+                        fn={{
+                            onSave: addNewReason
+                        }}
+                    />
+                </Modal>
+            )}
 
             <div className="text-sm">
                 <label>Transaction type</label>
-                <div>
+                <div className="flex items-center">
                     <select value={selectedTransactionTypeId} className="px-2 py-1 outline-none rounded-lg border border-slate-300"
                         onChange={updateSelectedTransactionTypeId}>
                         <option value="" className="hidden" >Select type</option>
@@ -173,70 +386,115 @@ export default function PageAdmin() {
                             )
                         })}
                     </select>
+                    <button className='px-3 py-1 rounded-lg bg-blue-500 transition-colors duration-150 hover:bg-blue-600 flex items-center gap-2
+                        text-white ml-auto' onClick={showCreateReason}>
+                        <AiFillPlusCircle />
+                        Add reason
+                    </button>
                 </div>
-                <div className="grid grid-cols-12 gap-2">
-                    {reasons?.map((e: Reason) => {
-                        const fields = e?.reasons_fields;
+                {loadingReasons ? (
+                    <div className="flex items-center justify-center gap-2 p-4">
+                        <Loader size="lg" />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-12 gap-2 mt-2">
+                        {reasons?.map((e: Reason) => {
+                            const fields = e?.reasons_fields;
+                            return (
+                                <div key={`r-${e.reason_id}`} className="border border-slate-300 p-3 rounded-lg
+                                    col-span-12 md:col-span-6 lg:col-span-4">
+                                        <div className="flex items-center flex-wrap">
+                                            <EditableText
+                                                fn={{
+                                                    onSave: (value) => {
+                                                        return modifyReasonName(e.reason_id, value)
+                                                    }
+                                                }}
+                                                label={'Reason Name'}
+                                                val={e.name} />
+                                            <button className="flex items-center gap-2 transition-colors duration-150 text-red-500 rounded-lg outline-none p-2 text-base
+                                                ml-auto hover:bg-slate-300/40" onClick={()=>{
+                                                    removeReason(e.reason_id)
+                                                }}>
+                                                <BiTrash />
+                                            </button>
+                                        </div>
 
-                        return (
-                            <div key={`r-${e.reason_id}`} className="border border-slate-300 p-3 rounded-lg
-                                col-span-12 md:col-span-6 lg:col-span-4">
-                                <EditableText
-                                    fn={{
-                                        onSave: (value) => {
-                                            return modifyReasonName(e.reason_id, value)
-                                        }
-                                    }}
-                                    label={'Reason Name'}
-                                    val={e.name} />
-
-                                <div>
-                                    <div className="flex items-center">
-                                        <p>Required fields</p>
-                                        <button className="ml-auto flex items-center gap-2 px-2 py-1 rounded-lg
-                                            hover:bg-slate-300/40 transition-colors duration-150">
-                                            <BiPlus/>
-                                            <p className="text-xs font-medium">Add field</p>
-                                        </button>
-                                    </div>
-                                    <div className="grid-cols-12 grid gap-y-2 my-2">
-                                        {fields?.map((f:ReasonsFields) => {
-                                            return (
-                                                <div key={`rf-${f.reasons_fields_id}`} className="grid grid-cols-12 gap-4 col-span-12">
-                                                    <button className="p-2 rounded-lg hover:bg-slate-300/40 transition-colors duration-150
-                                                        col-span-2"
-                                                        title="remove" onClick={()=>{
-                                                            removeField(f.reasons_fields_id)
-                                                        }}>
-                                                        <AiFillMinusCircle className="text-red-500 text-lg mx-auto" />
-                                                    </button>
-                                                    <div className="col-span-8 grid grid-cols-12">
-                                                        <div className="col-span-12">
-                                                            <p className="font-medium">{f.field_name}</p>
-                                                            <div className="text-slate-600 text-xs">
-                                                                [{normalizeFieldType(f.field_type)}]
+                                    <div>
+                                        <div className="flex items-center">
+                                            <p>Required fields</p>
+                                            <button className="ml-auto flex items-center gap-2 px-2 py-1 rounded-lg
+                                                hover:bg-slate-300/40 transition-colors duration-150" onClick={()=>{
+                                                    updateModalReasonId(e.reason_id)
+                                                }}>
+                                                <BiPlus />
+                                                <p className="text-xs font-medium">Add field</p>
+                                            </button>
+                                        </div>
+                                        <div className="grid-cols-12 grid gap-y-2 my-2">
+                                            {fields?.map((f:ReasonsFields) => {
+                                                return (
+                                                    <div key={`rf-${f.reasons_fields_id}`} className="grid grid-cols-12 gap-4 col-span-12">
+                                                        <button className="p-2 rounded-lg hover:bg-slate-300/40 transition-colors duration-150
+                                                            col-span-2"
+                                                            title="remove" onClick={()=>{
+                                                                removeField(f.reasons_fields_id)
+                                                            }}>
+                                                            <AiFillMinusCircle className="text-red-500 text-lg mx-auto" />
+                                                        </button>
+                                                        <div className="col-span-8 grid grid-cols-12">
+                                                            <div className="col-span-12">
+                                                                <p className="font-medium">{f.field_name}</p>
+                                                                <div className="text-slate-600 text-xs">
+                                                                    [{normalizeFieldType(f.field_type)}]
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <button className="p-2 rounded-lg hover:bg-slate-300/40 transition-colors duration-150
+                                                            col-span-2"
+                                                            title="Edit" onClick={()=>{
+                                                                editField(e.reason_id, f.reasons_fields_id)
+                                                            }}>
+                                                            <BiPencil className="mx-auto" />
+                                                        </button>
                                                     </div>
-                                                    <button className="p-2 rounded-lg hover:bg-slate-300/40 transition-colors duration-150
-                                                        col-span-2"
-                                                        title="Edit" onClick={()=>{
-                                                            editField(e.reason_id, f.reasons_fields_id)
-                                                        }}>
-                                                        <BiPencil className="mx-auto" />
-                                                    </button>
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })}
+                                        </div>
+                                        {!fields?.length && (
+                                            <div className="text-center text-slate-500 font-medium ">No fields have been added</div>
+                                        )}
+                                        <div className="">
+                                            <div className="flex items-center gap-2">
+                                                <input type="checkbox" checked={e.sends_email} onChange={(ev)=>{
+                                                    modifyReasonSendsEmail(ev, e.reason_id)
+                                                }} />
+                                                <label>Send email on submit</label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    {!fields?.length && (
-                                        <div className="text-center text-slate-500 font-medium">No fields have been added</div>
-                                    )}
+                                </div>
+                            )
+                        })}
+                        {!reasons?.length && (
+                            <div className="col-span-12 text-slate-500">
+                                <div className="text-center">
+                                    <p>No reasons have been added to this transaction type.</p>
+                                </div>
+                                <div className="text-center">
+                                    <button className="flex items-center gap-2 justify-center p-2 rounded-lg transition-colors
+                                    hover:bg-slate-300/40 duration-150 mx-auto my-2" onClick={()=>{
+                                        setShowingCreateReason(true)
+                                    }}>
+                                        <AiFillPlusCircle className="text-lg"/>
+                                        Click here to add a new reason
+                                    </button>
                                 </div>
                             </div>
-                        )
-                    })}
-                </div>
+                        )}
+                    </div>
+                )}
+                
             </div>
         </>
     )
