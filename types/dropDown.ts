@@ -8,8 +8,8 @@ export interface DropDownFunctionGroup {
 }
 
 export interface DropDownValueFunctionGroup {
-    onChange: (e: DropDownSearchOption, objectName:string) => void
-    clear: () => void
+    onChange: (e: DropDownSearchOption, objectName:string, index?: number) => void
+    clear: (objectName?: string) => void
 }
 
 export interface DropDownDisplayGroup {

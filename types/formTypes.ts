@@ -1,4 +1,5 @@
 import React from "react"
+import { Condition } from "./dbTypes"
 
 export interface EditableTextArgs {
     label: string
@@ -12,7 +13,7 @@ export interface InputFunctionGroup {
 
 export type ModalFnArgs<T> = {
     hide: () => void
-    onSave?: (response: T|null) => void
+    onSave?: (response: T|null) => void,
 }
 
 export interface TypedModalArgs<T> {
@@ -23,3 +24,9 @@ export interface TypedModalArgs<T> {
 }
 
 export type TransferType = 'transfer'|'remove'|'pull'|'return';
+
+export interface FieldEntry {
+    field_name: string;
+    field_type: string;
+    title?: string;
+}

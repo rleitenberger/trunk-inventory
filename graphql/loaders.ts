@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader';
 import prisma from '@/lib/prisma';
+import { ReasonsFields } from '@/types/dbTypes';
 
 const batchLocations = async (locationIds: any) => {
     const locations = await prisma.locations.findMany({
@@ -69,7 +70,9 @@ const batchReasons = async (reasonIds: any) => {
         reasonMap[reason.reason_id] = reason;
     })
 
-    return reasonIds.map((id: string) => reasonMap[id]);
+    const res =reasonIds.map((id: string) => reasonMap[id]);
+
+    return res;
 }
 
 const batchReasonsFields = async(reasonsFieldsIds: any) => {
@@ -127,13 +130,49 @@ const batchConditions = async (reasonFieldsIds: any) => {
 
     const conditionsMap: any = {};
     conditions.forEach((condition) => {
-        if (!conditionsMap[condition.condition_id]){
-            conditionsMap[condition.condition_id] = [];
+        if (!conditionsMap[condition.condition_field]){
+            conditionsMap[condition.condition_field] = [];
         }
-        conditionsMap[condition.condition_id].push(condition);
+        conditionsMap[condition.condition_field].push(condition);
     })
 
     const res = reasonFieldsIds.map((id: string) => conditionsMap[id] ?? []);
+    return res;
+}
+
+const batchConditionReasonFields = async (reasonFieldIds: any) => {
+    const reasonsFields = await prisma.reasons_fields.findMany({
+        where: {
+            AND: [
+                { reasons_fields_id: { in: reasonFieldIds } },
+                { active: { equals: true } }
+            ]
+        }
+    });
+
+    const reasonsFieldsMap: any = {};
+    reasonsFields.forEach((reasonField: ReasonsFields) => {
+        reasonsFieldsMap[reasonField.reasons_fields_id] = reasonField;
+    })
+
+    const res = reasonFieldIds.map((id: string) => reasonsFieldsMap[id] ?? []);
+
+    return res;
+}
+
+const batchConditionTypes = async (conditionTypeIds: any) => {
+    const conditions = await prisma.condition_types.findMany({
+        where: {
+            condition_type_id: { in: conditionTypeIds } 
+        }
+    });
+
+    const conditionTypesMap: any = {};
+    conditions.forEach((condition) => {
+        conditionTypesMap[condition.condition_type_id] = condition;
+    })
+
+    const res = conditionTypeIds.map((id: string) => conditionTypesMap[id] ?? []);
     return res;
 }
 
@@ -144,3 +183,5 @@ export const itemLoader = new DataLoader(batchItems);
 export const reasonsFieldsLoader = new DataLoader(batchReasonsFields);
 export const transactionTypesLoader = new DataLoader(batchTransactionTypes);
 export const conditionsLoader=new DataLoader(batchConditions);
+export const conditionReasonFieldLoader = new DataLoader(batchConditionReasonFields);
+export const conditionTypesLoader = new DataLoader(batchConditionTypes);

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalFnArgs, TypedModalArgs } from "@/types/formTypes";
-import { Condition, ConditionType, FieldType, ReasonsFields } from "@/types/dbTypes";
+import { Condition, ConditionInput, ConditionType, FieldType, ReasonsFields } from "@/types/dbTypes";
 import { createFieldCondition, createReasonField, updateReasonField } from "@/graphql/mutations";
 import Modal from "./Modal";
 import { useApolloClient } from "@apollo/client";
@@ -8,7 +8,7 @@ import { KVP, common } from "@/lib/common";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import { BiCheck, BiPlus, BiX } from "react-icons/bi";
 import { getConditionTypes, getFieldConditions, getOtherReasonFields } from "@/graphql/queries";
-import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from 'uuid';
 
 type ReasonFieldModalType = 'create' | 'update';
 
@@ -37,6 +37,16 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
     }
 
     const onSave = async (): Promise<any> => {
+        const conds: ConditionInput[] = conditions.map((e: Condition) => {
+            return {
+                condition_id: e.condition_id,
+                dependent_field: e.dependent_field.reasons_fields_id,
+                condition_field: e.dependent_field.reasons_fields_id,
+                required_value: e.required_value,
+                condition_type_id: e.condition_type.condition_type_id
+            }
+        });
+
         if (type === 'create'){
             const { data } = await apolloClient.mutate({
                 mutation: createReasonField,
@@ -44,7 +54,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                     reasonId: obj?.reason_id,
                     fieldName: fieldName,
                     fieldType: fieldType,
-                    conditions: conditions
+                    conditions: conds
                 }
             });
 
@@ -64,7 +74,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                     reasonFieldId: obj?.reasons_fields_id,
                     fieldName: fieldName,
                     fieldType: fieldType,
-                    conditions: conditions
+                    conditions: conds
                 }
             });
     
@@ -89,6 +99,25 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
 
 
     useEffect(() => {
+        if (obj?.conditions?.length){
+            setConditions(obj.conditions?.map(e => {
+                return {
+                    dependent_field: {
+                        reasons_fields_id: e.dependent_field.reasons_fields_id,
+                        field_name: e.dependent_field.field_name
+                    },
+                    condition_id: e.condition_id,
+                    condition_field: {
+                        reasons_fields_id: e.condition_field.reasons_fields_id,
+                        field_name: e.condition_field.field_name
+                    },
+                    required_value: e.required_value,
+                    condition_type: e.condition_type
+                }
+            }));
+        }
+
+
         if (fieldTypes?.length){
             return;
         }
@@ -225,15 +254,27 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
     }
 
     const addCondition = (): void => {
+        const newCondition = {
+            condition_id: uuidv4(),
+            condition_field: {
+                reasons_fields_id: '',
+                field_name: '',
+            },
+            dependent_field: {
+                reasons_fields_id:  dependentField.value,
+                field_name: dependentField.key
+            },
+            required_value: requiredValue.value,
+            condition_type: {
+                condition_type_id: conditionTypeId.value,
+                name: conditionTypeId.key
+            },
+            new: true
+        };
+
         setConditions([
             ...conditions,
-            {
-                condition_id: '325q',
-                condition_field: '',
-                dependent_field: dependentField.value,
-                required_value: requiredValue.value,
-                condition_type_id: conditionTypeId.value
-            }
+            newCondition
         ]);
 
         setAddingCondition(false);
@@ -271,7 +312,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
             hide={fn.hide}
             title={getTitle()}>
                 <div className="text-sm mt-2">
-                <label className="font-medium">Field name</label>
+                <label className="font-medium">Field name <span className="text-red-500">*</span></label>
                 <div>
                     <input type="text" value={fieldName} onChange={updateFieldName}
                         className="border border-slate-300 rounded-lg px-2 py-1 outline-none w-full"
@@ -279,7 +320,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                 </div>
             </div>
             <div className="text-sm mt-2">
-                <label className="font-medium">Field type</label>
+                <label className="font-medium">Field type <span className="text-red-500">*</span></label>
                 <div>
                     <select className="border border-slate-300 rounded-lg px-2 py-1 outline-none w-full"
                         onChange={updateFieldType} value={fieldType}>
@@ -345,7 +386,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                                             value={requiredValue.value} onChange={updateRequiredValueBoolean}>
                                             <option value='' className="hidden">Value</option>
                                             <option value='true'>True</option>
-                                            <option value='true'>False</option>
+                                            <option value='false'>False</option>
                                         </select>
                                     ) : (
                                         <input type="text" placeholder="value" className="w-full px-2 py-1 border border-slate-300 rounded-lg outline-none" 
@@ -360,15 +401,18 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                             </div>
                         )}
                         {conditions?.length ? (
-                            <div>
-                                {conditions.map(e => {
+                            <div className="max-h-[150px] overflow-y-auto">
+                                {conditions?.map(e => {
                                     return (
-                                        <div className='grid grid-cols-12 gap-2'>
-                                            <button className="transition-colors rounded-lg hover:bg-slate-300 col-span-1 p-2">
+                                        <div className='grid grid-cols-12 gap-2' key={`cond-${e.condition_id}`}>
+                                            <button className="transition-colors rounded-lg hover:bg-slate-300 col-span-1 p-2"
+                                                onClick={()=>{
+                                                    removeCondition(e.condition_id)
+                                                }}>
                                                 <AiFillMinusCircle className="text-red-500 mx-auto" />
                                             </button>
                                             <div className="col-span-11 p-2">
-                                                When <span className="font-medium text-xs px-2 py-1 bg-slate-300/40 rounded-sm">{dependentField.key}</span> is {conditionTypeId.key} {requiredValue.value}
+                                                When <span className="font-medium text-xs px-2 py-1 bg-slate-300/40 rounded-sm">{e.dependent_field.field_name}</span> is {e.condition_type.name} {e.required_value}
                                             </div>
                                         </div>
                                     )

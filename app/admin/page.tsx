@@ -5,7 +5,7 @@ import { getTransactionTypes } from "@/graphql/queries";
 import { FormEvent, FormEventHandler, SetStateAction, useEffect, useState } from "react";
 import { common } from "@/lib/common";
 
-import { ConditionType, Reason, ReasonsFields, type TransactionType } from '@/types/dbTypes';
+import { Condition, ConditionType, Reason, ReasonsFields, type TransactionType } from '@/types/dbTypes';
 import { deleteReason, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
 import EditableText from "@/components/form/EditableText";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
@@ -131,10 +131,7 @@ export default function PageAdmin() {
         }
 
         setReasons((prev: Reason[]): Reason[] => {
-            const tmp: Reason[] = prev.map(reason => ({
-                ...reason,
-                reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
-            }));
+            const tmp: Reason[] = copyReasons(prev);
 
             tmp[reasonIdx].reasons_fields = tmp[reasonIdx].reasons_fields.filter(e => {
                 return e.reasons_fields_id !== reasonsFieldId
@@ -192,10 +189,7 @@ export default function PageAdmin() {
             }
 
             setReasons((prev: Reason[]): Reason[] => {
-                const tmp: Reason[] = prev.map(reason => ({
-                    ...reason,
-                    reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
-                }));
+                const tmp: Reason[] = copyReasons(prev);
             
                 if (tmp[reasonIdx] && tmp[reasonIdx].reasons_fields) {
                     tmp[reasonIdx].reasons_fields[fieldIdx] = response;
@@ -221,10 +215,7 @@ export default function PageAdmin() {
             }
             
             setReasons((prev: Reason[]): Reason[] => {
-                const tmp: Reason[] = prev.map(reason => ({
-                    ...reason,
-                    reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
-                }));
+                const tmp: Reason[] = copyReasons(prev);
 
                 tmp[reasonIdx].reasons_fields = [
                     ...tmp[reasonIdx].reasons_fields,
@@ -267,7 +258,7 @@ export default function PageAdmin() {
 
     const removeReason = async (reasonId: string) => {
         if (typeof window === 'undefined'){
-            console.log('Window object not found.');
+            console.error('Window object not found.');
             return;
         }
 
@@ -295,6 +286,13 @@ export default function PageAdmin() {
         );
     }
 
+    const copyReasons = (prev: Reason[]): Reason[] => {
+        return prev.map(reason => ({
+            ...reason,
+            reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
+        }));
+    }
+
     const modifyReasonSendsEmail = async (ev: React.ChangeEvent<HTMLInputElement>, reasonId: string): Promise<void> => {
         const { checked } = ev.target;
         
@@ -317,17 +315,40 @@ export default function PageAdmin() {
             return;
         }
 
-        console.log(checked);
-
         setReasons((prev: Reason[]): Reason[] => {
-            const tmp: Reason[] = prev.map(reason => ({
-                ...reason,
-                reasons_fields: reason.reasons_fields ? [...reason.reasons_fields] : []
-            }));
+            const tmp: Reason[] = copyReasons(prev);
             tmp[reasonIdx].sends_email = checked;
             return tmp;
         });
 
+    }
+
+    const updateConditions = (condition: Condition): void => {
+        if (!editingReasonField?.reason_id || !editingReasonField?.reasons_fields_id) {
+            return;
+        }
+
+        const reasonIdx = reasons?.map(e => e.reason_id).indexOf(editingReasonField.reason_id);
+        if (reasonIdx === -1){
+            console.error('Could not find the reason');
+            return;
+        }
+
+        const reasonFieldIdx = reasons[reasonIdx].reasons_fields.map(e => e.reasons_fields_id).indexOf(editingReasonField.reasons_fields_id);
+        if(reasonFieldIdx === -1){
+            console.error('Could not find reason field');
+            return;
+        }
+        const conds = reasons[reasonIdx].reasons_fields[reasonFieldIdx].conditions;
+
+        setReasons((prev: Reason[]): Reason[] => {
+            const tmp: Reason[] = copyReasons(prev);
+            tmp[reasonIdx].reasons_fields[reasonFieldIdx].conditions = [
+                ...(conds || []),
+                condition
+            ];
+            return tmp;
+        });
     }
 
     return (
@@ -336,7 +357,7 @@ export default function PageAdmin() {
                 <ReasonFieldModal
                     fn={{
                         hide: hideEditFieldModal,
-                        onSave: updateFieldInfo
+                        onSave: updateFieldInfo,
                     }}
                     showing={showingEditField}
                     obj={editingReasonField}

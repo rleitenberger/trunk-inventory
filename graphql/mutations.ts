@@ -19,25 +19,56 @@ export const modifyReasonsFieldFieldName = gql`
 `;
 
 export const createReasonField = gql`
-    mutation createReasonField($reasonId: String!, $fieldName: String!, $fieldType: String!){
-        createReasonField(reasonId: $reasonId, fieldName: $fieldName, fieldType: $fieldType) {
+    mutation createReasonField($reasonId: String!, $fieldName: String!, $fieldType: String!, $conditions: [ConditionInput]!){
+        createReasonField(reasonId: $reasonId, fieldName: $fieldName, fieldType: $fieldType, conditions: $conditions) {
             reason_id
             reasons_fields_id
             field_name
             field_type
-            
+            conditions {
+                condition_id
+                condition_field {
+                    reasons_fields_id
+                    field_name
+                }
+                dependent_field {
+                    reasons_fields_id
+                    field_name
+                }
+                condition_type {
+                    condition_type_id
+                    name
+                }
+                required_value
+            }
         }
     }
 `;
 
 export const updateReasonField = gql`
-    mutation updateReasonField($reasonFieldId: String!, $fieldName: String!, $fieldType: String!){
-        updateReasonField(reasonFieldId: $reasonFieldId, fieldName: $fieldName, fieldType: $fieldType) {
+    mutation updateReasonField($reasonFieldId: String!, $fieldName: String!, $fieldType: String!, $conditions: [ConditionInput]!){
+        updateReasonField(reasonFieldId: $reasonFieldId, fieldName: $fieldName, fieldType: $fieldType, conditions: $conditions) {
             field_name
             field_type
             reasons_fields_id
             updated
             reason_id
+            conditions {
+                condition_id
+                condition_field {
+                    reasons_fields_id
+                    field_name
+                }
+                dependent_field {
+                    reasons_fields_id
+                    field_name
+                }
+                condition_type {
+                    condition_type_id
+                    name
+                }
+                required_value
+            }
         }
     }
 `;

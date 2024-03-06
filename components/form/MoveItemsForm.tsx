@@ -1,27 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { getReasons } from '@/graphql/queries';
 import type { TransferOptions } from '@/types/TransferOptions';
 import { BiTransfer } from 'react-icons/bi';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactionType } from '@/graphql/queries';
-import { Reason } from '@/types/dbTypes';
+import { Reason, ReasonsFields } from '@/types/dbTypes';
 import { createTransaction } from '@/graphql/mutations';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import Loader from '@/components/Loader';
 import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons/hi';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
-import { TransferType } from '@/types/formTypes';
+import { FieldEntry, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
+import DynamicForm from './DynamicForm';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
     const client = useApolloClient();
-    const orgId = useOrganization();
+    const orgId = 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
 
     const [transferOptions, setTransferOptions] = useState<TransferOptions<DropDownSearchOption>>(moveDefaults[transferType]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -206,6 +207,40 @@ export default function MoveItemsForm({ transferType }: {
         }
     }
 
+    const [fieldValues, setFieldValues] = useState<string[]>([]);
+
+    const requiredFields = useMemo(() => {
+        const idx = reasons.map(e => e.reason_id).indexOf(transferOptions.reasonId.value);
+        if (idx===-1){
+            return [];
+        }
+        const fields = reasons[idx].reasons_fields;
+
+        return fields.map((e: ReasonsFields) => {
+            return {
+                field_name: e.reasons_fields_id,
+                field_type: e.field_type,
+                title: e.field_name
+            }
+        });
+    }, [transferOptions.reasonId]);
+
+    const updateDynamicField = (value: string, index: number): any => {
+        const vals = [...fieldValues];
+        vals[index] = value;
+        setFieldValues(vals);
+    }
+
+    const updateDynamicFieldValue = useCallback((value: string, index: number)=> {
+        const vals = [...fieldValues];
+        vals[index] = value;
+        setFieldValues(vals);
+    }, [fieldValues]);
+
+    const clearDynamicField = (objectName?: string) => {
+
+    }
+
     return (
         <>
             <h1 className='text-xl font-medium'>{getTitle()}</h1>
@@ -278,13 +313,8 @@ export default function MoveItemsForm({ transferType }: {
                         </select>
                     </div>
                 </div>
-                <div className="grid grid-cols-12 gap-2">
-                    <div className='col-span-12 md:col-span-6'>
-                        <p className='text-sm'>Notes</p>
-                        <textarea className='w-full px-2 py-1 text-sm rounded-lg border
-                            border-slate-300 outline-none resize-none' value={transferOptions.notes.value}
-                            name='notes' onChange={onNotesChange}></textarea>
-                    </div>
+                <div className='grid grid-cols-12 gap-2'>
+                    <DynamicForm requiredFields={requiredFields} key="dyan" />
                 </div>
                 <div>
                     <button className=' bg-blue-500 transition-colors hover:bg-blue-600 flex items-center gap-2

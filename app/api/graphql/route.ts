@@ -6,7 +6,7 @@ import { gql } from 'graphql-tag'
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { resolvers } from "@/graphql/resolvers";
-import { conditionsLoader, itemLoader, locationLoader, reasonLoader, reasonsFieldsLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
+import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, itemLoader, locationLoader, reasonLoader, reasonsFieldsLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
 
 const typeDefs = `${readFileSync(`graphql/schema.graphqls`)}`;
 const apolloServer = new ApolloServer({
@@ -25,7 +25,9 @@ const handler = startServerAndCreateNextHandler(apolloServer, {
           item: itemLoader,
           reasonFields: reasonsFieldsLoader,
           transactionTypes: transactionTypesLoader,
-          condition: conditionsLoader
+          condition: conditionsLoader,
+          conditionReasonField: conditionReasonFieldLoader,
+          conditionType: conditionTypesLoader
       },
   }),
 });

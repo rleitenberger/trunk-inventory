@@ -70,7 +70,7 @@ export type ReasonsFields = {
     field_name: string;
     field_type: string;
     updated?: boolean;
-    conditions: Condition[];
+    conditions?: Condition[];
 }
 
 export type DynamicInputField = {
@@ -89,21 +89,42 @@ export type OrgUser = {
     user: User;
 }
 
-export interface Condition {
+export interface ConditionReasonField {
+    reasons_fields_id: string;
+    field_name: string;
+}
+
+export interface ConditionInput {
     condition_id: string;
     condition_field: string;
     dependent_field: string;
     required_value: string;
     condition_type_id: string;
+    new?: boolean;
+}
+
+export interface Condition {
+    condition_id: string;
+    condition_field: ConditionReasonField;
+    dependent_field: ConditionReasonField;
+    required_value: string;
+    condition_type: ConditionConditionType;
+    condition_type_id?: string;
     active?:boolean;
     created?: Date;
     modified?: Date;
+    new?: boolean;
 }
 
 export interface ConditionType {
     condition_type_id: string;
     target_data_type: string;
     type: string;
+    name: string;
+}
+
+export interface ConditionConditionType {
+    condition_type_id: string;
     name: string;
 }
 

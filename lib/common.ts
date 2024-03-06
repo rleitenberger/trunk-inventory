@@ -33,7 +33,8 @@ export const common = {
             query: getReasons,
             variables: {
                 transactionTypeId: transactionTypeId
-            }
+            },
+            fetchPolicy: 'network-only'
         });
 
         if (!data?.getReasons) {

@@ -15,8 +15,11 @@ export default function Checkbox ({ val, fn, displayOptions }: {
     }
     
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={val.value} onChange={updateValue} />
+            {displayOptions.title && (
+                <label>{displayOptions.title}</label>
+            )}
         </div>
     )
 }

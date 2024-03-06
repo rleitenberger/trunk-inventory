@@ -181,7 +181,6 @@ type Condition {
     condition_field: ReasonFields!
     dependent_field: ReasonFields!
     required_value: String!
-    condition_type_id: String!
     condition_type: ConditionType!
     active: Boolean!
     created: String!
@@ -198,4 +197,7 @@ input ConditionInput {
     dependent_field: String!
     required_value: String!
     condition_type_id: String!
+    condition_field: String
+    condition_id: String
+    new: Boolean
 }

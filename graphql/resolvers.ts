@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, Item, Location, LocationItem, Transaction, User } from "@/types/dbTypes";
+import type { Condition, ConditionInput, Item, Location, LocationItem, Reason, ReasonsFields, Transaction, User } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 
 export const resolvers = {
@@ -166,7 +166,7 @@ export const resolvers = {
         getReasons: async(_:any, { transactionTypeId }: {
             transactionTypeId: string
         }) => {
-            const gg = await prisma.reasons.findMany({
+            const res = await prisma.reasons.findMany({
                 where: {
                     AND: [
                         { transaction_type_id: { equals: transactionTypeId } },
@@ -180,8 +180,7 @@ export const resolvers = {
                     reasons_fields: true,
                 }
             });
-            //console.log(gg);
-            return gg;
+            return res;
         },
         getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType }: TransactionArgs) => {
             const take = first || 25;
@@ -345,7 +344,8 @@ export const resolvers = {
                 where: {
                     AND: [
                         { reason_id: { equals: reasonId } },
-                        { reasons_fields_id: { not: reasonFieldId } }
+                        { reasons_fields_id: { not: reasonFieldId } },
+                        { active: { equals: true } }
                     ]
                 }
             });
@@ -439,10 +439,8 @@ export const resolvers = {
             reasonId: string;
             fieldName: string;
             fieldType: string;
-            conditions: Condition[]
+            conditions: ConditionInput[]
         }) => {
-
-            console.log(conditions);
 
             const res = await prisma.reasons_fields.create({
                 data: {
@@ -453,12 +451,36 @@ export const resolvers = {
                 }
             });
 
-            return res;
+            
+            const conditionField = res.reasons_fields_id;
+            await prisma.conditions.deleteMany({
+                where: {
+                    condition_field: { equals: conditionField }
+                }
+            });
+
+            const addedConditions = await prisma.conditions.createMany({
+                data: conditions.map(e => {
+                    const id = e?.new ? randomUUID() : e.condition_id;
+                    return {
+                        condition_id: id,
+                        condition_field: conditionField,
+                        dependent_field: e.dependent_field,
+                        required_value: e.required_value,
+                        condition_type_id: e.condition_type_id
+                    }
+                })
+            });
+            return {
+                ...res,
+                conditions: addedConditions
+            }
         },
-        updateReasonField: async(_: any, { reasonFieldId, fieldName, fieldType }: {
-            reasonFieldId: string
-            fieldName: string,
-            fieldType: string
+        updateReasonField: async(_: any, { reasonFieldId, fieldName, fieldType, conditions }: {
+            reasonFieldId: string;
+            fieldName: string;
+            fieldType: string;
+            conditions: any[];
         }) => {
             const res = await prisma.reasons_fields.update({
                 data: {
@@ -470,8 +492,29 @@ export const resolvers = {
                 }
             });
 
+            const conditionField = res.reasons_fields_id;
+            await prisma.conditions.deleteMany({
+                where: {
+                    condition_field: { equals: conditionField }
+                }
+            });
+
+            const addedConditions = await prisma.conditions.createMany({
+                data: conditions.map(e => {
+                    const id = e?.new ? randomUUID() : e.condition_id;
+                    return {
+                        condition_id: id,
+                        condition_field: conditionField,
+                        dependent_field: e.dependent_field,
+                        required_value: e.required_value,
+                        condition_type_id: e.condition_type_id
+                    }
+                })
+            });
+
             return {
                 ...res,
+                conditions: addedConditions,
                 updated: res?.field_name === fieldName
                     && res?.field_type === fieldType
             };
@@ -586,13 +629,13 @@ export const resolvers = {
         },
     },
     Transaction: {
-        reason: async (parent: any, args: any, context: any) => {
+        reason: async (parent: Transaction, args: any, context: any) => {
             return context.loaders.reason.load(parent.reason_id);
         },
-        from_location: async (parent: any, args: any, context: any) => {
+        from_location: async (parent: Transaction, args: any, context: any) => {
             return context.loaders.location.load(parent.from_location);
         },
-        to_location: async(parent: any, args: any, context: any) => {
+        to_location: async(parent: Transaction, args: any, context: any) => {
             return context.loaders.location.load(parent.to_location);
         },
         item: async(parent: any, args: any, context: any) => {
@@ -600,27 +643,27 @@ export const resolvers = {
         }
     },
     Reason: {
-        reasons_fields: async(parent: any, args: any, context: any) => {
+        reasons_fields: async(parent: Reason, args: any, context: any) => {
             return context.loaders.reasonFields.load(parent.reason_id);
         },
-        transaction_type: async(parent:any, args:any, context:any) => {
+        transaction_type: async(parent:Reason, args:any, context:any) => {
             return context.loaders.transactionTypes.load(parent.transaction_type_id);
         }
     },
-    Condition: {
-        condition_field: async(parent: any, args: any, context: any) => {
-            return context.loaders.reasonsFields.load(parent.condition_field);
-        },
-        dependent_field: async(parent: any, args: any, context: any) => {
-            return context.loaders.reasonsFields.load(parent.dependent_field);
-        },
-        condition_type: async (parent: any, args: any, context: any) => {
-            return context.loaders.conditionTypes.load(parent.condition_type_id);
+    ReasonFields: {
+        conditions: async (parent:ReasonsFields, args: any, context: any) => {
+            return context.loaders.condition.load(parent.reasons_fields_id);
         }
     },
-    ReasonFields: {
-        conditions: async (parent:any, args: any, context: any) => {
-            return context.loaders.condition.load(parent.reasons_fields_id);
+    Condition: {
+        condition_field: async(parent: Condition, args: any, context: any) => {
+            return context.loaders.conditionReasonField.load(parent.condition_field);
+        },
+        dependent_field: async(parent: Condition, args: any, context: any) => {
+            return context.loaders.conditionReasonField.load(parent.dependent_field);
+        },
+        condition_type: async(parent: Condition, args: any, context:any) => {
+            return context.loaders.conditionType.load(parent.condition_type_id);
         }
     }
 }

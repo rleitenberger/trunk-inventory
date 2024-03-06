@@ -63,6 +63,19 @@ export const getReasons = gql`
                 field_type
                 conditions {
                     condition_id
+                    condition_field {
+                        reasons_fields_id
+                        field_name
+                    }
+                    dependent_field {
+                        reasons_fields_id
+                        field_name
+                    }
+                    condition_type {
+                        condition_type_id
+                        name
+                    }
+                    required_value
                 }
             }
         }
