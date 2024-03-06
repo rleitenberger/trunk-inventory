@@ -2,7 +2,7 @@ import HomeCard from "@/components/HomeCard";
 import Image from "next/image";
 import Link from "next/link";
 import { AiFillMinusCircle } from "react-icons/ai";
-import { BiTransfer } from "react-icons/bi";
+import { BiRightArrow, BiRightArrowAlt, BiTransfer } from "react-icons/bi";
 import { IoIosList } from "react-icons/io";
 import { IoReturnUpBack } from "react-icons/io5";
 import { LuMoveUpRight } from "react-icons/lu";
@@ -16,6 +16,7 @@ export default function Home() {
           <div>
             <BiTransfer className="mx-auto text-xl text-blue-800 my-2" />
             <p>Transfer to Trunk Inventory</p>
+            <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Parts Room <BiRightArrowAlt className="text-lg" /> Van</p>
           </div>
         </Link>
       </HomeCard>
@@ -24,7 +25,8 @@ export default function Home() {
           <div>
             <AiFillMinusCircle className="mx-auto text-xl text-red-600 my-2" />
             <p>Remove from Trunk Inventory</p>
-          </div>
+
+            <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Van <BiRightArrowAlt className="text-lg" /> Parts room or customer location</p>          </div>
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
@@ -32,7 +34,8 @@ export default function Home() {
           <div>
             <LuMoveUpRight className="mx-auto text-xl text-blue-500 my-2" />
             <p>Pull Item for Project</p>
-          </div>
+
+            <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Parts Room <BiRightArrowAlt className="text-lg" /> Customer location</p>          </div>
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
@@ -40,6 +43,7 @@ export default function Home() {
           <div>
             <IoReturnUpBack className="mx-auto text-xl text-red-900 my-2" />
             <p>Return Item from Project</p>
+            <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Customer location <BiRightArrowAlt className="text-lg" /> Parts room</p>
           </div>
         </Link>
       </HomeCard>

@@ -127,7 +127,7 @@ type Transaction {
     to_location: Location!
     qty: Int!
     item: Item!
-    reason: Reason!
+    reason: Reason
     notes: String!
     created: String!
     project: String

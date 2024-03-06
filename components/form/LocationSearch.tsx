@@ -6,12 +6,11 @@ import type { Location } from '@/types/dbTypes';
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown";
 import useOrganization from "../providers/useOrganization";
 
-export default function LocationSearch ({ val, fn, displayOptions }: {
+export default function LocationSearch ({ fn, displayOptions, defaultValue=undefined }: {
     displayOptions: DropDownDisplayGroup
-    val: DropDownSearchOption
     fn: DropDownValueFunctionGroup
+    defaultValue?: DropDownSearchOption
 }) { 
-
     const organizationId = useOrganization();
     const apolloClient = useApolloClient();
 
@@ -46,8 +45,8 @@ export default function LocationSearch ({ val, fn, displayOptions }: {
                     refetch: fetchLocations,
                     ...fn
                 }}
-                objectName={displayOptions?.name}
-                val={val} />
+                defaultValue={defaultValue}
+                objectName={displayOptions?.name} />
         </>
     )
 }

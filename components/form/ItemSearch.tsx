@@ -6,14 +6,12 @@ import { DropDownSearchOption, PaginatedDropDownSearchOptions } from "@/types/Dr
 import useOrganization from "../providers/useOrganization"
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown"
 
-export default function ItemSearch ({ val, fn, displayOptions, locationId=undefined }: {
+export default function ItemSearch ({ fn, displayOptions, locationId=undefined, defaultValue=undefined, }: {
     displayOptions: DropDownDisplayGroup
     fn: DropDownValueFunctionGroup
-    val: DropDownSearchOption,
     locationId?: string
-}) {
-
-    
+    defaultValue?: DropDownSearchOption
+}) {    
     const apolloClient = useApolloClient();
     const organizationId = useOrganization();
 
@@ -87,8 +85,8 @@ export default function ItemSearch ({ val, fn, displayOptions, locationId=undefi
                     refetch: fetchItems,
                     ...fn
                 }}
-                objectName={displayOptions.name}
-                val={val} />
+                defaultValue={defaultValue}
+                objectName={displayOptions.name} />
         </>
     )
 }

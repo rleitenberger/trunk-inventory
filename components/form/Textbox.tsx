@@ -1,11 +1,14 @@
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown";
+import { useState } from "react";
 
-export default function Textbox ({ val, fn, displayOptions }: {
-    val: DropDownSearchOption
+export default function Textbox ({ fn, displayOptions }: {
     fn: DropDownValueFunctionGroup
     displayOptions: DropDownDisplayGroup
 }) {
+
+    const [val, setVal] = useState<string>('');
+
     const updateValue = (e: React.ChangeEvent<HTMLInputElement>): void => {
         fn.onChange({
             name: displayOptions.name,
@@ -20,7 +23,7 @@ export default function Textbox ({ val, fn, displayOptions }: {
             )}
             <div>
                 <input className="px-2 py-1 border border-slate-300 rounded-lg"
-                    value={val.value} onChange={updateValue} />
+                    value={val} onChange={updateValue} />
             </div>
         </div>
     )

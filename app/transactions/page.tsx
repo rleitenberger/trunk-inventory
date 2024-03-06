@@ -113,8 +113,7 @@ export default function PageTransactions() {
                             }}
                             displayOptions={{
                                 name: 'locationId'
-                            }}
-                            val={transactionOptions.locationId} />
+                            }} />
                     </div>
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
                         <ItemSearch
@@ -124,8 +123,7 @@ export default function PageTransactions() {
                             }}
                             displayOptions={{
                                 name: 'itemId'
-                            }}
-                            val={transactionOptions.itemId} />
+                            }} />
                     </div>
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
                         <label className='text-sm'>Transfer Type</label>
@@ -164,7 +162,7 @@ export default function PageTransactions() {
                             <p className='col-span-2'>{node.from_location.name}</p>
                             <p className='col-span-2'>{node.to_location.name}</p>
                             <p className='col-span-2'>{node.project_id || 'No project selected'}</p>
-                            <p className='col-span-2'>{node.reason.name}</p>
+                            <p className='col-span-2'>{node.reason?.name || 'reason was deleted'}</p>
                         </div>
                     )
                 })}

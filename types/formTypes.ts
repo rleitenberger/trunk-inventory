@@ -29,4 +29,10 @@ export interface FieldEntry {
     field_name: string;
     field_type: string;
     title?: string;
+    conditions?:Condition[];
+}
+
+export interface FieldEntryValue {
+    field_name: string;
+    value: string;
 }

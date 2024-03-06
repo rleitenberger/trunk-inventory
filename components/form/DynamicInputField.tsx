@@ -6,14 +6,15 @@ import { DynamicInputField } from "@/types/dbTypes";
 import Textarea from "./Textarea";
 import Checkbox from "./Checkbox";
 import Textbox from "./Textbox";
+import React from "react";
 
 
-export default function DynamicInputField({ fn, field, val, label }: {
+function DynamicInputField({ fn, field, label }: {
     fn: DropDownValueFunctionGroup
     field: DynamicInputField
-    val: DropDownSearchOption
     label: string
 }) {
+
     const GetComponent = () => {
         switch (field.field_type) {
             case 'textarea':
@@ -26,7 +27,6 @@ export default function DynamicInputField({ fn, field, val, label }: {
             case 'textbox': 
                 return <Textbox
                             fn={fn}
-                            val={val}
                             displayOptions={{
                                 name: field.field_name,
                                 title: label
@@ -34,7 +34,6 @@ export default function DynamicInputField({ fn, field, val, label }: {
             case 'itemSearch':
                 return <ItemSearch
                             fn={fn} 
-                            val={val} 
                             displayOptions={{
                                 name:field.field_name,
                                 title: label
@@ -42,7 +41,6 @@ export default function DynamicInputField({ fn, field, val, label }: {
             case 'locationSearch':
                 return <LocationSearch
                             fn={fn}
-                            val={val}
                             displayOptions={{
                                 name:field.field_name,
                                 title: label
@@ -50,7 +48,6 @@ export default function DynamicInputField({ fn, field, val, label }: {
             case 'checkbox':
                 return <Checkbox
                             fn={fn}
-                            val={val}
                             displayOptions={{
                                 name:field.field_name,
                                 title: label
@@ -69,3 +66,5 @@ export default function DynamicInputField({ fn, field, val, label }: {
     )
 
 }
+
+export default React.memo(DynamicInputField);

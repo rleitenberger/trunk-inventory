@@ -210,7 +210,7 @@ export const resolvers = {
                 },
                 take: take + 1,
                 orderBy: {
-                    item_id: 'asc'
+                    created: 'desc'
                 }
             });
 

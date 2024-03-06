@@ -7,6 +7,11 @@ export interface DropDownFunctionGroup {
     refetch: (search: string, pageInfo?: PageInfo) => Promise<any>
 }
 
+export interface DynamicFormFunctionGroup {
+    onChange: (value: string, index: number) => number
+    clear?: (index: number) => void
+}
+
 export interface DropDownValueFunctionGroup {
     onChange: (e: DropDownSearchOption, objectName:string, index?: number) => void
     clear: (objectName?: string) => void

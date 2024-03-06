@@ -7,20 +7,22 @@ import type { TransferOptions } from '@/types/TransferOptions';
 import { BiTransfer } from 'react-icons/bi';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactionType } from '@/graphql/queries';
-import { Reason, ReasonsFields } from '@/types/dbTypes';
+import { Condition, Reason, ReasonsFields } from '@/types/dbTypes';
 import { createTransaction } from '@/graphql/mutations';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import Loader from '@/components/Loader';
 import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons/hi';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
-import { FieldEntry, TransferType } from '@/types/formTypes';
+import { FieldEntry, FieldEntryValue, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
-import DynamicForm from './DynamicForm';
+import { DynamicForm } from './DynamicForm';
+import DynamicInputField from './DynamicInputField';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
+    const [fieldValues, setFieldValues] = useState<FieldEntryValue[]>([]);
     const client = useApolloClient();
     const orgId = 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
 
@@ -58,27 +60,12 @@ export default function MoveItemsForm({ transferType }: {
         });
     }
 
-    const onProjectChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        setTransferOptions({
-            ...transferOptions,
-            project: {
-                ...transferOptions.project,
-                value: e.target.value
-            }
-        });
-    }
-
-    const onNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
-        setTransferOptions({
-            ...transferOptions,
-            notes: {
-                ...transferOptions.notes,
-                value: e.target.value
-            }
-        });
-    }
-
     const transferItem = async () => {
+
+        console.log(transferOptions);
+        console.log(fieldValues);
+
+
         if (!transferOptions.from.value || !transferOptions.to.value){
             return;
         }
@@ -152,23 +139,6 @@ export default function MoveItemsForm({ transferType }: {
         loadReasons();
     }, []);
 
-    useEffect(() => {
-        if (!transferOptions?.reasonId.value){
-            return;
-        }
-
-        const reasonId: string = transferOptions.reasonId.value || '';// transferOptions.reasonId.value || '';
-
-        const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(reasonId);
-        const selectedReason: Reason = reasons[index];
-        setTransferOptions({
-            ...transferOptions,
-            project: {
-                name: 'project',
-                value: ''
-            }
-        });
-    }, [transferOptions.reasonId]);
     
     const _clear = (key: string) => {
         setTransferOptions({
@@ -207,7 +177,23 @@ export default function MoveItemsForm({ transferType }: {
         }
     }
 
-    const [fieldValues, setFieldValues] = useState<string[]>([]);
+    
+    useEffect(() => {
+        if (!transferOptions?.reasonId.value){
+            return;
+        }
+
+        const reasonId: string = transferOptions.reasonId.value || '';// transferOptions.reasonId.value || '';
+
+        const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(reasonId);
+        setTransferOptions({
+            ...transferOptions,
+            project: {
+                name: 'project',
+                value: ''
+            }
+        });
+    }, [transferOptions.reasonId]);
 
     const requiredFields = useMemo(() => {
         const idx = reasons.map(e => e.reason_id).indexOf(transferOptions.reasonId.value);
@@ -220,62 +206,78 @@ export default function MoveItemsForm({ transferType }: {
             return {
                 field_name: e.reasons_fields_id,
                 field_type: e.field_type,
-                title: e.field_name
+                title: e.field_name,
+                conditions: e.conditions,
             }
         });
+    }, [transferOptions.reasonId, reasons]);
+
+    
+
+    useEffect(() => {
+        setFieldValues(requiredFields.map((e: FieldEntry) => {
+            return {
+                field_name: e.field_name,
+                value: ''
+            }
+        }));
     }, [transferOptions.reasonId]);
 
-    const updateDynamicField = (value: string, index: number): any => {
-        const vals = [...fieldValues];
-        vals[index] = value;
-        setFieldValues(vals);
-    }
+    const updateDynamicField = useCallback((newValue: DropDownSearchOption, name: string): any => {
+        setFieldValues(prev => {
+            //const allVisible: string[] = [];
+            const mapped = prev.map(e => { 
 
-    const updateDynamicFieldValue = useCallback((value: string, index: number)=> {
-        const vals = [...fieldValues];
-        vals[index] = value;
-        setFieldValues(vals);
-    }, [fieldValues]);
+                /*
+                if (!e.field_name){
+                    return e;
+                }
+                const reqFieldIdx = requiredFields.map(e => e.field_name).indexOf(e.field_name);
+                const conds = requiredFields[reqFieldIdx].conditions;
 
-    const clearDynamicField = (objectName?: string) => {
+                let counter = 0;
+                conds?.forEach((e: Condition) => {
+                    const dependentFieldIdx = prev.map(e => e.field_name).indexOf(e.dependent_field.reasons_fields_id);
 
-    }
+                    //if ( condition is met ) 
+                    counter++;
+                });
+
+                console.log(counter);
+
+                if (counter === conds?.length){
+                    allVisible.push(e.field_name);
+                }*/
+
+                if (e.field_name === name) {
+                    return { ...e, value: newValue.value };
+                }
+                return e;
+            });
+
+            return mapped;
+        });
+    }, [requiredFields]);
+
+    const fromLocationForItemSearch = useMemo(() => {
+        if (transferOptions.from.name === 'Parts Room' || transferOptions.from.name === 'Customer Location'){
+            return undefined;
+        }
+        return transferOptions.from.value; //need to fetch if location can view all items or not
+    }, [transferOptions.from]);
 
     return (
         <>
             <h1 className='text-xl font-medium'>{getTitle()}</h1>
             <div className='grid grid-cols-1 gap-2'>
-                <div className='grid grid-cols-12 gap-2'>
-                    <div className='col-span-12 md:col-span-6'>
-                        <ItemSearch
-                        fn={{
-                            onChange: onFieldChange,
-                            clear: clearItem
-                        }}
-                        val={transferOptions.itemId}
-                        displayOptions={{
-                            title:'Item',
-                            name:'itemId'
-                        }} />
-                    </div>
-                    <div className='col-span-12 md:col-span-6'>
-                        <div>
-                            <label className='text-sm'>Quantity</label>
-                        </div>
-                        <div>
-                            <input type='number' value={transferOptions.qty.value} name='qty' onChange={onQtyChange}
-                                className='px-3 py-1 border border-slate-300 rounded-lg w-full text-sm outline-none' />
-                        </div>
-                    </div>
-                </div>
-                <div className='grid grid-cols-11'>
+                <div className='grid grid-cols-12 md:grid-cols-11'>
                     <div className='col-span-12 md:col-span-5'>
                         <LocationSearch
                             fn={{
                                 onChange: onFieldChange,
                                 clear: clearLocationFrom
                             }}
-                            val={transferOptions.from}
+                            defaultValue={transferOptions.from}
                             displayOptions={{
                                 title:'From location',
                                 name: 'from'
@@ -292,11 +294,34 @@ export default function MoveItemsForm({ transferType }: {
                                 onChange: onFieldChange,
                                 clear:clearLocationTo
                             }}
-                            val={transferOptions.to} 
+                            defaultValue={transferOptions.to}
                             displayOptions={{
                                 title:'To location',
                                 name: 'to'
                             }} />
+                    </div>
+                </div>
+                <div className='grid grid-cols-12 gap-2'>
+                    <div className='col-span-12 md:col-span-6'>
+                        <ItemSearch
+                        fn={{
+                            onChange: onFieldChange,
+                            clear: clearItem
+                        }}
+                        displayOptions={{
+                            title:'Item',
+                            name:'itemId'
+                        }}
+                        locationId={fromLocationForItemSearch} />
+                    </div>
+                    <div className='col-span-12 md:col-span-6'>
+                        <div>
+                            <label className='text-sm'>Quantity</label>
+                        </div>
+                        <div>
+                            <input type='number' value={transferOptions.qty.value} name='qty' onChange={onQtyChange}
+                                className='px-3 py-1 border border-slate-300 rounded-lg w-full text-sm outline-none' />
+                        </div>
                     </div>
                 </div>
                 <div className="grid grid-cols-12 gap-2">
@@ -314,7 +339,25 @@ export default function MoveItemsForm({ transferType }: {
                     </div>
                 </div>
                 <div className='grid grid-cols-12 gap-2'>
-                    <DynamicForm requiredFields={requiredFields} key="dyan" />
+                    {requiredFields?.map((e: FieldEntry, index: number) => {
+                        return (
+                            <div key={e.field_name} className={`col-span-12 md:col-span-6`}>
+                                <DynamicInputField
+                                    fn={{
+                                        onChange: updateDynamicField,
+                                        clear: ()=>{
+
+                                        }
+                                    }}
+                                    field={{
+                                        field_name: e.field_name,
+                                        field_type: e.field_type
+                                    }}
+                                    label={e.title || ''} />
+                            </div>
+                        )
+                    })}
+
                 </div>
                 <div>
                     <button className=' bg-blue-500 transition-colors hover:bg-blue-600 flex items-center gap-2

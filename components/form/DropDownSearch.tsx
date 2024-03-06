@@ -9,11 +9,15 @@ import { DropDownDisplayGroup, DropDownFunctionGroup } from '@/types/dropDown';
 
 const MAX_DISPLAY: number = 10;
 
-export default function DropDownSearch({ val, fn, objectName }: { 
-    val: DropDownSearchOption
+export default function DropDownSearch({ fn, objectName, defaultValue=undefined }: { 
     fn: DropDownFunctionGroup
     objectName: string
+    defaultValue?: DropDownSearchOption
 }) {
+    const [val, setVal] = useState<DropDownSearchOption>(defaultValue || {
+        name:'',
+        value: ''
+    });
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -106,9 +110,12 @@ export default function DropDownSearch({ val, fn, objectName }: {
         setSearchQuery(e.target.value);
     }
 
-
     const clearSelectedOption = (): void => {
         setSearchQuery('');
+        setOption({
+            name: '',
+            value: ''
+        })
         fn.clear();
     }
 
@@ -163,6 +170,7 @@ export default function DropDownSearch({ val, fn, objectName }: {
 
     const setOption = (e: DropDownSearchOption): void => {
         fn.onChange(e, objectName);
+        setVal(e);
         setIsSearching(false);
     }
 
