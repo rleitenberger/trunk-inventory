@@ -71,7 +71,6 @@ const batchReasons = async (reasonIds: any) => {
     })
 
     const res =reasonIds.map((id: string) => reasonMap[id]);
-    console.log(res);
     return res;
 }
 
@@ -176,6 +175,50 @@ const batchConditionTypes = async (conditionTypeIds: any) => {
     return res;
 }
 
+const batchTransactionFieldEntries = async (transactionIds: any) => {
+    const fieldEntries = await prisma.reasons_fields_entries.findMany({
+        where: {
+            transaction_id: {
+                in: transactionIds
+            }
+        },
+    });
+
+    const entriesMap: any = {};
+    fieldEntries.forEach((entry) => {
+        if (!entriesMap[entry.transaction_id]) {
+            entriesMap[entry.transaction_id] = [];
+        }
+
+        entriesMap[entry.transaction_id].push(entry);
+    })
+
+    const res = transactionIds.map((id: string) => entriesMap[id] ?? []);
+    return res;
+}
+
+const batchFieldEntriesLoader = async (reasonsFieldsIds: any) => {
+    const entries = await prisma.reasons_fields_entries.findMany({
+        where: {
+            reasons_fields: {
+                reasons_fields_id: {
+                    in: reasonsFieldsIds
+                }
+            }
+        }
+    });
+
+    const entriesMap: any = {};
+    entries.forEach((entry) => {
+        entriesMap[entry.reasons_fields_id] = entry
+    })
+
+    const res = reasonsFieldsIds.map((id: string) => entriesMap[id] ?? []);
+
+    console.log(entries);
+    return res;
+}
+
 export const transactionLoader = new DataLoader(batchTransactions);
 export const reasonLoader = new DataLoader(batchReasons);
 export const locationLoader = new DataLoader(batchLocations);
@@ -185,3 +228,5 @@ export const transactionTypesLoader = new DataLoader(batchTransactionTypes);
 export const conditionsLoader=new DataLoader(batchConditions);
 export const conditionReasonFieldLoader = new DataLoader(batchConditionReasonFields);
 export const conditionTypesLoader = new DataLoader(batchConditionTypes);
+export const transactionFieldEntriesLoader = new DataLoader(batchTransactionFieldEntries);
+export const fieldEntriesLoader = new DataLoader(batchFieldEntriesLoader);

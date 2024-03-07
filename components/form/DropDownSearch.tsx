@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, useImperativeHandle } from 'react';
 import { BiChevronDown, BiSearch, BiTransfer, BiX } from 'react-icons/bi';
 import type { DropDownSearchOption, PaginatedDropDownSearchOptions } from '@/types/DropDownSearchOption';
 import Loader from '../Loader';
@@ -9,11 +9,11 @@ import { DropDownDisplayGroup, DropDownFunctionGroup } from '@/types/dropDown';
 
 const MAX_DISPLAY: number = 10;
 
-export default function DropDownSearch({ fn, objectName, defaultValue=undefined }: { 
+const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefined}: { 
     fn: DropDownFunctionGroup
     objectName: string
     defaultValue?: DropDownSearchOption
-}) {
+}, ref) => {
     const [val, setVal] = useState<DropDownSearchOption>(defaultValue || {
         name:'',
         value: ''
@@ -36,6 +36,19 @@ export default function DropDownSearch({ fn, objectName, defaultValue=undefined 
     const [isLoadingScroll, setIsLoadingScroll] = useState<boolean>(false);
     const scrollRef = useRef<HTMLInputElement>(null);
     const loaderRef = useRef<HTMLDivElement>(null);
+
+    const onLocationChanged = () => {
+        setOptions([]);
+        setSearchQuery('');
+        setOption({
+            name: '',
+            value: ''
+        });
+    }
+
+    useImperativeHandle(ref, ()=>({
+        onLocationChanged
+    }));
 
     const checkScrollEnd = async () => {
         if (!scrollRef.current){
@@ -282,4 +295,6 @@ export default function DropDownSearch({ fn, objectName, defaultValue=undefined 
             
         </div>
     )
-}
+});
+
+export default DropDownSearch;

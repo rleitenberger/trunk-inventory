@@ -13,8 +13,6 @@ export const DynamicForm = React.memo(({ requiredFields, onChange }:
         requiredFields: FieldEntry[]
         onChange: (e: DropDownSearchOption, name: string) => void
     }) => {
-
-    console.log('no');
     
     return(
         <>

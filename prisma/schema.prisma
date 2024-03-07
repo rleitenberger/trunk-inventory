@@ -45,6 +45,7 @@ model locations {
   modified                                           DateTime              @default(now()) @db.Timestamp(0)
   active                                             Boolean               @default(true)
   orderPriority                                      Int
+  view_all_items                                     Boolean               @default(false)
   organizations                                      organizations         @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_id")
   locations_items_qty                                locations_items_qty[]
   transactions_transactions_from_locationTolocations transactions[]        @relation("transactions_from_locationTolocations")
@@ -99,8 +100,6 @@ model transactions {
   reason_id                                       String                  @db.VarChar(36)
   qty                                             Int
   transfer_type                                   String                  @db.VarChar(10)
-  project_id                                      String?                 @db.VarChar(36)
-  notes                                           String?                 @db.Text
   created                                         DateTime                @default(now()) @db.Timestamp(0)
   reasons_fields_entries                          reasons_fields_entries?
   locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
@@ -175,7 +174,7 @@ model reasons_fields {
 model reasons_fields_entries {
   transaction_id    String         @id @db.VarChar(36)
   reasons_fields_id String         @db.VarChar(36)
-  field_value       String         @db.VarChar(100)
+  field_value       String         @db.VarChar(200)
   transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_entries_transaction_id")
   reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_id")
 

@@ -9,8 +9,6 @@ export default function Checkbox ({ fn, displayOptions }: {
 
     const [val, setVal] = useState<boolean>(false);
 
-    console.log(fn, displayOptions);
-
     const updateValue = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { checked } = e.target;
         setVal(checked);

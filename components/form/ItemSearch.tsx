@@ -5,6 +5,7 @@ import { getItems, getItemsAtLocation } from "@/graphql/queries"
 import { DropDownSearchOption, PaginatedDropDownSearchOptions } from "@/types/DropDownSearchOption"
 import useOrganization from "../providers/useOrganization"
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown"
+import { useEffect, useRef } from "react"
 
 export default function ItemSearch ({ fn, displayOptions, locationId=undefined, defaultValue=undefined, }: {
     displayOptions: DropDownDisplayGroup
@@ -14,6 +15,11 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
 }) {    
     const apolloClient = useApolloClient();
     const organizationId = useOrganization();
+    const ref=useRef<any>();
+
+    useEffect(() => {
+        ref.current?.onLocationChanged();
+    }, [locationId]);
 
     const fetchItems = async(search: string, pageInfo: PageInfo|undefined = undefined): Promise<PaginatedDropDownSearchOptions> => {
         
@@ -61,7 +67,7 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
                     const { item } = e.node;
                     return {
                         name: item.name,
-                        value: item.value
+                        value: item.item_id,
                     }
                 }),
                 pageInfo: data.getItemsAtLocation?.pageInfo
@@ -86,7 +92,8 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
                     ...fn
                 }}
                 defaultValue={defaultValue}
-                objectName={displayOptions.name} />
+                objectName={displayOptions.name}
+                ref={ref} />
         </>
     )
 }

@@ -101,10 +101,21 @@ export const getTransactions = gql`
                         reason_id
                         name
                         description
+                        reasons_fields {
+                            reasons_fields_id
+                            field_name
+                        }
                     }
                     item {
                         item_id
                         name
+                        sku
+                    }
+                    qty
+                    transfer_type
+                    entries {
+                        reasons_fields_id
+                        field_value
                     }
                 }
             }
@@ -117,8 +128,8 @@ export const getTransactions = gql`
 `;
 
 export const getItemsAtLocation = gql`
-    query getItemsAtLocation($locationId: String!, $search: String, $first: Int, $after: String) {
-        getItemsAtLocation(locationId: $locationId, search: $search, first: $first, after: $after) {
+    query getItemsAtLocation($locationId: String!, $search: String, $first: Int, $after: String, $includeNegative: Boolean) {
+        getItemsAtLocation(locationId: $locationId, search: $search, first: $first, after: $after, includeNegative: $includeNegative) {
             edges {
                 node {
                     item {

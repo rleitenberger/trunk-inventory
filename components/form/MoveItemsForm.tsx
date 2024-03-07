@@ -16,8 +16,8 @@ import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { FieldEntry, FieldEntryValue, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
-import { DynamicForm } from './DynamicForm';
 import DynamicInputField from './DynamicInputField';
+import { DynamicForm } from './DynamicForm';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
@@ -62,23 +62,28 @@ export default function MoveItemsForm({ transferType }: {
 
     const transferItem = async () => {
 
-        console.log(transferOptions);
-        console.log(fieldValues);
-
-
         if (!transferOptions.from.value || !transferOptions.to.value){
+            console.error('Missing location(s)');
             return;
         }
 
         if (!transferOptions.itemId.value){
+            console.error('Missing item');
             return;
         }
 
         if (!transferOptions.qty.value){
+            console.error('Quantity can not be 0');
+            return;
+        }
+
+        if (transferOptions.qty.value < 0){
+            console.error('Quantity can not be less than 0');
             return;
         }
 
         if (!transferOptions.reasonId){
+            console.error('You must select a reason');
             return;
         }
 
@@ -87,13 +92,18 @@ export default function MoveItemsForm({ transferType }: {
             return acc;
         }, {});
 
+        const variables = {
+            orgId: orgId,
+            transferType: transferType,
+            transferInput: {
+                ...vals
+            },
+            fieldEntries: fieldValues
+        };
+
         const res = await client.mutate({
             mutation: createTransaction,
-            variables: {
-                orgId: orgId,
-                transferType: transferType,
-                ...vals
-            }
+            variables: variables
         });
 
         const tId = res.data?.createTransaction;
@@ -177,24 +187,6 @@ export default function MoveItemsForm({ transferType }: {
         }
     }
 
-    
-    useEffect(() => {
-        if (!transferOptions?.reasonId.value){
-            return;
-        }
-
-        const reasonId: string = transferOptions.reasonId.value || '';// transferOptions.reasonId.value || '';
-
-        const index: number = reasons.map((e: Reason) => e.reason_id).indexOf(reasonId);
-        setTransferOptions({
-            ...transferOptions,
-            project: {
-                name: 'project',
-                value: ''
-            }
-        });
-    }, [transferOptions.reasonId]);
-
     const requiredFields = useMemo(() => {
         const idx = reasons.map(e => e.reason_id).indexOf(transferOptions.reasonId.value);
         if (idx===-1){
@@ -210,9 +202,7 @@ export default function MoveItemsForm({ transferType }: {
                 conditions: e.conditions,
             }
         });
-    }, [transferOptions.reasonId, reasons]);
-
-    
+    }, [transferOptions.reasonId]);
 
     useEffect(() => {
         setFieldValues(requiredFields.map((e: FieldEntry) => {
@@ -225,39 +215,14 @@ export default function MoveItemsForm({ transferType }: {
 
     const updateDynamicField = useCallback((newValue: DropDownSearchOption, name: string): any => {
         setFieldValues(prev => {
-            //const allVisible: string[] = [];
-            const mapped = prev.map(e => { 
-
-                /*
-                if (!e.field_name){
-                    return e;
-                }
-                const reqFieldIdx = requiredFields.map(e => e.field_name).indexOf(e.field_name);
-                const conds = requiredFields[reqFieldIdx].conditions;
-
-                let counter = 0;
-                conds?.forEach((e: Condition) => {
-                    const dependentFieldIdx = prev.map(e => e.field_name).indexOf(e.dependent_field.reasons_fields_id);
-
-                    //if ( condition is met ) 
-                    counter++;
-                });
-
-                console.log(counter);
-
-                if (counter === conds?.length){
-                    allVisible.push(e.field_name);
-                }*/
-
+            return prev.map(e => { 
                 if (e.field_name === name) {
                     return { ...e, value: newValue.value };
                 }
                 return e;
             });
-
-            return mapped;
         });
-    }, [requiredFields]);
+    }, []);
 
     const fromLocationForItemSearch = useMemo(() => {
         if (transferOptions.from.name === 'Parts Room' || transferOptions.from.name === 'Customer Location'){
@@ -319,7 +284,7 @@ export default function MoveItemsForm({ transferType }: {
                             <label className='text-sm'>Quantity</label>
                         </div>
                         <div>
-                            <input type='number' value={transferOptions.qty.value} name='qty' onChange={onQtyChange}
+                            <input type='number' value={transferOptions.qty.value} name='qty' onChange={onQtyChange} min={0}
                                 className='px-3 py-1 border border-slate-300 rounded-lg w-full text-sm outline-none' />
                         </div>
                     </div>
@@ -339,24 +304,7 @@ export default function MoveItemsForm({ transferType }: {
                     </div>
                 </div>
                 <div className='grid grid-cols-12 gap-2'>
-                    {requiredFields?.map((e: FieldEntry, index: number) => {
-                        return (
-                            <div key={e.field_name} className={`col-span-12 md:col-span-6`}>
-                                <DynamicInputField
-                                    fn={{
-                                        onChange: updateDynamicField,
-                                        clear: ()=>{
-
-                                        }
-                                    }}
-                                    field={{
-                                        field_name: e.field_name,
-                                        field_type: e.field_type
-                                    }}
-                                    label={e.title || ''} />
-                            </div>
-                        )
-                    })}
+                    <DynamicForm requiredFields={requiredFields} onChange={updateDynamicField} />
 
                 </div>
                 <div>

@@ -12,6 +12,8 @@ export type TransactionArgs = {
     first?: number
     after?: string
     transferType?: string
+    last?: number;
+    before?: string;
 }
 
 export type Connection<T> = {
@@ -27,4 +29,6 @@ export type Edge<T> = {
 export type PageInfo = {
     hasNextPage: boolean;
     endCursor?: string|null;
+    hasPreviousPage?: boolean;
+    startCursor?: string|null;
 };

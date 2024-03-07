@@ -32,14 +32,6 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'reasonId',
             value: ''
         },
-        notes: {
-            name: 'notes',
-            value: ''
-        },
-        project: {
-            name: 'projectId',
-            value: ''
-        }
     },
     remove: {
         from: {
@@ -62,14 +54,6 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'reasonId',
             value: ''
         },
-        notes: {
-            name: 'notes',
-            value: ''
-        },
-        project: {
-            name: 'projectId',
-            value: ''
-        }
     },
     pull: {
         from: {
@@ -92,14 +76,6 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'reasonId',
             value: ''
         },
-        notes: {
-            name: 'notes',
-            value: ''
-        },
-        project: {
-            name: 'projectId',
-            value: ''
-        }
     },
     return: {
         from: {
@@ -122,13 +98,5 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'reasonId',
             value: ''
         },
-        notes: {
-            name: 'notes',
-            value: ''
-        },
-        project: {
-            name: 'projectId',
-            value: ''
-        }
     }
 }

@@ -18,11 +18,29 @@ export interface Transaction {
     transaction_id: string;
     organization_id: string;
     qty: number;
-    notes: string | null;
     from_location: string;
     to_location: string;
     reason_id: string;
     created: Date;
+    expanded?: boolean;
+}
+
+export interface TransactionEdge {
+    node: TransactionClient;
+}
+
+export interface TransactionClient {
+    transaction_id: string;
+    organization_id: string;
+    item: Item;
+    qty: number;
+    from_location: Location;
+    to_location: Location;
+    transfer_type: string;
+    reason?: Reason;
+    created: string;
+    entries?: ReasonsFieldsEntry[];
+    expanded?: boolean;
 }
 
 export interface Item {
@@ -38,6 +56,7 @@ export interface Item {
     active: boolean; 
     description: string | null;
 }
+
 
 export interface Location {
     location_id: string;
@@ -71,6 +90,7 @@ export type ReasonsFields = {
     field_type: string;
     updated?: boolean;
     conditions?: Condition[];
+    entries?: ReasonsFieldsEntry
 }
 
 export type DynamicInputField = {
@@ -132,4 +152,37 @@ export interface FieldType {
     field_type_id: string;
     name: string;
     data_type: string;
+}
+
+export interface LocationItemEdge {
+    item_id: number;
+    node: LocationItem;
+}
+
+export interface LocationItem {
+    item: Item;
+    qty: number;
+}
+
+export interface PageInfoVariables {
+    
+}
+
+export interface TransferInput {
+    from: string
+    to: string
+    itemId: string
+    reasonId: string
+    qty: number;
+}
+
+export interface FieldsEntriesInput {
+    field_name: string;
+    value: string;
+}
+
+export interface ReasonsFieldsEntry {
+    transaction_id: string;
+    reasons_fields_id: string;
+    field_value: string;
 }

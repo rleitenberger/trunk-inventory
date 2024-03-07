@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, Item, Location, LocationItem, Reason, ReasonsFields, Transaction, User } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 
 export const resolvers = {
@@ -182,15 +182,28 @@ export const resolvers = {
             });
             return res;
         },
-        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType }: TransactionArgs) => {
-            const take = first || 25;
+        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last }: TransactionArgs) => {
+            const take = first || last || 25;
             let cursorCondition = {};
+
+            type sort_order = 'asc'|'desc';
+            let order: sort_order = 'asc';
+
             if (after) {
                 cursorCondition = {
                     item_id: {
-                        gt: after,
-                    },
+                        gt: after
+                    }
+                }
+            }
+
+            if (before) {
+                cursorCondition = {
+                    item_id: {
+                        lt: before
+                    }
                 };
+                order = 'desc';
             }
 
             const transactions = await prisma.transactions.findMany({
@@ -235,14 +248,20 @@ export const resolvers = {
 
             return transactionConnection;
         },
-        getItemsAtLocation: async (_: any, { locationId, search, first, after } : {
-            locationId: string
-            search?: string
-            first?: number
-            after?: string
+        getItemsAtLocation: async (_: any, { locationId, search, first, after, last, before, includeNegative } : {
+            locationId: string;
+            search?: string;
+            first?: number;
+            after?: string;
+            last?: number;
+            before?: string;
+            includeNegative: boolean;
         }) => {
-            const take = first || 25;
+            const take = first || last || 25;
             let cursorCondition = {};
+
+            type sort_order = 'asc'|'desc';
+            let order: sort_order = 'asc';
 
             if (after) {
                 cursorCondition = {
@@ -252,10 +271,19 @@ export const resolvers = {
                 }
             }
 
+            if (before) {
+                cursorCondition = {
+                    item_id: {
+                        lt: before
+                    }
+                };
+                order = 'desc';
+            }
+
             const items = await prisma.locations_items_qty.findMany({
                 where: {
                     AND: [
-                        { qty: { gt: 0 } },
+                        { qty: includeNegative ? { not: 0 } : { gt: 0 } },
                         { location_id: { equals: locationId } },
                         { items: { name: { contains: search ? search : undefined } } },
                         { locations: { active: { equals: true } } }
@@ -269,13 +297,19 @@ export const resolvers = {
                 },
                 take: take + 1,
                 orderBy: {
-                    item_id: 'asc'
+                    item_id: order
                 }
             });
 
 
-            const hasNextPage = items.length > take;
-            const edges: Edge<LocationItem>[] = (hasNextPage ? items.slice(0, -1) : items).map(li => ({
+            const hasNextPage = first ? items.length > take : false;
+            const hasPreviousPage = last ? items.length > take : false;
+
+            if (before) {
+                items.reverse();
+            }
+
+            const edges: Edge<LocationItem>[] = (hasNextPage || hasPreviousPage ? items.slice(0, -1) : items).map(li => ({
                 node: {
                     item: li.items,
                     location: li.locations,
@@ -352,73 +386,79 @@ export const resolvers = {
         }
     },
     Mutation: {
-        createTransaction: async (_:any, { orgId, from, to, qty, itemId, reasonId, notes, transferType, project }: {
-            orgId: string
-            from: string
-            to: string
-            qty: number
-            itemId: string
-            reasonId: string
-            notes?: string
-            transferType: string
-            project: string
+        createTransaction: async (_:any, { orgId, transferInput, fieldEntries, transferType }: {
+            orgId: string;
+            transferInput: TransferInput;
+            fieldEntries: FieldsEntriesInput[];
+            transferType: string;
         }) => {
-            const newTransaction = await prisma.transactions.create({
-                data: {
-                    transaction_id: randomUUID(),
-                    organization_id: orgId,
-                    from_location: from,
-                    to_location: to,
-                    qty: qty,
-                    item_id: itemId,
-                    reason_id: reasonId,
-                    notes: notes ? notes : '',
-                    transfer_type: transferType,
-                    project_id: project
+            const transactionId = randomUUID().toString();
+            const entries: ReasonsFieldsEntry[] = fieldEntries.map((e: FieldsEntriesInput): ReasonsFieldsEntry => {
+                return {
+                    transaction_id: transactionId,
+                    reasons_fields_id: e.field_name,
+                    field_value: e.value
                 }
-            });
+            })
+
+            const createTransaction = await prisma.$transaction([
+                prisma.transactions.create({
+                    data: {
+                        transaction_id: transactionId,
+                        organization_id: orgId,
+                        from_location: transferInput.from,
+                        to_location: transferInput.to,
+                        qty: transferInput.qty,
+                        item_id: transferInput.itemId,
+                        reason_id: transferInput.reasonId,
+                        transfer_type: transferType,
+                    }
+                }),
+                prisma.reasons_fields_entries.createMany({
+                    data: entries
+                })
+            ]);
 
             const updateQty = await prisma.$transaction([
                 prisma.locations_items_qty.upsert({
                     where: {
                         location_id_item_id: {
-                            location_id: from,
-                            item_id: itemId
+                            location_id: transferInput.from,
+                            item_id: transferInput.to
                         }
                     },
                     create: {
-                        location_id: from,
-                        item_id: itemId,
-                        qty: qty * -1
+                        location_id: transferInput.from,
+                        item_id: transferInput.itemId,
+                        qty: transferInput.qty * -1
                     },
                     update: {
                         qty: {
-                            decrement: qty
+                            decrement: transferInput.qty
                         }
                     }
                 }),
                 prisma.locations_items_qty.upsert({
                     where: {
                         location_id_item_id: {
-                            location_id: to,
-                            item_id: itemId
+                            location_id: transferInput.to,
+                            item_id: transferInput.itemId
                         }
                     },
                     create: {
-                        location_id: to,
-                        item_id: itemId,
-                        qty: qty
+                        location_id: transferInput.to,
+                        item_id: transferInput.itemId,
+                        qty: transferInput.qty
                     },
                     update: {
                         qty: {
-                            increment: qty
+                            increment: transferInput.qty
                         }
                     }
                 })
             ]);
 
-            const { transaction_id } = newTransaction;
-            return transaction_id;
+            return transactionId;
         },
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string
@@ -640,6 +680,9 @@ export const resolvers = {
         },
         item: async(parent: any, args: any, context: any) => {
             return context.loaders.item.load(parent.item_id);
+        },
+        entries: async(parent: Transaction, args: any, context: any) => {
+            return context.loaders.transactionFieldEntries.load(parent.transaction_id);
         }
     },
     Reason: {
@@ -653,7 +696,10 @@ export const resolvers = {
     ReasonFields: {
         conditions: async (parent:ReasonsFields, args: any, context: any) => {
             return context.loaders.condition.load(parent.reasons_fields_id);
-        }
+        },
+        // entries: async (parent: ReasonsFields, args: any, context: any) => {
+        //     return context.loaders.fieldEntries.load(parent.reasons_fields_id);
+        // }
     },
     Condition: {
         condition_field: async(parent: Condition, args: any, context: any) => {
