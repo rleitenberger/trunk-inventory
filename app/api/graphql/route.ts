@@ -6,7 +6,7 @@ import { gql } from 'graphql-tag'
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { resolvers } from "@/graphql/resolvers";
-import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
+import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonEmailsLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
 
 const typeDefs = `${readFileSync(`graphql/schema.graphqls`)}`;
 const apolloServer = new ApolloServer({
@@ -29,7 +29,8 @@ const handler = startServerAndCreateNextHandler(apolloServer, {
           conditionReasonField: conditionReasonFieldLoader,
           conditionType: conditionTypesLoader,
           transactionFieldEntries: transactionFieldEntriesLoader,
-          fieldEntries: fieldEntriesLoader
+          fieldEntries: fieldEntriesLoader,
+          reasonEmails: reasonEmailsLoader
       },
   }),
 });

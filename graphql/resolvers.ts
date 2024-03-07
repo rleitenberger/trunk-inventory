@@ -667,6 +667,32 @@ export const resolvers = {
                 }
             });
         },
+        createReasonEmail: async(_: any, { reasonId, email }: {
+            reasonId: string,
+            email: string
+        }) => {
+            const reasonEmailId = randomUUID();
+            const added = await prisma.reason_emails.create({
+                data: {
+                    reason_id: reasonId,
+                    email: email,
+                    reason_email_id: reasonEmailId
+                }
+            });
+
+            return reasonEmailId;
+        },
+        deleteReasonEmail: async(_: any, { reasonEmailId }: {
+            reasonEmailId: string;
+        }) => {
+            const removed = await prisma.reason_emails.delete({
+                where: {
+                    reason_email_id: reasonEmailId
+                }
+            });
+
+            return true;
+        }
     },
     Transaction: {
         reason: async (parent: Transaction, args: any, context: any) => {
@@ -691,6 +717,9 @@ export const resolvers = {
         },
         transaction_type: async(parent:Reason, args:any, context:any) => {
             return context.loaders.transactionTypes.load(parent.transaction_type_id);
+        },
+        reason_emails: async(parent: Reason, args: any, context:any) => {
+            return context.loaders.reasonEmails.load(parent.reason_id);
         }
     },
     ReasonFields: {

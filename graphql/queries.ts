@@ -56,6 +56,10 @@ export const getReasons = gql`
             reason_id
             name
             sends_email
+            reason_emails {
+                email
+                reason_email_id
+            }
             reasons_fields {
                 reasons_fields_id
                 reason_id

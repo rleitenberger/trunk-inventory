@@ -135,6 +135,7 @@ model reasons {
   created             DateTime          @default(now()) @db.Timestamp(0)
   modified            DateTime          @default(now()) @db.Timestamp(0)
   active              Boolean           @default(true)
+  reason_emails       reason_emails[]
   transaction_types   transaction_types @relation(fields: [transaction_type_id], references: [transaction_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_transaction_type_id")
   reasons_fields      reasons_fields[]
   transactions        transactions[]
@@ -183,14 +184,15 @@ model reasons_fields_entries {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model reason_emails {
-  reason_id Int
-  email     Int
-  active    Boolean  @default(false)
-  created   DateTime @default(now()) @db.Timestamp(0)
-  modified  DateTime @default(now()) @db.Timestamp(0)
+  reason_email_id String   @id @db.VarChar(36)
+  reason_id       String   @db.VarChar(36)
+  email           String   @db.VarChar(200)
+  active          Boolean  @default(false)
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  reasons         reasons  @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reason_emails_reason_id")
 
-  @@id([reason_id, email])
-  @@ignore
+  @@index([reason_id], map: "fk_reason_emails_reason_id")
 }
 
 model condition_types {

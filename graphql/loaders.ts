@@ -214,9 +214,30 @@ const batchFieldEntriesLoader = async (reasonsFieldsIds: any) => {
     })
 
     const res = reasonsFieldsIds.map((id: string) => entriesMap[id] ?? []);
-
-    console.log(entries);
     return res;
+}
+
+const batchReasonEmails = async (reasonIds: any) => {
+    const emails = await prisma.reason_emails.findMany({
+        where: {
+            reason_id: {
+                in: reasonIds
+            }
+        }
+    });
+
+    const emailsMap: any = {};
+    emails.forEach((email) => {
+        if (!emailsMap[email.reason_id]) {
+            emailsMap[email.reason_id] = [];
+        }
+
+        emailsMap[email.reason_id].push(email);
+    })
+
+    const res = reasonIds.map((id: string) => emailsMap[id] ?? []);
+    return res;
+
 }
 
 export const transactionLoader = new DataLoader(batchTransactions);
@@ -230,3 +251,4 @@ export const conditionReasonFieldLoader = new DataLoader(batchConditionReasonFie
 export const conditionTypesLoader = new DataLoader(batchConditionTypes);
 export const transactionFieldEntriesLoader = new DataLoader(batchTransactionFieldEntries);
 export const fieldEntriesLoader = new DataLoader(batchFieldEntriesLoader);
+export const reasonEmailsLoader = new DataLoader(batchReasonEmails);

@@ -81,6 +81,13 @@ export type Reason = {
     sends_email: boolean
     reasons_fields: ReasonsFields[];
     transaction_type_id: string;
+    reason_emails: ReasonEmail[];
+}
+
+export interface ReasonEmail {
+    reason_id?: string;
+    email: string;
+    reason_email_id: string;
 }
 
 export type ReasonsFields = {

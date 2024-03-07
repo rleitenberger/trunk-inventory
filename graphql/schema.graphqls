@@ -31,6 +31,9 @@ type Mutation {
     updateReasonSendsEmail(reasonId: String!, sendsEmail: Boolean!): Boolean
     deleteReason(reasonId: String!): Boolean
 
+    createReasonEmail(reasonId: String!, email: String!): String
+    deleteReasonEmail(reasonId: String, email: String!): Boolean
+
     createReasonField(reasonId: String!, fieldName: String!, fieldType: String!, conditions: [ConditionInput]!): ReasonFields
     updateReasonField(reasonFieldId: String!, fieldName: String!, fieldType: String!, conditions: [ConditionInput]!): ReasonFields
     deleteReasonField(reasonFieldId: String!): Boolean
@@ -120,6 +123,7 @@ type Reason {
     active: Boolean!
     sends_email: Boolean!
     reasons_fields: [ReasonFields]!
+    reason_emails: [ReasonEmail]!
 }
 
 type Transaction {
@@ -228,4 +232,13 @@ type TransactionDetailsField {
     field_name: String!
     field_value: String
     transaction_id: String!
+}
+
+type ReasonEmail { 
+    reason_email_id: String!
+    reason_id: String!
+    email: String!
+    active: Boolean!
+    created: String!
+    modified: String!
 }

@@ -2,14 +2,14 @@
 
 import useOrganization from "@/components/providers/useOrganization";
 import { getTransactionTypes } from "@/graphql/queries";
-import { FormEvent, FormEventHandler, SetStateAction, useEffect, useState } from "react";
+import { FormEvent, FormEventHandler, SetStateAction, useEffect, useMemo, useState } from "react";
 import { common } from "@/lib/common";
 
-import { Condition, ConditionType, Reason, ReasonsFields, type TransactionType } from '@/types/dbTypes';
-import { deleteReason, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
+import { Condition, ConditionType, Reason, ReasonEmail, ReasonsFields, type TransactionType } from '@/types/dbTypes';
+import { createReasonEmail, deleteReason, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
 import EditableText from "@/components/form/EditableText";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
-import { BiPen, BiPencil, BiPlus, BiTrash } from "react-icons/bi";
+import { BiCheck, BiPen, BiPencil, BiPlus, BiTrash, BiX } from "react-icons/bi";
 import Modal from "@/components/modal/Modal";
 import ReasonFieldModal from "@/components/modal/ReasonFieldModal";
 import { useApolloClient } from "@apollo/client";
@@ -351,6 +351,95 @@ export default function PageAdmin() {
         });
     }
 
+    const [addingEmail, setAddingEmail] = useState<boolean>(false);
+    const updateAddingEmail = (reasonId?: string) => {
+        setEmailToAdd({
+            ...emailToAdd,
+            reasonId: reasonId ?? ''
+        })
+        setAddingEmail(!addingEmail);
+    }
+
+    const addingEmailClassName = useMemo((): string =>{
+        return addingEmail ? 'rotate-45' : 'rotate-0';
+    }, [addingEmail]);
+
+    interface EmailToAddArgs {
+        email: string;
+        reasonId: string;
+    }
+
+    const [emailToAdd, setEmailToAdd] = useState<EmailToAddArgs>({
+        email: '',
+        reasonId: '',
+    });
+    const updateEmailToAdd = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        setEmailToAdd({
+            ...emailToAdd,
+            email: e.target.value
+        });
+    }
+
+    const addEmail = async(): Promise<void> => {
+        if (!emailToAdd.email){
+            console.error('Email is missing');
+            return;
+        }
+
+        const { data } = await apolloClient.mutate({
+            mutation: createReasonEmail,
+            variables: {
+                reasonId: emailToAdd.reasonId,
+                email: emailToAdd.email
+            }
+        });
+
+        if (!data?.createReasonEmail){
+            console.error('Email was not added');
+            return;
+        }
+
+        const reasonIdx = reasons.map(e => e.reason_id).indexOf(emailToAdd.reasonId);
+        
+        if (reasonIdx === -1) {
+            console.error('Reason did not exist.');
+            return;
+        }
+
+        const reasonEmailId = data.createReasonEmail;
+
+        setReasons((prev) => {
+            const tmp = prev.map((e: Reason): Reason => {
+                return {
+                    ...e,
+                    reasons_fields: {
+                        ...e.reasons_fields
+                    },
+                    reason_emails: [...e.reason_emails, {
+                        reason_id: emailToAdd.reasonId,
+                        email: emailToAdd.email,
+                        reason_email_id: reasonEmailId
+                    }]
+                }
+            })
+            console.log(prev);
+            return prev;
+        });
+
+    }
+
+    const removeEmail = async(): Promise<void> => {
+
+    }
+
+    const cancelAddingEmail = (): void => {
+        setAddingEmail(false);
+        setEmailToAdd({
+            reasonId: '',
+            email: ''
+        })
+    }
+
     return (
         <>
             {showingEditField && (
@@ -423,7 +512,7 @@ export default function PageAdmin() {
                             const fields = e?.reasons_fields;
                             return (
                                 <div key={`r-${e.reason_id}`} className="border border-slate-300 p-3 rounded-lg
-                                    col-span-12 md:col-span-6 lg:col-span-4">
+                                    col-span-12 md:col-span-6 lg:col-span-4 flex flex-col gap-2">
                                         <div className="flex items-center flex-wrap">
                                             <EditableText
                                                 fn={{
@@ -441,7 +530,7 @@ export default function PageAdmin() {
                                             </button>
                                         </div>
 
-                                    <div>
+                                    <div className="flex flex-col gap-2 h-full">
                                         <div className="flex items-center">
                                             <p>Required fields</p>
                                             <button className="ml-auto flex items-center gap-2 px-2 py-1 rounded-lg
@@ -485,12 +574,61 @@ export default function PageAdmin() {
                                         {!fields?.length && (
                                             <div className="text-center text-slate-500 font-medium ">No fields have been added</div>
                                         )}
-                                        <div className="">
+                                        <div className="mt-auto">
                                             <div className="flex items-center gap-2">
                                                 <input type="checkbox" checked={e.sends_email} onChange={(ev)=>{
                                                     modifyReasonSendsEmail(ev, e.reason_id)
                                                 }} />
                                                 <label>Send email on submit</label>
+                                            </div>
+                                            <div className="mt-2">
+                                                {e.sends_email && (
+                                                    <>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium">Emails</p>
+                                                            <button className="p-2 ml-auto transition-colors hover:bg-slate-300/40 rounded-lg"
+                                                                onClick={() => {
+                                                                    updateAddingEmail(e.reason_id)
+                                                                }}>
+                                                                <BiPlus className={`transition-all ${addingEmailClassName}`} />
+                                                            </button>
+                                                        </div>
+                                                        {addingEmail && emailToAdd.reasonId === e.reason_id && (
+                                                            <div className="flex items-center gap-2">
+                                                                <input type="text" value={emailToAdd.email} onChange={updateEmailToAdd}
+                                                                    className="px-2 py-1 text-sm rounded-lg border border-slate-300 outline-none flex-1" />
+                                                                <button onClick={addEmail} className=" bg-green-500 hover:bg-green-600 rounded-md p-2
+                                                                    transition-colors duration-150 text-white">
+                                                                    <BiCheck className="" />
+                                                                </button>
+                                                                <button onClick={cancelAddingEmail} className=" bg-red-500 hover:bg-red-600 rounded-md p-2
+                                                                    transition-colors duration-150 text-white">
+                                                                    <BiX />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {e.reason_emails?.length ? (
+                                                            <>
+                                                                {e.reason_emails?.map((e: ReasonEmail) => {
+                                                                    return (
+                                                                        <div key={`re-${e.reason_email_id}`} className="grid grid-cols-12 gap-2">
+                                                                            <div className="col-span-1">
+                                                                                <button className="p-2 rounded-lg hover:bg-slate-300/40 text-red-500 transition-colors">
+                                                                                    <AiFillMinusCircle />
+                                                                                </button>
+                                                                            </div>
+                                                                            <div className="col-span-11">
+                                                                                <p>{e.email}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )
+                                                                })}
+                                                            </>
+                                                        ) : (
+                                                            <p className='text-slate-600 font-medium text-center'>No emails have been added</p>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
