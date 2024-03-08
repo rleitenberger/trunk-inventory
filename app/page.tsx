@@ -14,7 +14,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/transfer' className="p-4 block">
           <div>
-            <BiTransfer className="mx-auto text-xl text-blue-800 my-2" />
+            <BiTransfer className="mx-auto text-xl text-gray-700 my-2" />
             <p>Transfer to Trunk Inventory</p>
             <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Parts Room <BiRightArrowAlt className="text-lg" /> Van</p>
           </div>
@@ -23,7 +23,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/remove' className="p-4 block">
           <div>
-            <AiFillMinusCircle className="mx-auto text-xl text-red-600 my-2" />
+            <AiFillMinusCircle className="mx-auto text-xl text-gray-700 my-2" />
             <p>Remove from Trunk Inventory</p>
 
             <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Van <BiRightArrowAlt className="text-lg" /> Parts room or customer location</p>          </div>
@@ -32,7 +32,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/pull' className="p-4 block">
           <div>
-            <LuMoveUpRight className="mx-auto text-xl text-blue-500 my-2" />
+            <LuMoveUpRight className="mx-auto text-xl text-gray-700 my-2" />
             <p>Pull Item for Project</p>
 
             <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Parts Room <BiRightArrowAlt className="text-lg" /> Customer location</p>          </div>
@@ -41,7 +41,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/return' className="p-4 block">
           <div>
-            <IoReturnUpBack className="mx-auto text-xl text-red-900 my-2" />
+            <IoReturnUpBack className="mx-auto text-xl text-gray-700 my-2" />
             <p>Return Item from Project</p>
             <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Customer location <BiRightArrowAlt className="text-lg" /> Parts room</p>
           </div>
@@ -50,7 +50,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/inventory' className="p-4 block">
           <div>
-            <MdOutlineInventory className="mx-auto text-xl text-amber-800 my-2" />
+            <MdOutlineInventory className="mx-auto text-xl text-gray-700 my-2" />
             <p>View Trunk Inventory</p>
           </div>
         </Link>
@@ -58,7 +58,7 @@ export default function Home() {
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/transactions' className="p-4 block">
           <div>
-            <IoIosList className="mx-auto text-xl text-blue-700 my-2" />
+            <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
             View Transactions
           </div>
         </Link>

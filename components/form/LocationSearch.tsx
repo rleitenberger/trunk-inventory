@@ -5,6 +5,7 @@ import { DropDownSearchOption } from "@/types/DropDownSearchOption"
 import type { Location } from '@/types/dbTypes';
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown";
 import useOrganization from "../providers/useOrganization";
+import { MdLocationOn } from "react-icons/md";
 
 export default function LocationSearch ({ fn, displayOptions, defaultValue=undefined }: {
     displayOptions: DropDownDisplayGroup
@@ -39,7 +40,10 @@ export default function LocationSearch ({ fn, displayOptions, defaultValue=undef
 
     return (
         <>
-            <label className='text-sm'>{displayOptions?.title ? displayOptions.title : 'Location'}</label>
+            <div className="flex items-center gap-2">
+                <MdLocationOn />
+                <label className='text-sm'>{displayOptions?.title ? displayOptions.title : 'Location'}</label>
+            </div>
             <DropDownSearch
                 fn={{
                     refetch: fetchLocations,

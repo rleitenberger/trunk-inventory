@@ -48,7 +48,8 @@ export const common = {
                 reasons_fields: e.reasons_fields,
                 name: e.name,
                 sends_email: e.sends_email,
-                description: e.description
+                description: e.description,
+                reason_emails: e.reason_emails
             }
         })
     },

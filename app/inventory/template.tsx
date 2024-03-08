@@ -6,7 +6,11 @@ export default function InventoryTemplate({ children }: {
 }) {
     return (
 
-        <Suspense fallback={<Loader size="lg" />}>
+        <Suspense fallback={
+            <div className="flex items-center justify-center h-full w-full">
+                <Loader size="lg" />
+            </div>
+        }>
             {children}
         </Suspense>
     )

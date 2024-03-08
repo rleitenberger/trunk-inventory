@@ -7,11 +7,30 @@ import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { ReasonsFieldsEntry, Transaction, TransactionClient, TransactionEdge } from '@/types/dbTypes';
+import { TransferType } from '@/types/formTypes';
+import { PageInfo } from '@/types/paginationTypes';
 import { useApolloClient } from '@apollo/client';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
-import { BiLinkExternal } from 'react-icons/bi';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BiChevronLeft, BiChevronRight, BiLinkExternal, BiTransfer } from 'react-icons/bi';
 import { FaCaretDown } from 'react-icons/fa';
+import { MdOutlineTableView } from 'react-icons/md';
+
+const SORT_COLUMN = 'created';
+
+interface TransactionQueryArgs {
+    organizationId: string;
+    locationId?: string;
+    itemId?: string;
+    transferType: string;
+    first?: number;
+    last?: number;
+    before?: string;
+    after?: string;
+    sortColumn?: string;
+    sortColumnValue?: string;
+}
+
 
 export default function PageTransactions() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,7 +44,8 @@ export default function PageTransactions() {
             name: '',
             value: ''
         },
-        transferType: '--'
+        transferType: '--',
+        take: 5
     });
 
     const [transactions, setTransactions] = useState<TransactionEdge[]>([]);
@@ -37,7 +57,11 @@ export default function PageTransactions() {
     }
     const [pageInfo, setPageInfo] = useState({
         hasNextPage: false,
+        startCursor: '',
         endCursor: '',
+        sortColumn: SORT_COLUMN,
+        sortColumnValueStart: '',
+        sortColumnValueEnd: ''
     });
 
     const orgId = useOrganization();
@@ -54,46 +78,83 @@ export default function PageTransactions() {
         });
     }
 
+
+    async function fetchTransactions(direction: 'forward'|'backward'|'ignore') {
+        setIsLoading(true);
+
+        let variables: TransactionQueryArgs = {
+            organizationId: orgId,
+            locationId: transactionOptions.locationId.value,
+            itemId: transactionOptions.itemId.value,
+            transferType: transactionOptions.transferType,
+            sortColumn: SORT_COLUMN,
+            sortColumnValue: ''
+        }
+
+        if (direction === 'backward'){
+            variables.before = pageInfo.startCursor;
+            variables.last =transactionOptions.take;
+            variables.sortColumnValue = pageInfo.sortColumnValueStart;
+        } else if (direction === 'forward') {
+            variables.after = pageInfo.endCursor;
+            variables.first=transactionOptions.take;
+            variables.sortColumnValue = pageInfo.sortColumnValueEnd
+        } else {
+            variables.first=transactionOptions.take;
+        }
+
+        const res = await apollo.query({
+            query: getTransactions,
+            variables: variables
+        });
+
+        const trans = res.data?.getTransactions;
+        setIsLoading(false);
+
+        if (!trans?.edges){
+            return;
+        }
+
+        setTransactions(
+            trans.edges.map((e: TransactionEdge): TransactionEdge => {
+                return {
+                    node: {
+                        ...e.node,
+                        expanded: false
+                    }
+                }
+            })
+        );
+        setPageInfo({
+            ...pageInfo,
+            endCursor: trans.pageInfo.endCursor,
+            startCursor: trans.pageInfo.startCursor,
+            hasNextPage: trans.pageInfo.hasNextPage,
+            sortColumn: 'created',
+            sortColumnValueStart: trans.pageInfo.sortColumnValueStart,
+            sortColumnValueEnd: trans.pageInfo.sortColumnValueEnd
+        });
+    }
+
+    const resetPageData = async (callbackfn?: Promise<void>) => {
+        setPageInfo({
+            ...pageInfo,
+            endCursor: '',
+            startCursor: '',
+            sortColumnValueStart: '',
+            sortColumnValueEnd: ''
+        });
+        setPage(1);
+    }
+
     useEffect(() => {
         if (!orgId){
             return;
         }
 
-        setIsLoading(true);
+        resetPageData();
+        fetchTransactions('ignore');
 
-        async function loadTransactions() {
-            const res = await apollo.query({
-                query: getTransactions,
-                variables: {
-                    organizationId: orgId,
-                    locationId: transactionOptions.locationId.value,
-                    itemId: transactionOptions.itemId.value,
-                    first: 5,
-                    transferType: transactionOptions.transferType
-                }
-            });
-
-            const trans = res.data?.getTransactions;
-            setIsLoading(false);
-
-            if (!trans?.edges){
-                return;
-            }
-
-            setTransactions(
-                trans.edges.map((e: TransactionEdge): TransactionEdge => {
-                    return {
-                        node: {
-                            ...e.node,
-                            expanded: false
-                        }
-                    }
-                })
-            );
-            setPageInfo(trans.pageInfo);
-        }
-
-        loadTransactions();
     }, [transactionOptions, orgId]);
 
     const clearLocation = (): void => {
@@ -137,6 +198,40 @@ export default function PageTransactions() {
         });
     }
 
+    const updateDisplayCount = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        const { options, selectedIndex } = e.target;
+        setTransactionOptions({
+            ...transactionOptions,
+            take: parseInt(options[selectedIndex].value, 10)
+        });
+    }
+
+    const [page,setPage] = useState<number>(1);
+
+    const prevPage = (): void => {
+        if (page <= 1){
+            return;
+        }
+
+        setPage((prev: number): number => {
+            return prev - 1;
+        })
+
+        fetchTransactions('backward');
+    }
+
+    const nextPage = (): void => {
+        if (!pageInfo.hasNextPage){
+            return;
+        }
+
+        setPage((prev: number): number => {
+            return prev + 1;
+        })
+
+        fetchTransactions('forward');
+    }
+
     return (
         <>
             <h1 className='text-xl font-medium'>Transactions</h1>
@@ -165,7 +260,10 @@ export default function PageTransactions() {
                             }} />
                     </div>
                     <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
-                        <label className='text-sm'>Transfer Type</label>
+                        <div className='flex items-center gap-2'>
+                            <BiTransfer />
+                            <label className='text-sm'>Transfer Type</label>
+                        </div>
                         <div>
                             <select value={transactionOptions.transferType} className='px-2 py-1 text-sm
                                 outline-none rounded-lg border border-slate-300 w-full' onChange={updateTransferType}>
@@ -174,6 +272,21 @@ export default function PageTransactions() {
                                 <option value="remove">Remove</option>
                                 <option value="pull">Pull</option>
                                 <option value="return">Return</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
+                        <div className='flex items-center gap-2'>
+                            <MdOutlineTableView />
+                            <label className='text-sm'># of transactions</label>
+                        </div>
+                        <div>
+                            <select value={transactionOptions.take} className='px-2 py-1 text-sm
+                                outline-none rounded-lg border border-slate-300 w-full' onChange={updateDisplayCount}>
+                                <option value="5">5</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
                             </select>
                         </div>
                     </div>
@@ -322,6 +435,22 @@ export default function PageTransactions() {
                             </div>
                         )
                     })}
+
+                    <div className='flex items-center gap-4 mt-2 justify-center'>
+                        <button className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors hover:bg-slate-300/40
+                            outline-none disabled:cursor-not-allowed disabled:hover:bg-gray-200 disabled:bg-gray-200 disabled:text-gray-500`}
+                            disabled={page <= 1} onClick={prevPage}>
+                            <BiChevronLeft />
+                            Previous
+                        </button>
+                        <p>{page}</p>
+                        <button className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors hover:bg-slate-300/40
+                            outline-none disabled:cursor-not-allowed disabled:hover:bg-gray-200 disabled:bg-gray-200 disabled:text-gray-500`}
+                            disabled={!pageInfo.hasNextPage} onClick={nextPage}>
+                            Next
+                            <BiChevronRight />
+                        </button>
+                    </div>
                 </div>
             )}
         </>

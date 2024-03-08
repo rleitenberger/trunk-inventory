@@ -1,54 +1,99 @@
 import { sendEmail } from "@/lib/emailer";
+import { NextRequest } from "next/server";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
-export async function GET() {
-    sendEmail({
-        to: 'rleitenberger@directecllc.com',
+const handler = async (req: NextRequest) => {
+    
+    if (req.method !== 'POST'){
+        return Response.json({ error: 'Method not allowed' });
+    }
+
+    if (req.body?.locked){
+        return Response.json({
+            error: 'Stream is locked.',
+            sent: false
+        });
+    }
+
+    const data = await parseRequestBody(req.body);
+
+    console.log(data);
+    const sent = await handleDataAndSendEmail(data);
+
+    return Response.json(sent);
+}
+
+const parseRequestBody = async(stream: any): Promise<any> => {
+    let rawData = '';
+    for await (const chunk of stream) {
+        rawData += chunk;
+    }
+
+    return JSON.parse(rawData);
+}
+
+const handleDataAndSendEmail = async (data: any) => {
+    const { emails, type, reason, locations, item, fields, transaction } = data;
+
+    const now = new Date();
+    const date = now.toLocaleDateString();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const formattedHours = hours % 12 || 12;
+    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+    const time = formattedHours + ':' + formattedMinutes + ' ' + ampm;
+
+    const sent = await sendEmail({
+        to: emails,
         subject: undefined,
         details: [
             {
+                key: 'Transaction ID',
+                value: transaction.id
+            },
+            {
                 key: 'Transaction Type',
-                val: 'pull'
-            },
-            {
-                key:'Reason',
-                val: 'Exchanged for a different part'
-            },
-            {
-                key: 'Item returned',
-                val: 'Item833324'
-            },
-            {
-                key: 'Location returned',
-                val: 'Parts Room'
-            },
-            {
-                key: 'Item Name',
-                val: 'Item 123'
-            },
-            {
-                key: 'Quantity',
-                val: '3'
+                value: type
             },
             {
                 key: 'From',
-                val: 'Customer Location'
+                value: locations.from
             },
             {
                 key: 'To',
-                val: 'Parts Room'
+                value: locations.to
+            },
+            {
+                key: 'Item',
+                value: item.name || '[No SKU set]'
+            },
+            {
+                key: 'SKU',
+                value: item.sku
+            },
+            {
+                key: 'Quantity',
+                value: item.qty
             },
             {
                 key: 'Date',
-                val: '3/5/2024',
+                value: date
             },
             {
                 key: 'Time',
-                val: '9:34 AM'
-            }
-        ]
+                value: time
+            },
+            {
+                key:'Reason',
+                value: reason.name
+            },
+        ],
+        fields: fields,
+        url: transaction.url
     });
 
-    return Response.json({
-        success: 'success'
-    });
+    return sent;
 }
+
+export { handler as POST };

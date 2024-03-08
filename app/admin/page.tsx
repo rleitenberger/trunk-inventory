@@ -2,11 +2,11 @@
 
 import useOrganization from "@/components/providers/useOrganization";
 import { getTransactionTypes } from "@/graphql/queries";
-import { FormEvent, FormEventHandler, SetStateAction, useEffect, useMemo, useState } from "react";
+import { FormEvent, FormEventHandler, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { common } from "@/lib/common";
 
 import { Condition, ConditionType, Reason, ReasonEmail, ReasonsFields, type TransactionType } from '@/types/dbTypes';
-import { createReasonEmail, deleteReason, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
+import { createReasonEmail, deleteReason, deleteReasonEmail, deleteReasonField, updateReasonName, updateReasonSendsEmail } from "@/graphql/mutations";
 import EditableText from "@/components/form/EditableText";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import { BiCheck, BiPen, BiPencil, BiPlus, BiTrash, BiX } from "react-icons/bi";
@@ -16,6 +16,7 @@ import { useApolloClient } from "@apollo/client";
 import Loader from "@/components/Loader";
 import { sendEmail } from "@/lib/emailer";
 import CreateReasonForm from "@/components/form/CreateReasonForm";
+import AdminNav from "@/components/AdminNav";
 
 export default function PageAdmin() {
     const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>([]);
@@ -41,6 +42,7 @@ export default function PageAdmin() {
     const [modalReasonId, setModalReasonId] = useState<string>('');
 
     const [conditionTypes, setConditionTypes] = useState<ConditionType[]>([]);
+    const emailRef = useRef<any>();
 
     useEffect(() => {
         async function getTypes () {
@@ -412,9 +414,9 @@ export default function PageAdmin() {
             const tmp = prev.map((e: Reason): Reason => {
                 return {
                     ...e,
-                    reasons_fields: {
+                    reasons_fields: [
                         ...e.reasons_fields
-                    },
+                    ],
                     reason_emails: [...e.reason_emails, {
                         reason_id: emailToAdd.reasonId,
                         email: emailToAdd.email,
@@ -422,14 +424,43 @@ export default function PageAdmin() {
                     }]
                 }
             })
-            console.log(prev);
-            return prev;
+            return tmp;
+        });
+        setEmailToAdd({
+            ...emailToAdd,
+            email: ''
         });
 
+        emailRef.current?.focus();
     }
 
-    const removeEmail = async(): Promise<void> => {
+    const removeEmail = async(reasonEmailId: string): Promise<void> => {
+        const { data } = await apolloClient.mutate({
+            mutation: deleteReasonEmail,
+            variables: {
+                reasonEmailId: reasonEmailId
+            }
+        });
 
+        if (!data?.deleteReasonEmail){
+            console.error('Could not delete the email');
+            return;
+        }
+
+        setReasons((prev) => {
+            const tmp = prev.map((e: Reason): Reason => {
+                return {
+                    ...e,
+                    reasons_fields: [
+                        ...e.reasons_fields
+                    ],
+                    reason_emails: e.reason_emails.filter(e => {
+                        return e.reason_email_id !== reasonEmailId
+                    })
+                }
+            })
+            return tmp;
+        });
     }
 
     const cancelAddingEmail = (): void => {
@@ -442,6 +473,8 @@ export default function PageAdmin() {
 
     return (
         <>
+            <AdminNav pageName="/" />
+            <h1 className="font-medium my-2 text-lg">Reasons</h1>
             {showingEditField && (
                 <ReasonFieldModal
                     fn={{
@@ -596,7 +629,8 @@ export default function PageAdmin() {
                                                         {addingEmail && emailToAdd.reasonId === e.reason_id && (
                                                             <div className="flex items-center gap-2">
                                                                 <input type="text" value={emailToAdd.email} onChange={updateEmailToAdd}
-                                                                    className="px-2 py-1 text-sm rounded-lg border border-slate-300 outline-none flex-1" />
+                                                                    className="px-2 py-1 text-sm rounded-lg border border-slate-300 outline-none flex-1"
+                                                                    ref={emailRef} />
                                                                 <button onClick={addEmail} className=" bg-green-500 hover:bg-green-600 rounded-md p-2
                                                                     transition-colors duration-150 text-white">
                                                                     <BiCheck className="" />
@@ -613,11 +647,14 @@ export default function PageAdmin() {
                                                                     return (
                                                                         <div key={`re-${e.reason_email_id}`} className="grid grid-cols-12 gap-2">
                                                                             <div className="col-span-1">
-                                                                                <button className="p-2 rounded-lg hover:bg-slate-300/40 text-red-500 transition-colors">
+                                                                                <button className="p-2 rounded-lg hover:bg-slate-300/40 text-red-500 transition-colors"
+                                                                                    onClick={()=>{
+                                                                                        removeEmail(e.reason_email_id)
+                                                                                    }}>
                                                                                     <AiFillMinusCircle />
                                                                                 </button>
                                                                             </div>
-                                                                            <div className="col-span-11">
+                                                                            <div className="col-span-11 flex items-center">
                                                                                 <p>{e.email}</p>
                                                                             </div>
                                                                         </div>

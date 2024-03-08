@@ -18,10 +18,15 @@ import { FieldEntry, FieldEntryValue, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
 import DynamicInputField from './DynamicInputField';
 import { DynamicForm } from './DynamicForm';
+import { TransactionResponse } from '@/types/responses';
+import { IoIosMenu } from 'react-icons/io';
+import BoxTimer from './BoxTimer';
+import { useRouter } from 'next/navigation';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
+    const router = useRouter();
     const [fieldValues, setFieldValues] = useState<FieldEntryValue[]>([]);
     const client = useApolloClient();
     const orgId = 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
@@ -29,7 +34,12 @@ export default function MoveItemsForm({ transferType }: {
     const [transferOptions, setTransferOptions] = useState<TransferOptions<DropDownSearchOption>>(moveDefaults[transferType]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [reasons, setReasons] = useState<Reason[]>([]);
-    const [transactionId, setTransactionId] = useState<string>('');
+    const [transactionResponse, setTransactionResponse] = useState<TransactionResponse>({
+        transactionId: '',
+        sentEmails: false,
+        accepted: [],
+        rejected: []
+    });
 
     const onFieldChange = (e:DropDownSearchOption, objectName: string): void  => {
         setTransferOptions({
@@ -82,7 +92,7 @@ export default function MoveItemsForm({ transferType }: {
             return;
         }
 
-        if (!transferOptions.reasonId){
+        if (!transferOptions.reasonId.value){
             console.error('You must select a reason');
             return;
         }
@@ -101,17 +111,16 @@ export default function MoveItemsForm({ transferType }: {
             fieldEntries: fieldValues
         };
 
-        const res = await client.mutate({
+        const { data } = await client.mutate({
             mutation: createTransaction,
             variables: variables
         });
 
-        const tId = res.data?.createTransaction;
-        if (!tId) {
+        if (!data?.createTransaction) {
             return;
         }
 
-        setTransactionId(tId);
+        setTransactionResponse(data?.createTransaction);
     }
 
     useEffect(() => {
@@ -231,10 +240,14 @@ export default function MoveItemsForm({ transferType }: {
         return transferOptions.from.value; //need to fetch if location can view all items or not
     }, [transferOptions.from]);
 
+    const redirectToHome = () => {
+        router.push('/');
+    }
+
     return (
         <>
             <h1 className='text-xl font-medium'>{getTitle()}</h1>
-            <div className='grid grid-cols-1 gap-2'>
+            <div className='grid grid-cols-1 gap-2 mt-2'>
                 <div className='grid grid-cols-12 md:grid-cols-11'>
                     <div className='col-span-12 md:col-span-5'>
                         <LocationSearch
@@ -280,7 +293,8 @@ export default function MoveItemsForm({ transferType }: {
                         locationId={fromLocationForItemSearch} />
                     </div>
                     <div className='col-span-12 md:col-span-6'>
-                        <div>
+                        <div className='flex items-center gap-2'>
+                            <IoIosMenu />
                             <label className='text-sm'>Quantity</label>
                         </div>
                         <div>
@@ -318,12 +332,20 @@ export default function MoveItemsForm({ transferType }: {
                         )}
                     </button>
                 </div>
-                {transactionId && (
-                    <div className='p-4 rounded-md bg-green-300/20'>
-                        <p className='text-green-600 text-sm text-center'>
-                            The transaction was created. <span className='text-xs font-semibold'>(#{transactionId})</span>
-                        </p>
-                    </div>
+                {transactionResponse.transactionId && (
+                    <>
+                        <div className='p-4 rounded-md bg-green-300/20'>
+                            <p className='text-green-600 text-sm text-center'>
+                                The transaction was created. <span className='text-xs font-semibold'>(#{transactionResponse.transactionId})</span>
+                            </p>
+                        </div>
+                        <BoxTimer
+                            delay={5}
+                            onDelayReached={redirectToHome}
+                            note='You will be automatically redirected' />
+                    </>
+                    
+                            
                 )}
                 {isLoading && (
                     <div>

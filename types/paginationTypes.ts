@@ -14,6 +14,8 @@ export type TransactionArgs = {
     transferType?: string
     last?: number;
     before?: string;
+    sortColumn?: string;
+    sortColumnValue?: string;
 }
 
 export type Connection<T> = {
@@ -28,7 +30,9 @@ export type Edge<T> = {
 
 export type PageInfo = {
     hasNextPage: boolean;
-    endCursor?: string|null;
+    endCursor?: string;
     hasPreviousPage?: boolean;
-    startCursor?: string|null;
+    startCursor?: string;
+    sortColumnValueStart?: Date;
+    sortColumnValueEnd?: Date;
 };

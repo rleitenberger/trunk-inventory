@@ -98,4 +98,20 @@ body {
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
-    }
+}
+
+.--timer {
+  animation-name: box-timer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes box-timer {
+  0% {
+    width:0px;
+  }
+
+  100% {
+    width:100%;
+  }
+}

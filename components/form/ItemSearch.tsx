@@ -6,6 +6,7 @@ import { DropDownSearchOption, PaginatedDropDownSearchOptions } from "@/types/Dr
 import useOrganization from "../providers/useOrganization"
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown"
 import { useEffect, useRef } from "react"
+import { FaBox, FaBoxOpen } from "react-icons/fa"
 
 export default function ItemSearch ({ fn, displayOptions, locationId=undefined, defaultValue=undefined, }: {
     displayOptions: DropDownDisplayGroup
@@ -85,7 +86,10 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
 
     return (
         <>
-            <label className='text-sm'>{displayOptions?.title ? displayOptions.title : 'Item'}</label>
+            <div className="flex items-center gap-2">
+                <FaBoxOpen />
+                <label className='text-sm'>{displayOptions?.title ? displayOptions.title : 'Item'}</label>
+            </div>
             <DropDownSearch
                 fn={{
                     refetch: fetchItems,

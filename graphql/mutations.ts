@@ -2,7 +2,12 @@ import { gql } from 'graphql-tag'
 
 export const createTransaction = gql`
     mutation createTransaction($orgId: String!, $transferInput: TransferInput!, $fieldEntries: [FieldsEntriesInput]!, $transferType: String!) {
-        createTransaction(orgId: $orgId, transferInput: $transferInput, fieldEntries: $fieldEntries, transferType: $transferType)
+        createTransaction(orgId: $orgId, transferInput: $transferInput, fieldEntries: $fieldEntries, transferType: $transferType) {
+            transactionId
+            sentEmails
+            accepted
+            rejected
+        }
     }
 `;
 
@@ -108,8 +113,8 @@ export const createReasonEmail = gql`
 `;
 
 export const deleteReasonEmail = gql`
-    mutation deleteReasonEmail($reasonId: String!, $email: String!) {
-        deleteReasonEmail(reasonId: $reasonId, email: $email)
+    mutation deleteReasonEmail($reasonEmailId: String!) {
+        deleteReasonEmail(reasonEmailId: $reasonEmailId)
     }
 `;
 
@@ -128,5 +133,35 @@ export const updateFieldCondition = gql`
 export const deleteFieldCondition = gql`
     mutation deleteFieldCondition($conditionId: String!) {
         deleteFieldCondition(conditionId: $conditionId)
+    }
+`;
+
+export const createLocation = gql`
+    mutation createLocation($organizationId: String!, $locationName: String!) {
+        createLocation(organizationId: $organizationId, locationName: $locationName) {
+            name
+        }
+    }
+`;
+
+export const updateLocationName = gql`
+    mutation updateLocationName($locationId: String!, $locationName: String!) {
+        updateLocationName(locationId: $locationId, locationName: $locationName) {
+            name
+        }
+    }
+`;
+
+export const updateLocationNCategory = gql`
+    mutation updateLocationName($locationId: String!, $isWarehouse: Boolean!) {
+        updateLocationName(locationId: $locationId, isWarehouse: $isWarehouse) {
+            view_all_items
+        }
+    }
+`;
+
+export const deleteLocation = gql`
+    mutation deleteLocation($locationId: String!) {
+        deleteLocation(locationId: $locationId)
     }
 `;

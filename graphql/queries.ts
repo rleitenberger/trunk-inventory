@@ -87,8 +87,8 @@ export const getReasons = gql`
 `;
 
 export const getTransactions = gql`
-    query getTransactions($organizationId: String!, $locationId: String, $itemId: String, $first: Int, $after: String, $transferType: String) {
-        getTransactions (organizationId: $organizationId, locationId: $locationId, itemId: $itemId, first: $first, after: $after, transferType: $transferType) {
+    query getTransactions($organizationId: String!, $locationId: String, $itemId: String, $first: Int, $after: String, $last: Int, $before: String, $transferType: String, $sortColumn: String, $sortColumnValue: String) {
+        getTransactions (organizationId: $organizationId, locationId: $locationId, itemId: $itemId, first: $first, after: $after, last: $last, before: $before, transferType: $transferType, sortColumn: $sortColumn, sortColumnValue: $sortColumnValue) {
             edges {
                 node {
                     transaction_id
@@ -126,6 +126,9 @@ export const getTransactions = gql`
             pageInfo {
                 hasNextPage
                 endCursor
+                startCursor
+                sortColumnValueStart
+                sortColumnValueEnd
             }
         }
     }

@@ -111,6 +111,7 @@ model transactions {
   @@index([organization_id], map: "fk_transactions_org_id")
   @@index([reason_id], map: "fk_transactions_reason_id")
   @@index([to_location], map: "fk_transactions_to_location_id")
+  @@index([created, transaction_id], map: "idx_created_id")
 }
 
 model users {

@@ -1,7 +1,8 @@
 import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
+import { Prisma } from '@prisma/client';
 
 export const resolvers = {
     Query: {
@@ -16,7 +17,7 @@ export const resolvers = {
             let cursorCondition = {};
             if (after) {
                 cursorCondition = {
-                    item_id: {
+                    user_id: {
                         gt: after,
                     },
                 };
@@ -40,7 +41,8 @@ export const resolvers = {
                                     }
                                 ]
                             }
-                        }
+                        },
+                        cursorCondition
                     ]
                 },
                 select: {
@@ -92,7 +94,8 @@ export const resolvers = {
                 where: {
                     AND: [
                         { organization_id: { equals: organizationId } },
-                        { name: { contains: search ? search : undefined } }
+                        { name: { contains: search ? search : undefined } },
+                        { active: { equals: true } }
                     ]
                 },
                 orderBy: [
@@ -182,56 +185,94 @@ export const resolvers = {
             });
             return res;
         },
-        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last }: TransactionArgs) => {
+        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last, sortColumn, sortColumnValue }: TransactionArgs) => {
+            // const take = first || last || 25;
+            // const v = [
+            //     organizationId,
+            //     itemId ? itemId : null,
+            //     transferType ? (transferType === '--' ? null : transferType) : null,
+            //     locationId ? locationId : null,
+            //     sortColumnValue ? sortColumnValue : null,
+            //     after,
+            //     take + 1
+            // ];
+
+            // let cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) < (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `;
+            // let orderBy = Prisma.sql` ORDER BY created DESC `;
+            // let reverse = false;
+
+            // if (before){
+            //     v[5] = before;
+            //     cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) > (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `
+            //     orderBy = Prisma.sql` ORDER BY created ASC `;
+            //     reverse= true;
+            // }
+
+            // const transactions: Transaction[] = await prisma.$queryRaw`
+            // SELECT *
+            // FROM transactions
+            // WHERE organization_id = ${v[0]}
+            //     AND (${v[1]} IS NULL OR item_id = ${v[1]})
+            //     AND (${v[2]} IS NULL OR transfer_type = ${v[2]})
+            //     AND (${v[3]} IS NULL OR (from_location = ${v[3]} OR to_location = ${v[3]}))
+            //     AND ${cursorCondition}
+            // ${orderBy}
+            // LIMIT ${v[6]}`;
+            
+            
+            
             const take = first || last || 25;
-            let cursorCondition = {};
 
-            type sort_order = 'asc'|'desc';
-            let order: sort_order = 'asc';
+            const v = [
+                organizationId,
+                itemId ? itemId : null,
+                transferType ? (transferType === '--' ? null : transferType) : null,
+                locationId ? locationId : null,
+                sortColumnValue ? sortColumnValue : null,
+                after,
+                take + 1
+            ];
 
-            if (after) {
-                cursorCondition = {
-                    item_id: {
-                        gt: after
-                    }
-                }
+            let cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) < (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `;
+            let orderBy = Prisma.sql` ORDER BY created DESC `;
+            let reverse = false;
+
+            if (before){
+                v[5] = before;
+                cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) > (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `
+                orderBy = Prisma.sql` ORDER BY created ASC `;
+                reverse= true;
             }
 
-            if (before) {
-                cursorCondition = {
-                    item_id: {
-                        lt: before
-                    }
-                };
-                order = 'desc';
+            const transactions: Transaction[] = await prisma.$queryRaw`
+            SELECT *
+            FROM transactions
+            WHERE organization_id = ${v[0]}
+                AND (${v[1]} IS NULL OR item_id = ${v[1]})
+                AND (${v[2]} IS NULL OR transfer_type = ${v[2]})
+                AND (${v[3]} IS NULL OR (from_location = ${v[3]} OR to_location = ${v[3]}))
+                AND ${cursorCondition}
+            ${orderBy}
+            LIMIT ${v[6]}`;
+
+
+
+            const hasNextPage = first ? transactions.length > take : !!before;
+            const hasPreviousPage = last ? transactions.length > take : !!after;
+
+            if (transactions.length > take){
+                transactions.pop();
             }
 
-            const transactions = await prisma.transactions.findMany({
-                where: {
-                    AND: [
-                        { organization_id: { equals: organizationId } },
-                        { item_id: { equals: itemId ? itemId : undefined } },
-                        { transfer_type: { equals: transferType && transferType !== '--' ? transferType : undefined } },
-                        {
-                            OR: [
-                                { from_location: { equals: locationId ? locationId : undefined } },
-                                { to_location: { equals: locationId ? locationId : undefined } }
-                            ]
-                        },
-                        cursorCondition
-                    ]
-                },
-                take: take + 1,
-                orderBy: {
-                    created: 'desc'
-                }
-            });
+            if (reverse) {
+                transactions.reverse();
+            }
 
-            const hasNextPage = transactions.length > take;
-            const edges: Edge<Transaction>[] = (hasNextPage ? transactions.slice(0, -1) : transactions).map(transaction => ({
+            let edges: Edge<Transaction>[] = transactions.map(transaction => ({
                 node: transaction,
                 cursor: transaction.transaction_id,
             }));
+            
 
             let transactionConnection: Connection<Transaction> = { 
                 edges: edges.map((item, index) => {
@@ -242,9 +283,15 @@ export const resolvers = {
                 }),
                 pageInfo: {
                     hasNextPage: hasNextPage,
-                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
+                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : '',
+                    hasPreviousPage: hasPreviousPage,
+                    startCursor: edges.length > 0 ? edges[0].cursor : '',
+                    sortColumnValueStart: edges[0].node.created,
+                    sortColumnValueEnd: edges[edges.length - 1].node.created
                 }
             };
+
+            console.log(transactions)
 
             return transactionConnection;
         },
@@ -301,7 +348,6 @@ export const resolvers = {
                 }
             });
 
-
             const hasNextPage = first ? items.length > take : false;
             const hasPreviousPage = last ? items.length > take : false;
 
@@ -327,7 +373,9 @@ export const resolvers = {
                 }),
                 pageInfo: {
                     hasNextPage: hasNextPage,
-                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
+                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : '',
+                    hasPreviousPage: hasPreviousPage,
+                    startCursor: edges.length > 0 ? edges[0].cursor : ''
                 }
             }
 
@@ -391,7 +439,7 @@ export const resolvers = {
             transferInput: TransferInput;
             fieldEntries: FieldsEntriesInput[];
             transferType: string;
-        }) => {
+        }, context: any) => {
             const transactionId = randomUUID().toString();
             const entries: ReasonsFieldsEntry[] = fieldEntries.map((e: FieldsEntriesInput): ReasonsFieldsEntry => {
                 return {
@@ -401,7 +449,8 @@ export const resolvers = {
                 }
             })
 
-            const createTransaction = await prisma.$transaction([
+            
+            let [transaction, _0] = await prisma.$transaction([
                 prisma.transactions.create({
                     data: {
                         transaction_id: transactionId,
@@ -412,19 +461,27 @@ export const resolvers = {
                         item_id: transferInput.itemId,
                         reason_id: transferInput.reasonId,
                         transfer_type: transferType,
+                    },
+                    select:{ 
+                        created: true,
+                        reasons: {
+                            select: {
+                                name:true
+                            }
+                        }
                     }
                 }),
                 prisma.reasons_fields_entries.createMany({
-                    data: entries
-                })
+                    data: entries,
+                }),
             ]);
 
-            const updateQty = await prisma.$transaction([
+            let [fromLocation, toLocation, fields] = await prisma.$transaction([
                 prisma.locations_items_qty.upsert({
                     where: {
                         location_id_item_id: {
                             location_id: transferInput.from,
-                            item_id: transferInput.to
+                            item_id: transferInput.itemId
                         }
                     },
                     create: {
@@ -435,6 +492,13 @@ export const resolvers = {
                     update: {
                         qty: {
                             decrement: transferInput.qty
+                        }
+                    },
+                    select: {
+                        locations: {
+                            select: {
+                                name: true
+                            }
                         }
                     }
                 }),
@@ -454,11 +518,115 @@ export const resolvers = {
                         qty: {
                             increment: transferInput.qty
                         }
+                    },
+                    select: {
+                        items: {
+                            select: {
+                                name: true,
+                                sku: true
+                            }
+                        },
+                        locations: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }),
+                prisma.reasons_fields_entries.findMany({
+                    where: {
+                        transaction_id: transactionId
+                    },
+                    select: {
+                        reasons_fields: {
+                            select: {
+                                field_name: true,
+                            }
+                        },
+                        field_value: true
                     }
                 })
             ]);
 
-            return transactionId;
+            const email = await prisma.reasons.findFirst({
+                where: {
+                    reason_id: {
+                        equals: transferInput.reasonId
+                    }
+                },
+                select: {
+                    name: true,
+                    sends_email: true,
+                    reason_emails: {
+                        select: {
+                            email: true
+                        }
+                    }
+                }
+            });
+
+            let ret = {
+                transactionId: transactionId,
+                sentEmails: false,
+                accepted: [],
+                rejected: []
+            }
+
+            if (email?.sends_email){
+                const scheme = context.req.headers.get('x-forwarded-proto');
+                const host = context.req.headers.get('host');
+                
+                try {
+                    const result = await fetch(`${scheme ?? 'http'}://${host}/api/email`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            transaction: {
+                                id: transactionId,
+                                url: `${scheme ?? 'http'}://${host}/transactions/${transactionId}`
+                            },
+                            type: transferType,
+                            emails: email?.reason_emails?.map(e => {
+                                return e.email;
+                            }) ?? [],
+                            date: transaction.created,
+                            reason: {
+                                name: transaction.reasons.name
+                            },
+                            locations: {
+                                from: fromLocation.locations.name,
+                                to: toLocation.locations.name
+                            },
+                            item: {
+                                name: toLocation.items.name,
+                                qty: transferInput.qty,
+                                sku: toLocation.items.sku
+                            },
+                            fields: fields.map(e => {
+                                return {
+                                    key: e.reasons_fields.field_name,
+                                    value: e.field_value
+                                }
+                            })
+
+                        })
+                    });
+
+                    const json = await result.json();
+                    ret = {
+                        ...ret,
+                        ...json
+                    }
+
+                } catch (e) {
+                    //handle exception
+                }
+            }
+
+            return ret;
         },
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string
@@ -692,6 +860,70 @@ export const resolvers = {
             });
 
             return true;
+        },
+        createLocation: async(_: any, { locationName, organizationId, isWarehouse }: {
+            locationName: string;
+            organizationId: string;
+            isWarehouse: boolean;
+        }) => {
+            const location = await prisma.locations.create({
+                data: {
+                    location_id: randomUUID(),
+                    organization_id: organizationId,
+                    name: locationName,
+                    view_all_items: isWarehouse,
+                    orderPriority: isWarehouse ? 2 : 1
+                }
+            });
+
+            return location;
+        },
+        updateLocationCategory: async(_: any, { locationId,  isWarehouse }: {
+            locationId: string;
+            locationName: string;
+            isWarehouse: boolean;
+        }) => {
+            const location = await prisma.locations.update({
+                data: {
+                    orderPriority: isWarehouse ? 2 : 1,
+                    view_all_items: isWarehouse
+                },
+                where: {
+                    location_id: locationId
+                }
+            });
+
+            return location;
+        },
+        updateLocationName: async(_: any, { locationId, locationName }: {
+            locationId: string;
+            locationName: string;
+            isWarehouse: boolean;
+        }) => {
+            const location = await prisma.locations.update({
+                data: {
+                    name: locationName,
+                },
+                where: {
+                    location_id: locationId
+                }
+            });
+
+            return location;
+        },
+        deleteLocation: async(_: any, { locationId }: {
+            locationId: string;
+        }) => {
+            const location = await prisma.locations.update({
+                data: {
+                    active: false,
+                },
+                where: {
+                    location_id: locationId
+                }
+            });
+
+            return !location.active;
         }
     },
     Transaction: {

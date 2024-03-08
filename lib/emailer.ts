@@ -1,12 +1,15 @@
 import { env } from "process";
 import { email } from "./emailTemplate";
+import { KVP } from "./common";
 
 const nodemailer=require('nodemailer');
 
-export const sendEmail = async ({ to, subject, details }: {
-    to: string,
-    subject?: string,
-    details?: any[]
+export const sendEmail = async ({ to, subject, details, fields, url }: {
+    to: string[];
+    subject?: string;
+    details: KVP[];
+    fields?: KVP[];
+    url?: string;
 }): Promise<object> => {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
@@ -23,19 +26,19 @@ export const sendEmail = async ({ to, subject, details }: {
         to: to,
         subject: subject || 'Inventory Update',
         html: email.wrapper(
-            `${email.header(`A new transaction was created`)}
-            ${email.body.transaction({
-                details: details || [],
-                transactionId: 'transaction1'
-            })}`
+            `${email.header}
+            <h2>Transaction Details</h2>
+            ${email.body.transaction(details)}
+            ${fields && (
+                `<h2>Fields</h2>${email.body.transaction(fields)}`
+            )}
+            ${url && email.linkButton(url, 'Click here to view the transaction')}`
         )
     });
 
     const { accepted, rejected } = info;
-    return rejected.length === 0 ? {
-        sent: true
-    } : {
-        sent: false,
+    return {
+        sentEmails: rejected.length === 0,
         accepted: accepted,
         rejected: rejected
     };
