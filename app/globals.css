@@ -115,3 +115,17 @@ body {
     width:100%;
   }
 }
+
+.--syncing {
+  animation: rotate-360 1.2s linear infinite;
+}
+
+@keyframes rotate-360 {
+  0% {
+    transform: rotateZ(0deg);
+  }
+
+  100% {
+    transform: rotateZ(360deg);
+  }
+}

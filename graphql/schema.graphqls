@@ -17,6 +17,8 @@ type Query {
     getFieldConditions(conditionField: String!): [Condition]!
     getFieldTypes: [FieldType]!
     getOtherReasonFields(reasonId: String!, reasonFieldId: String): [ReasonFields]!
+    getZohoClientKeys(organizationId: String!): ZohoKeys
+    getLastItemSync(organizationId: String!): ItemSyncLog
 }
 
 type Mutation {
@@ -45,6 +47,11 @@ type Mutation {
     updateLocationName(locationId: String!, locationName: String!): Location
     updateLocationCategory(locationId: String!, isWarehouse: Boolean!): Location
     deleteLocation(locationId: String!): Boolean
+
+    upsertZohoClientKeys(organizationId: String!, zohoClientInput: ZohoClientKeysInput!): ZohoKeys!
+
+    createItemSyncLog(organizationId: String!): ItemSyncLog!
+    updateItemSyncLog(itemSyncLog: ItemSyncLogInput): ItemSyncLog!
 }
 
 type Organization {
@@ -255,4 +262,42 @@ type CreateTransactionResponse {
     sentEmails: Boolean!
     accepted: [String]!
     rejected: [String]!
+}
+
+type ZohoKeys {
+    zoho_inventory_keys_id: String!
+    organization_id: String!
+    client_id: String
+    client_secret: String
+    access_token: String
+    refresh_token: String
+    expiry: String
+    iv: String
+    location: String
+    server: String
+    type: String
+}
+
+input ZohoClientKeysInput {
+    zohoInventoryKeysId: String
+    clientId: String
+    clientSecret: String
+}
+
+type ItemSyncLog {
+    item_sync_log_id: String!
+    status: String!
+    items_added: Int!
+    items_updated: Int!
+    total_items: Int!
+    created: String!
+}
+
+input ItemSyncLogInput {
+    item_sync_log_id: String!
+    status: String
+    items_added: Int
+    items_updated: Int
+    total_items: Int
+    created: String
 }

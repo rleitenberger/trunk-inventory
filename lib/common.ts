@@ -80,3 +80,13 @@ export const common = {
         return data.getFieldTypes;
     }
 }
+
+
+export const parseRequestBody = async(stream: any): Promise<any> => {
+    let rawData = '';
+    for await (const chunk of stream) {
+        rawData += chunk;
+    }
+
+    return JSON.parse(rawData);
+}

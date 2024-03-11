@@ -79,16 +79,18 @@ model organization_users {
 }
 
 model organizations {
-  organization_id    String               @id @db.VarChar(36)
-  name               String               @db.VarChar(100)
-  created            DateTime             @default(now()) @db.Timestamp(0)
-  modified           DateTime             @default(now()) @db.Timestamp(0)
-  active             Boolean              @default(true)
-  admins             admins[]
-  locations          locations[]
-  organization_users organization_users[]
-  transaction_types  transaction_types[]
-  transactions       transactions[]
+  organization_id     String                @id @db.VarChar(36)
+  name                String                @db.VarChar(100)
+  created             DateTime              @default(now()) @db.Timestamp(0)
+  modified            DateTime              @default(now()) @db.Timestamp(0)
+  active              Boolean               @default(true)
+  admins              admins[]
+  item_sync_logs      item_sync_logs[]
+  locations           locations[]
+  organization_users  organization_users[]
+  transaction_types   transaction_types[]
+  transactions        transactions[]
+  zoho_inventory_keys zoho_inventory_keys[]
 }
 
 model transactions {
@@ -227,4 +229,46 @@ model field_types {
   name           String           @db.VarChar(30)
   data_type      String           @db.VarChar(10)
   reasons_fields reasons_fields[]
+}
+
+model api_keys {
+  api_key_id String   @id @db.VarChar(36)
+  token_name String   @db.VarChar(20)
+  value      String   @db.Text
+  apitype    String   @db.VarChar(20)
+  token_type String   @db.VarChar(20)
+  expiry     DateTime @db.Timestamp(0)
+  created    DateTime @default(now()) @db.Timestamp(0)
+  modified   DateTime @default(now()) @db.Timestamp(0)
+  active     Boolean  @default(true)
+}
+
+model zoho_inventory_keys {
+  zoho_inventory_keys_id String        @id @db.VarChar(36)
+  organization_id        String        @db.VarChar(36)
+  client_id              String?       @db.Text
+  client_secret          String?       @db.Text
+  access_token           String?       @db.Text
+  refresh_token          String?       @db.Text
+  expiry                 DateTime?     @db.Timestamp(0)
+  iv                     String?       @db.VarChar(40)
+  location               String?       @db.Text
+  server                 String?       @db.Text
+  type                   String?       @db.Text
+  organizations          organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_zoho_keys_org_id")
+
+  @@index([organization_id], map: "fk_zoho_keys_org_id")
+}
+
+model item_sync_logs {
+  item_sync_log_id String        @id @db.VarChar(36)
+  organization_id  String        @db.VarChar(36)
+  status           String        @default("syncing") @db.VarChar(20)
+  items_added      Int           @default(0)
+  items_updated    Int           @default(0)
+  total_items      Int           @default(0)
+  created          DateTime      @default(now()) @db.Timestamp(0)
+  organizations    organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_sync_organization_id")
+
+  @@index([organization_id], map: "fk_item_sync_organization_id")
 }

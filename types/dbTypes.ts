@@ -193,3 +193,35 @@ export interface ReasonsFieldsEntry {
     reasons_fields_id: string;
     field_value: string;
 }
+
+export interface ApiKey {
+    api_key_id: string;
+    token_name: string;
+    value: string;
+    apitype: string;
+    token_type: string;
+    expiry: Date;
+    created: Date;
+    modified: Date;
+    active: boolean;
+}
+
+export interface ZohoInventoryApiKeys {
+    zoho_inventory_keys_id: string;
+    organization_id: string;
+    client_id?: string|null;
+    client_secret?: string|null;
+    access_token?: string|null;
+    refresh_token?: string|null;
+    expiry?: Date|null;
+    location?: string|null;
+    server?: string|null;
+    type?:string|null;
+    iv: string|null;
+}
+
+export interface ZohoClientKeys {
+    zohoInventoryKeysId?: string;
+    clientId: string;
+    clientSecret: string;
+}

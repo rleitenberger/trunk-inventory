@@ -1,8 +1,10 @@
 import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
+import { decrypt, encrypt } from '@/lib/keys';
+import crypto from 'crypto';
 
 export const resolvers = {
     Query: {
@@ -431,9 +433,126 @@ export const resolvers = {
                     ]
                 }
             });
+        },
+        getZohoClientKeys: async(_:any, { organizationId }: {
+            organizationId: string;
+        }): Promise<ZohoInventoryApiKeys> => {
+            const keys = await prisma.zoho_inventory_keys.findFirst({
+                where: {
+                    organization_id: {
+                        equals: organizationId
+                    }
+                }
+            });
+
+            if (!keys || !keys.iv || !keys.zoho_inventory_keys_id){
+                return {
+                    zoho_inventory_keys_id: '',
+                    client_id: '',
+                    client_secret: '',
+                    organization_id: organizationId
+                }
+            }
+
+            const decryptedClientId = keys.client_id ? decrypt(keys.client_id, keys.iv) : '';
+            const decryptedClientSecret = keys.client_secret ? decrypt(keys.client_secret, keys.iv) : '';
+
+            return {
+                zoho_inventory_keys_id: keys.zoho_inventory_keys_id,
+                client_id: decryptedClientId,
+                client_secret: decryptedClientSecret,
+                organization_id: organizationId
+            };
+        },
+        getLastItemSync: async (_: any, { organizationId }: {
+            organizationId: string;
+        }) => {
+            return await prisma.item_sync_logs.findFirst({
+                where: {
+                    organization_id: { equals: organizationId }
+                },
+                orderBy: {
+                    created: 'desc'
+                }
+            });
         }
     },
     Mutation: {
+        createItemSyncLog: async (_: any, { organizationId }: {
+            organizationId: string;
+        }) => {
+            return await prisma.item_sync_logs.create({
+                data: {
+                    item_sync_log_id: randomUUID(),
+                    organization_id: organizationId
+                }
+            });
+        },
+        updateItemSyncLog: async (_: any, { item_sync_log_id, items_added, items_updated, total_items, status }: {
+            item_sync_log_id: string;
+            items_added?: number;
+            items_updated?: number;
+            total_items?: number;
+            status?: string;
+        }) => {
+            return await prisma.item_sync_logs.update({
+                where: {
+                    item_sync_log_id: item_sync_log_id
+                },
+                data: {
+                    items_added: items_added,
+                    items_updated: items_updated,
+                    total_items: total_items,
+                    status: status
+                }
+            });
+        },
+        upsertZohoClientKeys: async(_: any, { organizationId, zohoClientInput }: {
+            organizationId: string;
+            zohoClientInput: ZohoClientKeys
+        }) => {
+            if (!organizationId){
+                return false;
+            }
+            
+
+            const getIv = await prisma.zoho_inventory_keys.findFirst({
+                where: {
+                    organization_id: { equals: zohoClientInput.zohoInventoryKeysId }
+                }
+            });
+
+            let iv = crypto.randomBytes(16);
+            if (getIv?.iv){
+                iv = Buffer.from(getIv.iv, 'hex');
+            }
+
+            const encryptedClientId = encrypt(zohoClientInput.clientId, iv);
+            const encryptedClientSecret = encrypt(zohoClientInput.clientSecret, iv);
+
+            const added = await prisma.zoho_inventory_keys.upsert({
+                where: {
+                    zoho_inventory_keys_id: zohoClientInput.zohoInventoryKeysId
+                },
+                update: {
+                    client_id: encryptedClientId.key,
+                    client_secret: encryptedClientSecret.key,
+                    iv: iv.toString('hex')
+                },
+                create: {
+                    zoho_inventory_keys_id: randomUUID(),
+                    client_id: encryptedClientId.key,
+                    client_secret: encryptedClientSecret.key,
+                    organization_id: organizationId,
+                    iv: iv.toString('hex')
+                },
+                select: {
+                    zoho_inventory_keys_id: true
+                }
+            });
+
+            return added;
+        },
         createTransaction: async (_:any, { orgId, transferInput, fieldEntries, transferType }: {
             orgId: string;
             transferInput: TransferInput;

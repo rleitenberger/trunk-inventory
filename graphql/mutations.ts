@@ -165,3 +165,35 @@ export const deleteLocation = gql`
         deleteLocation(locationId: $locationId)
     }
 `;
+
+export const upsertZohoClientKeys = gql`
+    mutation upsertZohoClientKeys($organizationId: String!, $zohoClientInput: ZohoClientKeysInput!) {
+        upsertZohoClientKeys(organizationId: $organizationId, zohoClientInput: $zohoClientInput) {
+            zoho_inventory_keys_id
+            client_id
+            client_secret
+        }
+    }
+`;
+
+export const createItemSyncLog = gql`
+    mutation createItemSyncLog($organizationId: String!){
+        createItemSyncLog(organizationId: $organizationId) { 
+            item_sync_log_id
+            created
+        }
+    }
+`;
+
+export const updateItemSyncLog = gql`
+    mutation updateItemSyncLog($itemSyncLog: ItemSyncLogInput!) {
+        updateItemSyncLog(itemSyncLog: $itemSyncLog) {
+            item_sync_log_id
+            items_added
+            items_updated
+            total_items
+            created
+            status
+        }
+    }
+`;

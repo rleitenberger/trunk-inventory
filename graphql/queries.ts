@@ -201,3 +201,26 @@ export const getOtherReasonFields = gql`
         }
     }
 `;
+
+export const getZohoClientKeys = gql`
+    query getZohoClientKeys($organizationId: String!) {
+        getZohoClientKeys(organizationId: $organizationId) {
+            client_id
+            client_secret
+            zoho_inventory_keys_id
+        }
+    }
+`;
+
+export const getLastItemSync = gql`
+    query getLastItemSync($organizationId: String!) {
+        getLastItemSync(organizationId: $organizationId) {
+            item_sync_log_id
+            items_added
+            items_updated
+            total_items
+            created
+            status
+        }
+    }
+`;

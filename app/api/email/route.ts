@@ -1,3 +1,4 @@
+import { parseRequestBody } from "@/lib/common";
 import { sendEmail } from "@/lib/emailer";
 import { NextRequest } from "next/server";
 import { NextApiRequest, NextApiResponse } from "next/types";
@@ -23,14 +24,6 @@ const handler = async (req: NextRequest) => {
     return Response.json(sent);
 }
 
-const parseRequestBody = async(stream: any): Promise<any> => {
-    let rawData = '';
-    for await (const chunk of stream) {
-        rawData += chunk;
-    }
-
-    return JSON.parse(rawData);
-}
 
 const handleDataAndSendEmail = async (data: any) => {
     const { emails, type, reason, locations, item, fields, transaction } = data;

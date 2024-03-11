@@ -21,6 +21,11 @@ export default function AdminNav ({ pageName }: {
                         Locations
                     </Link>
                 </button>
+                <button className={`rounded-lg transition-colors ${getBg('items')}`}>
+                    <Link href={`/admin/items`} className="block px-3 py-1">
+                        Items
+                    </Link>
+                </button>
                 <button className={`rounded-lg transition-colors ${getBg('users')}`}>
                     <Link href={`/admin/users`} className="block px-3 py-1">
                         Users

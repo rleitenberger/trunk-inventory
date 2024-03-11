@@ -4,3 +4,10 @@ export interface TransactionResponse {
     accepted: string[];
     rejected: string[];
 }
+
+export interface ZohoAuthResponse {
+    verified: boolean;
+    redirectUrl?: string;
+    accessToken?: string;
+    error?: string;
+}
