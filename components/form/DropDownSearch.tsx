@@ -98,7 +98,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
 
             const newOption = options[index + 1].value;
             setFocusedItem(newOption);
-            document.getElementById(`opt-${newOption}`)?.scrollIntoView();
+            document.getElementById(`opt-${newOption}`)?.scrollIntoView({ block: 'nearest',});
         }else if (e.key === 'ArrowUp'){
             e.preventDefault();
             const index = options.map(e => e.value).indexOf(focusedItem);
@@ -108,10 +108,13 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
 
             const newOption = options[index - 1].value;
             setFocusedItem(newOption);
-            document.getElementById(`opt-${newOption}`)?.scrollIntoView();
+            document.getElementById(`opt-${newOption}`)?.scrollIntoView({ block: 'nearest'});
         }else if (e.key === 'Enter'){
             const index = options.map(e => e.value).indexOf(focusedItem);
-            setOption(options[index]);
+            if (index !== -1){
+
+                setOption(options[index]);
+            }
         }
     }
 
@@ -143,6 +146,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
     useEffect(() => {
         if (searchQuery.length <= 2){
             setOptions([]);
+            setFocusedItem('');
         }
 
         const newPageInfo = {
@@ -160,26 +164,21 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
             if ('nodes' in res){
                 setOptions(res.nodes);
                 setPageInfo(res.pageInfo);
+
+                if (res.nodes.length){
+                    setFocusedItem(res.nodes[0].value);
+                }
                 return;
             }
 
             setOptions(res);
+            if(res.length){
+                setFocusedItem(res[0].value);
+            }
         }
 
         updateOptions();
     }, [searchQuery]);
-
-    useEffect(() => {
-        if (!options?.length) {
-            return;
-        }
-
-        if (typeof document === 'undefined'){
-            return;
-        }
-
-        setFocusedItem(options[0].value);
-    }, [options]);
 
     const setOption = (e: DropDownSearchOption): void => {
         fn.onChange(e, objectName);
@@ -188,7 +187,6 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
     }
 
     const onFocusLost = () => {
-        document.body.focus();
         setIsSearching(false);
     }
 
@@ -205,6 +203,10 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
                 ...opts.nodes
             ]);
             setPageInfo(opts.pageInfo);
+
+            if (opts.nodes.length){
+                setFocusedItem(opts.nodes[0].value);
+            }
             return;
         }
 
@@ -212,6 +214,9 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
             ...options,
             ...opts
         ]);
+        if (opts.length){
+            setFocusedItem(opts[0].value);
+        }
     }
 
     useEffect(() => {
@@ -223,7 +228,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
             return;
         }
         
-        loaderRef.current.scrollIntoView();
+        loaderRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start'});
     }, [isLoadingScroll]);
 
     return (

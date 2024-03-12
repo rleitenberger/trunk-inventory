@@ -231,18 +231,6 @@ model field_types {
   reasons_fields reasons_fields[]
 }
 
-model api_keys {
-  api_key_id String   @id @db.VarChar(36)
-  token_name String   @db.VarChar(20)
-  value      String   @db.Text
-  apitype    String   @db.VarChar(20)
-  token_type String   @db.VarChar(20)
-  expiry     DateTime @db.Timestamp(0)
-  created    DateTime @default(now()) @db.Timestamp(0)
-  modified   DateTime @default(now()) @db.Timestamp(0)
-  active     Boolean  @default(true)
-}
-
 model zoho_inventory_keys {
   zoho_inventory_keys_id String        @id @db.VarChar(36)
   organization_id        String        @db.VarChar(36)
@@ -271,4 +259,50 @@ model item_sync_logs {
   organizations    organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_sync_organization_id")
 
   @@index([organization_id], map: "fk_item_sync_organization_id")
+}
+
+model account {
+  userId            String  @id @db.VarChar(36)
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(100)
+  providerAccountId String  @db.VarChar(200)
+  refresh_token     String? @db.VarChar(200)
+  access_token      String? @db.VarChar(200)
+  expires_at        Int?
+  token_type        String? @db.VarChar(200)
+  scope             String? @db.Text
+  id_token          String? @db.VarChar(200)
+  session_state     String? @db.VarChar(50)
+  user              user    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_user")
+}
+
+model session {
+  id           String   @id @db.VarChar(200)
+  expires      DateTime @db.Timestamp(0)
+  sessionToken String   @unique(map: "sessionToken") @db.VarChar(200)
+  userId       String   @db.VarChar(36)
+  user         user     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_session_user_id")
+
+  @@index([userId], map: "fk_session_user_id")
+}
+
+model user {
+  id            String    @id @db.VarChar(36)
+  name          String    @db.VarChar(100)
+  username      String    @db.VarChar(100)
+  password      String    @db.VarChar(255)
+  email         String    @db.VarChar(200)
+  emailVerified DateTime? @db.Timestamp(0)
+  image         String?   @db.VarChar(200)
+  account       account?
+  session       session[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model verificationtoken {
+  identifier String   @db.VarChar(200)
+  token      String   @db.VarChar(200)
+  expires    DateTime @db.Timestamp(0)
+
+  @@ignore
 }

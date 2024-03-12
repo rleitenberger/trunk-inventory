@@ -26,11 +26,11 @@ const handler = async (req: NextRequest) => {
     }
 
     const intervalTime: number = rate.time / rate.limit + 200;
-    let hasMore = false;
+    let hasMore = true;
 
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-    while (index < 2){
+    while (hasMore){
         if (!auth.accessToken || !zohoOrgId){
             break;
         }
@@ -41,18 +41,14 @@ const handler = async (req: NextRequest) => {
         }
 
         const { items, page_context } = res;
-        allItems.push(items);
+        allItems.push(...items);
         hasMore = page_context.has_more_page || false;
 
-        await delay(rate.time / rate.limit + 200);
-
+        await delay(intervalTime);
         index++;
-
     }
 
-    return Response.json({
-        items: allItems,
-    });
+    return Response.json(allItems);
 }
 
 const getItems = async(page: number, orgId: string, accessToken?: string): Promise<any> => {
@@ -67,8 +63,16 @@ const getItems = async(page: number, orgId: string, accessToken?: string): Promi
     });
     
     const json= await res.json();
-    console.log(json);
-    return json;
+    return {
+        items: json?.items?.map((e: any) => {
+            return {
+                itemId: e.item_id,
+                name: e.name,
+                description: e.description
+            }
+        }) ?? [],
+        page_context: json.page_context
+    }
 }
 
 export { handler as GET };

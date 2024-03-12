@@ -22,6 +22,7 @@ import { TransactionResponse } from '@/types/responses';
 import { IoIosMenu } from 'react-icons/io';
 import BoxTimer from './BoxTimer';
 import { useRouter } from 'next/navigation';
+import Head from 'next/head';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
@@ -241,11 +242,15 @@ export default function MoveItemsForm({ transferType }: {
     }, [transferOptions.from]);
 
     const redirectToHome = () => {
-        router.push('/');
+        router.push('/app');
     }
 
     return (
         <>
+            <Head>
+                
+                <meta name="viewport" content="maximum-scale=1" key="max"></meta>
+            </Head>
             <h1 className='text-xl font-medium'>{getTitle()}</h1>
             <div className='grid grid-cols-1 gap-2 mt-2'>
                 <div className='grid grid-cols-12 md:grid-cols-11'>

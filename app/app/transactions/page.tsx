@@ -370,7 +370,7 @@ export default function PageTransactions() {
                                         <p className='font-medium'>From</p>
                                     </div>
                                     <div>
-                                        <Link href={`/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
+                                        <Link href={`/app/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.from_location.name}</span>
                                             <BiLinkExternal className='ml-auto' />
@@ -382,7 +382,7 @@ export default function PageTransactions() {
                                         <p className='font-medium'>To</p>
                                     </div>
                                     <div>
-                                        <Link href={`/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
+                                        <Link href={`/app/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.to_location.name}</span>
                                             <BiLinkExternal className='ml-auto' />

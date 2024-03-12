@@ -17,8 +17,6 @@ const handler = async (req: NextRequest) => {
     }
 
     const data = await parseRequestBody(req.body);
-
-    console.log(data);
     const sent = await handleDataAndSendEmail(data);
 
     return Response.json(sent);

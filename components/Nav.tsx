@@ -8,6 +8,7 @@ import { IoIosList } from 'react-icons/io';
 import { IoReturnUpBack } from 'react-icons/io5';
 import { LuMoveUpRight } from 'react-icons/lu';
 import { MdOutlineInventory } from 'react-icons/md';
+import MenuItem from './MenuItem';
 
 export default function Nav({ isExpanded, children }: {
     isExpanded: boolean
@@ -19,36 +20,18 @@ export default function Nav({ isExpanded, children }: {
     }, [isExpanded]);
 
     return (
-        <div className='bg-primary relative'>
+        <div className='bg-primary relative hidden md:block'>
             <div className='grid grid-cols-1 gap-2 py-4 px-2'>
                 <Image src="/logo.webp" width="50" height="50" alt="logo" />
-                <MenuItem href='/' Icon={BiHome} text='Home' textClass={textAnimation} />
-                <MenuItem href='/transfer' Icon={BiTransfer} text='Transfer' textClass={textAnimation} />
-                <MenuItem href='/remove' Icon={AiFillMinusCircle} text='Remove Item' textClass={textAnimation} />
-                <MenuItem href='/pull' Icon={LuMoveUpRight} text='Pull Item' textClass={textAnimation} />
-                <MenuItem href='/return' Icon={IoReturnUpBack} text='Return Item' textClass={textAnimation} />
-                <MenuItem href='/inventory' Icon={MdOutlineInventory} text='Inventory' textClass={textAnimation} />
-                <MenuItem href='/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
+                <MenuItem href='/app/' Icon={BiHome} text='Home' textClass={textAnimation} />
+                <MenuItem href='/app/transfer' Icon={BiTransfer} text='Transfer' textClass={textAnimation} />
+                <MenuItem href='/app/remove' Icon={AiFillMinusCircle} text='Remove Item' textClass={textAnimation} />
+                <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' textClass={textAnimation} />
+                <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' textClass={textAnimation} />
+                <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' textClass={textAnimation} />
+                <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
             </div>
             {children}
-        </div>
-    )
-}
-
-const MenuItem = ({ href, Icon, text, textClass }: {
-    href: string
-    Icon: IconType
-    text: string
-    textClass: string
-}) => {
-    return (
-        <div className='rounded-lg transition-all duration-200 hover:bg-white/20'>
-            <Link href={href} className='p-3 flex items-center gap-3 text-main-bg'>
-                <div className='nav-icon' title={text}>
-                    <Icon className='text-xl mx-auto' />
-                </div>
-                <p className={`${textClass} font-medium text-sm`}>{text}</p>
-            </Link>
         </div>
     )
 }

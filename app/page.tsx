@@ -10,9 +10,9 @@ import { MdOutlineInventory } from "react-icons/md";
 
 export default function Home() {
   return (
-    <div className="grid grid-cols-12 gap-4">
+    <div className="grid grid-cols-12 gap-4 pt-8 md:pt-0">
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/transfer' className="p-4 block">
+        <Link href='/app/transfer' className="p-4 block">
           <div>
             <BiTransfer className="mx-auto text-xl text-gray-700 my-2" />
             <p>Transfer to Trunk Inventory</p>
@@ -21,7 +21,7 @@ export default function Home() {
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/remove' className="p-4 block">
+        <Link href='/app/remove' className="p-4 block">
           <div>
             <AiFillMinusCircle className="mx-auto text-xl text-gray-700 my-2" />
             <p>Remove from Trunk Inventory</p>
@@ -30,7 +30,7 @@ export default function Home() {
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/pull' className="p-4 block">
+        <Link href='/app/pull' className="p-4 block">
           <div>
             <LuMoveUpRight className="mx-auto text-xl text-gray-700 my-2" />
             <p>Pull Item for Project</p>
@@ -39,7 +39,7 @@ export default function Home() {
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/return' className="p-4 block">
+        <Link href='/app/app/return' className="p-4 block">
           <div>
             <IoReturnUpBack className="mx-auto text-xl text-gray-700 my-2" />
             <p>Return Item from Project</p>
@@ -48,7 +48,7 @@ export default function Home() {
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/inventory' className="p-4 block">
+        <Link href='/app/inventory' className="p-4 block">
           <div>
             <MdOutlineInventory className="mx-auto text-xl text-gray-700 my-2" />
             <p>View Trunk Inventory</p>
@@ -56,7 +56,7 @@ export default function Home() {
         </Link>
       </HomeCard>
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/transactions' className="p-4 block">
+        <Link href='/app/transactions' className="p-4 block">
           <div>
             <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
             View Transactions

@@ -86,7 +86,6 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     });
 
     const json = await res.json();
-    console.log(json);
     if (json?.error){
         return {
             verified: false,

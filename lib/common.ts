@@ -1,3 +1,5 @@
+'use client';
+
 import { getConditionTypes, getFieldTypes, getReasons, getTransactionTypes } from "@/graphql/queries";
 import { ConditionType, FieldType, Reason, TransactionType } from "@/types/dbTypes";
 import { ApolloClient } from "@apollo/client";
@@ -90,3 +92,4 @@ export const parseRequestBody = async(stream: any): Promise<any> => {
 
     return JSON.parse(rawData);
 }
+

@@ -2,8 +2,6 @@
 
 import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
-import { gql } from 'graphql-tag'
-import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { resolvers } from "@/graphql/resolvers";
 import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonEmailsLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";

@@ -1,3 +1,6 @@
+import DataLoader from "dataloader";
+import { NextRequest } from "next/server";
+
 export interface PaginatedLocationItemsArgs {
     locationId: string;
     includeNegative?: boolean;
@@ -5,4 +8,10 @@ export interface PaginatedLocationItemsArgs {
     before?: string|null;
     first?:number;
     last?:number;
+}
+
+export interface GQLRequestContext {
+    req: NextRequest;
+    res?: any;
+    loaders: any;
 }

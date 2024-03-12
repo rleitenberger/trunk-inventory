@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
+import { GQLRequestContext } from '@/types/queryTypes';
 
 export const resolvers = {
     Query: {
@@ -187,7 +188,10 @@ export const resolvers = {
             });
             return res;
         },
-        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last, sortColumn, sortColumnValue }: TransactionArgs) => {
+        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last, sortColumn, sortColumnValue }: TransactionArgs, context: GQLRequestContext) => {
+
+            console.log(context.req.headers.get('Authorization'));
+
             // const take = first || last || 25;
             // const v = [
             //     organizationId,
@@ -276,8 +280,20 @@ export const resolvers = {
             }));
             
 
+            if (!edges.length){
+                return {
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false,
+                        endCursor: '',
+                        hasPreviousPage: false,
+                        startCursor: ''
+                    }
+                }
+            }
+
             let transactionConnection: Connection<Transaction> = { 
-                edges: edges.map((item, index) => {
+                edges: edges?.map((item, index) => {
                     return{
                         node: item.node,
                         cursor: item.node.transaction_id
@@ -292,8 +308,6 @@ export const resolvers = {
                     sortColumnValueEnd: edges[edges.length - 1].node.created
                 }
             };
-
-            console.log(transactions)
 
             return transactionConnection;
         },
@@ -450,7 +464,8 @@ export const resolvers = {
                     zoho_inventory_keys_id: '',
                     client_id: '',
                     client_secret: '',
-                    organization_id: organizationId
+                    organization_id: organizationId,
+                    iv:''
                 }
             }
 
@@ -461,7 +476,8 @@ export const resolvers = {
                 zoho_inventory_keys_id: keys.zoho_inventory_keys_id,
                 client_id: decryptedClientId,
                 client_secret: decryptedClientSecret,
-                organization_id: organizationId
+                organization_id: organizationId,
+                iv:''
             };
         },
         getLastItemSync: async (_: any, { organizationId }: {
@@ -705,7 +721,7 @@ export const resolvers = {
                         body: JSON.stringify({
                             transaction: {
                                 id: transactionId,
-                                url: `${scheme ?? 'http'}://${host}/transactions/${transactionId}`
+                                url: `${scheme ?? 'http'}://${host}/app/transactions/${transactionId}`
                             },
                             type: transferType,
                             emails: email?.reason_emails?.map(e => {

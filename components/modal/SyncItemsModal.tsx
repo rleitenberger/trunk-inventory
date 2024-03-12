@@ -20,13 +20,24 @@ export default function SyncItemsModal ({ organizationId }: {
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [lastSyncDetails, setLastSyncDetails] = useState<string>('');
     const [showingSyncModal, setShowingSyncModal] = useState<boolean>(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const syncItemsFromZoho = async (): Promise<void> => {
         setIsSyncing(true);
-        const res = await fetch(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`);
-        const json = await res.json();
 
-        setIsSyncing(false);
+        let json = {} as any;
+
+        try {
+            const res = await fetch(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`);
+            json = await res.json();
+    
+        } catch (e) {
+            setError('An error occured');
+            return;
+        } finally {
+            setIsSyncing(false);
+        }
 
         if (json?.redirectUrl){
             if (json.redirectUrl === '[showModal]'){
@@ -39,6 +50,8 @@ export default function SyncItemsModal ({ organizationId }: {
             router.push(json.redirectUrl);
             return;
         }
+
+        setSuccess('Sync complete. Discovered items: ' + json.length)
     }
 
     const showSyncModal = (): void => {
