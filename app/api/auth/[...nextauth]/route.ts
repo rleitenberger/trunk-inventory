@@ -165,7 +165,6 @@ const auth = async (req: NextRequest, context: RouteHandlerContext) => {
             signIn: '/login',
             signOut: '/logout'
         },
-        debug: true,
     });
 }
 

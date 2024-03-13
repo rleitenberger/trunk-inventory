@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
 import { ApolloProviderWrapper } from "@/components/providers/ApolloProviderWrapper";
+import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,9 +17,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
+
+  const token = headers().get('next-auth.session-token')
+
   return (
     <SessionWrapper>
-      <ApolloProviderWrapper>
+      <ApolloProviderWrapper token={token??''}>
         <html lang="en">
           <body className={inter.className}>{children}</body>
         </html>

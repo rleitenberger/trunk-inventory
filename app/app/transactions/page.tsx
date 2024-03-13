@@ -3,6 +3,7 @@
 import Loader from '@/components/Loader';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
+import ExportCSVModal from '@/components/modal/ExportCSVModal';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
@@ -232,14 +233,19 @@ export default function PageTransactions() {
         fetchTransactions('forward');
     }
 
+    const fetchExportTransactions = (exportOptions: ExportOptions)
+
     return (
         <>
-            <h1 className='text-xl font-medium'>Transactions</h1>
+            <div className='flex items-center gap-2'>
+                <h1 className='text-xl font-medium'>Transactions</h1>
+                <ExportCSVModal fetch={fetchExportTransactions} exportType='Transactions' />
+            </div>
 
             <div className='p-2 border border-slate-300 rounded-lg mt-2'>
                 <p className='text-sm'>Filters</p>
                 <div className="grid gap-2 grid-cols-12">
-                    <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
+                    <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <LocationSearch
                             fn={{
                                 onChange: onFieldChange,
@@ -249,7 +255,7 @@ export default function PageTransactions() {
                                 name: 'locationId'
                             }} />
                     </div>
-                    <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
+                    <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <ItemSearch
                             fn={{
                                 onChange: onFieldChange,
@@ -259,7 +265,7 @@ export default function PageTransactions() {
                                 name: 'itemId'
                             }} />
                     </div>
-                    <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
+                    <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <div className='flex items-center gap-2'>
                             <BiTransfer />
                             <label className='text-sm'>Transfer Type</label>
@@ -275,7 +281,7 @@ export default function PageTransactions() {
                             </select>
                         </div>
                     </div>
-                    <div className='col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3'>
+                    <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <div className='flex items-center gap-2'>
                             <MdOutlineTableView />
                             <label className='text-sm'># of transactions</label>

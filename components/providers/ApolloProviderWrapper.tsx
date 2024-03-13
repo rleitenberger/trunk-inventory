@@ -4,22 +4,19 @@ import React, { useMemo } from 'react';
 import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { useSession } from "next-auth/react";
+import { headers } from 'next/headers';
 
 const httpLink = new HttpLink({
     uri: '/api/graphql'
 });
 
-export const ApolloProviderWrapper = ({ children}: {
-    children: React.ReactNode
+export const ApolloProviderWrapper = ({ children, token }: {
+    children: React.ReactNode;
+    token: string;
 }) => {
-
-    const { data: session, status } = useSession();
-    console.log(session);
 
     const client = useMemo((): ApolloClient<object> => {
         const authMiddleware = setContext(async (operation, { headers }) => {
-            console.log(status);
-            const token = '';
 
             return {
                 headers: {
@@ -33,7 +30,7 @@ export const ApolloProviderWrapper = ({ children}: {
             link: from([authMiddleware, httpLink]),
             cache: new InMemoryCache()
         });
-    }, [status]);
+    }, [token]);
 
     return <ApolloProvider client={client}>{children}</ApolloProvider>
 }
