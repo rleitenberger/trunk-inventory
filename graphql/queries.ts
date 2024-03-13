@@ -87,8 +87,8 @@ export const getReasons = gql`
 `;
 
 export const getTransactions = gql`
-    query getTransactions($organizationId: String!, $locationId: String, $itemId: String, $first: Int, $after: String, $last: Int, $before: String, $transferType: String, $sortColumn: String, $sortColumnValue: String) {
-        getTransactions (organizationId: $organizationId, locationId: $locationId, itemId: $itemId, first: $first, after: $after, last: $last, before: $before, transferType: $transferType, sortColumn: $sortColumn, sortColumnValue: $sortColumnValue) {
+    query getTransactions($transactionInput: TransactionInput!, $paginationInput: PaginationInput!) {
+        getTransactions (transactionInput: $transactionInput, paginationInput: $paginationInput) {
             edges {
                 node {
                     transaction_id
@@ -156,12 +156,13 @@ export const getItemsAtLocation = gql`
 `;
 
 export const getUsers = gql`
-    query getUsers($organizationId: String!, $role: String, $search: String) {
-        getUsers(organizationId: $organizationId, role: $role, search: $search) {
-            user_id
+    query getUsers($organizationId: String!, $search: String) {
+        getUsers(organizationId: $organizationId, search: $search) {
+            id
             name
-            username
             email
+            image
+            isAdmin
         }
     }
 `;

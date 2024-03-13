@@ -43,7 +43,7 @@ export default function Template({ children }: { children: React.ReactNode}) {
                     </button>
                 </div>
             </Nav>
-            <div className="overflow-y-auto p-6">
+            <div className="overflow-y-auto px-6 py-[68px] md:py-6">
                 {children}
             </div>
         </div>

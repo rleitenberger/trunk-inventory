@@ -1,12 +1,11 @@
 import { hashBcrypt } from "@/lib/bcrypt";
-import { parseRequestBody } from "@/lib/common";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 
 const handler = async(req: NextRequest) => {
     try {
-        const data = await parseRequestBody(req.body);
+        const data = await req.json();
         const { name, username, email, password, confirmPassword, terms, csrfToken } = data;
 
         if (

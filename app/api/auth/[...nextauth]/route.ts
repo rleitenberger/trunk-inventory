@@ -105,8 +105,6 @@ const auth = async (req: NextRequest, context: RouteHandlerContext) => {
                 if (context.params.nextauth.includes('callback') &&
                     context.params.nextauth.includes('credentials')) {
 
-                    console.log(user);
-
                     if (user){
                         const sessionToken = generateSessionToken();
                         const sessionExpiry = fromDate(30 * 24 * 60 * 60);
@@ -119,8 +117,6 @@ const auth = async (req: NextRequest, context: RouteHandlerContext) => {
                                 userId: user.id
                             }
                         });
-
-                        console.log(s);
         
                         const r = cookies().set('next-auth.session-token', sessionToken, {
                             expires: sessionExpiry,

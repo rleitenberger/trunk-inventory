@@ -523,7 +523,8 @@ export default function PageAdmin() {
             <div className="text-sm">
                 <label>Transaction type</label>
                 <div className="flex items-center">
-                    <select value={selectedTransactionTypeId} className="px-2 py-1 outline-none rounded-lg border border-slate-300"
+                    <select value={selectedTransactionTypeId} className="px-2 py-1 outline-none rounded-lg border border-slate-300 bg-white
+                        text-[16px] md:text-sm"
                         onChange={updateSelectedTransactionTypeId}>
                         <option value="" className="hidden" >Select type</option>
                         {transactionTypes?.map(e => {

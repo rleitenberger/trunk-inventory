@@ -1,10 +1,7 @@
-import { parseRequestBody } from "@/lib/common";
 import { sendEmail } from "@/lib/emailer";
 import { NextRequest } from "next/server";
-import { NextApiRequest, NextApiResponse } from "next/types";
 
 const handler = async (req: NextRequest) => {
-    
     if (req.method !== 'POST'){
         return Response.json({ error: 'Method not allowed' });
     }
@@ -16,7 +13,7 @@ const handler = async (req: NextRequest) => {
         });
     }
 
-    const data = await parseRequestBody(req.body);
+    const data = await req.json();
     const sent = await handleDataAndSendEmail(data);
 
     return Response.json(sent);

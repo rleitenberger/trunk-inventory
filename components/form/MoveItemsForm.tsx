@@ -312,7 +312,7 @@ export default function MoveItemsForm({ transferType }: {
                     <div className='col-span-12 md:col-span-6'>
                         <p className='text-sm'>Reason</p>
                         <select value={transferOptions.reasonId.value} onChange={onReasonChange} className='w-full 
-                            px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg'>
+                            px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg bg-white text-[16px] md:text-sm'>
                             <option value='' className='hidden'>Select reason</option>
                             {reasons.map((e: Reason) => {
                                 return (

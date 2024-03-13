@@ -15,8 +15,8 @@ model admins {
   user_id         String        @db.VarChar(36)
   organization_id String        @db.VarChar(36)
   active          Boolean       @default(true)
+  users           user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
   organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_organization_id")
-  users           users         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
 
   @@id([user_id, organization_id])
   @@index([organization_id], map: "fk_organization_id")
@@ -35,6 +35,7 @@ model items {
   active              Boolean               @default(true)
   description         String?               @db.Text
   locations_items_qty locations_items_qty[]
+  transactions        transactions[]
 }
 
 model locations {
@@ -72,7 +73,7 @@ model organization_users {
   modified        DateTime      @default(now()) @db.Timestamp(0)
   active          Boolean       @default(true)
   organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_users_org_id")
-  users           users         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usr_id")
+  users           user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usr_id")
 
   @@id([organization_id, user_id])
   @@index([user_id], map: "fk_org_users_user_id")
@@ -105,6 +106,7 @@ model transactions {
   created                                         DateTime                @default(now()) @db.Timestamp(0)
   reasons_fields_entries                          reasons_fields_entries?
   locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
+  items                                           items                   @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_item_id")
   organizations                                   organizations           @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_org_id")
   reasons                                         reasons                 @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_reason_id")
   locations_transactions_to_locationTolocations   locations               @relation("transactions_to_locationTolocations", fields: [to_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_to_location_id")
@@ -114,19 +116,7 @@ model transactions {
   @@index([reason_id], map: "fk_transactions_reason_id")
   @@index([to_location], map: "fk_transactions_to_location_id")
   @@index([created, transaction_id], map: "idx_created_id")
-}
-
-model users {
-  user_id            String               @id @db.VarChar(36)
-  name               String               @db.VarChar(50)
-  username           String               @db.VarChar(30)
-  email              String               @db.VarChar(100)
-  password           String               @db.VarChar(255)
-  created            DateTime             @default(now()) @db.Timestamp(0)
-  modified           DateTime             @default(now()) @db.Timestamp(0)
-  active             Boolean              @default(true)
-  admins             admins[]
-  organization_users organization_users[]
+  @@index([item_id], map: "fk_transactions_item_id")
 }
 
 model reasons {
@@ -287,15 +277,17 @@ model session {
 }
 
 model user {
-  id            String    @id @db.VarChar(36)
-  name          String    @db.VarChar(100)
-  username      String    @db.VarChar(100)
-  password      String    @db.VarChar(255)
-  email         String    @db.VarChar(200)
-  emailVerified DateTime? @db.Timestamp(0)
-  image         String?   @db.VarChar(200)
-  account       account?
-  session       session[]
+  id                 String               @id @db.VarChar(36)
+  name               String               @db.VarChar(100)
+  username           String               @db.VarChar(100)
+  password           String               @db.VarChar(255)
+  email              String               @db.VarChar(200)
+  emailVerified      DateTime?            @db.Timestamp(0)
+  image              String?              @db.VarChar(200)
+  account            account?
+  admins             admins[]
+  organization_users organization_users[]
+  session            session[]
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

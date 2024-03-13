@@ -15,15 +15,18 @@ export default function NavMobile ({ isExpanded, children, setter }: {
 
     return (
         <>
-            {!isExpanded && <div className="absolute top-0 right-0 p-2 block md:hidden">
-                <button className="p-2" onClick={()=>{
-                    setter(true)
-                }}>
-                    <BiMenu className="text-4xl" />
-                </button>
-            </div>}
+            {!isExpanded && (
+                <div className="fixed top-0 left-0 right-0 h-[50px] bg-[#ececec] flex md:hidden shadow-md
+                    items-center">
+                    <button className="p-2 ml-auto" onClick={()=>{
+                        setter(true)
+                    }}>
+                        <BiMenu className="text-4xl" />
+                    </button>
+                </div>
+            )}
             <div className={`${isExpanded ? 'w-full' : 'w-[0px]'} md:hidden absolute right-0 top-0 bottom-0 transition-all
-                bg-primary z-50 h-screen`}>
+                bg-primary z-50 overflow-y-hidden`}>
                     <div className="relative p-2">
                         {isExpanded && <div className="absolute top-0 right-0 p-2">
                             <button className="text-4xl text-white p-2" onClick={()=>{

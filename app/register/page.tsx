@@ -5,11 +5,11 @@ import { useEffect } from "react";
 
 export default function Register() {   
     const opts = {
-        name: 'name',
-        username: 'username',
-        password: 'password',
-        email: 'f432qfr423qfc',
-        confirmPassword: 'password',
+        name: 'DirecTec Shop',
+        username: 'shop',
+        email: 'inventory@directecllc.com',
+        password: 'D!recTec',
+        confirmPassword: 'D!recTec',
     }
 
     const { data:session, status } = useSession();
@@ -28,8 +28,8 @@ export default function Register() {
 
     const login = async () => {
         const l = await signIn('credentials', {
-            username: 'username',
-            password: 'password',
+            username: 'shop',
+            password: 'D!recTec',
             redirect: false
         });
     }

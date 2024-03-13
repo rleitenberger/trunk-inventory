@@ -3,13 +3,13 @@
 import Loader from '@/components/Loader';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
-import ExportCSVModal from '@/components/modal/ExportCSVModal';
+import ExportTransactionCSVModal from '@/components/modal/ExportTransactionsCSVModal';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
-import { ReasonsFieldsEntry, Transaction, TransactionClient, TransactionEdge } from '@/types/dbTypes';
+import { BetweenDate, ExportOptions, ReasonsFieldsEntry, Transaction, TransactionClient, TransactionEdge } from '@/types/dbTypes';
 import { TransferType } from '@/types/formTypes';
-import { PageInfo } from '@/types/paginationTypes';
+import { PageInfo, TransactionArgs, TransactionInput } from '@/types/paginationTypes';
 import { useApolloClient } from '@apollo/client';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -19,41 +19,43 @@ import { MdOutlineTableView } from 'react-icons/md';
 
 const SORT_COLUMN = 'created';
 
-interface TransactionQueryArgs {
-    organizationId: string;
-    locationId?: string;
-    itemId?: string;
-    transferType: string;
-    first?: number;
-    last?: number;
-    before?: string;
-    after?: string;
-    sortColumn?: string;
-    sortColumnValue?: string;
-}
-
-
 export default function PageTransactions() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const apollo = useApolloClient();
-    const [transactionOptions, setTransactionOptions] = useState({
-        locationId: {
-            name: '',
-            value: ''
+
+    const orgId = useOrganization();
+    const [transactionOptions, setTransactionOptions] = useState<TransactionArgs>({
+        transactionInput: {
+            organizationId: orgId,
+            locationId: {
+                name: '',
+                value: ''
+            },
+            itemId: {
+                name: '',
+                value: ''
+            },
+            transferType: '--',
+            between: {
+                from: '',
+                to: ''
+            } as BetweenDate
         },
-        itemId: {
-            name: '',
-            value: ''
-        },
-        transferType: '--',
-        take: 5
+        paginationInput: {
+            before: '',
+            after: '',
+            take: 5,
+        }
     });
 
     const [transactions, setTransactions] = useState<TransactionEdge[]>([]);
     const onFieldChange = (e: DropDownSearchOption, objectName: string): void => {
         setTransactionOptions({
-            ...transactionOptions,
-            [objectName]: e
+            transactionInput: {
+                ...transactionOptions.transactionInput,
+                [objectName]: e
+            },
+            paginationInput: transactionOptions.paginationInput
         });
     }
     const [pageInfo, setPageInfo] = useState({
@@ -65,7 +67,6 @@ export default function PageTransactions() {
         sortColumnValueEnd: ''
     });
 
-    const orgId = useOrganization();
 
     const updateTransferType = (e: React.ChangeEvent<HTMLSelectElement>):void => {
         const { options, selectedIndex }: {
@@ -74,8 +75,11 @@ export default function PageTransactions() {
         } = e.target;
 
         setTransactionOptions({
-            ...transactionOptions,
-            transferType: options[selectedIndex].value
+            transactionInput: {
+                ...transactionOptions.transactionInput,
+                transferType: options[selectedIndex].value
+            },
+            paginationInput: transactionOptions.paginationInput
         });
     }
 
@@ -83,25 +87,34 @@ export default function PageTransactions() {
     async function fetchTransactions(direction: 'forward'|'backward'|'ignore') {
         setIsLoading(true);
 
-        let variables: TransactionQueryArgs = {
-            organizationId: orgId,
-            locationId: transactionOptions.locationId.value,
-            itemId: transactionOptions.itemId.value,
-            transferType: transactionOptions.transferType,
-            sortColumn: SORT_COLUMN,
-            sortColumnValue: ''
+        let variables: TransactionArgs = {
+            transactionInput: {
+                organizationId: orgId,
+                locationId: transactionOptions.transactionInput.locationId?.value,
+                itemId: transactionOptions.transactionInput.itemId?.value,
+                transferType: transactionOptions.transactionInput.transferType,
+                between: {
+                    from: transactionOptions.transactionInput.between.from,
+                    to: transactionOptions.transactionInput.between.to
+                }
+            },
+            paginationInput: {
+                sortColumn: SORT_COLUMN,
+                sortColumnValue: '',
+                take: transactionOptions.paginationInput.take
+            }
         }
 
         if (direction === 'backward'){
-            variables.before = pageInfo.startCursor;
-            variables.last =transactionOptions.take;
-            variables.sortColumnValue = pageInfo.sortColumnValueStart;
+            variables.paginationInput.before = pageInfo.startCursor;
+            variables.paginationInput.last =transactionOptions.paginationInput.take;
+            variables.paginationInput.sortColumnValue = pageInfo.sortColumnValueStart;
         } else if (direction === 'forward') {
-            variables.after = pageInfo.endCursor;
-            variables.first=transactionOptions.take;
-            variables.sortColumnValue = pageInfo.sortColumnValueEnd
+            variables.paginationInput.after = pageInfo.endCursor;
+            variables.paginationInput.first=transactionOptions.paginationInput.take;
+            variables.paginationInput.sortColumnValue = pageInfo.sortColumnValueEnd
         } else {
-            variables.first=transactionOptions.take;
+            variables.paginationInput.first=transactionOptions.paginationInput.take;
         }
 
         const res = await apollo.query({
@@ -156,25 +169,31 @@ export default function PageTransactions() {
         resetPageData();
         fetchTransactions('ignore');
 
-    }, [transactionOptions, orgId]);
+    }, [transactionOptions.transactionInput, transactionOptions.transactionInput.itemId, transactionOptions.paginationInput.take, orgId]);
 
     const clearLocation = (): void => {
         setTransactionOptions({
-            ...transactionOptions,
-            locationId: {
-                name: '',
-                value: ''
-            }
+            transactionInput: {
+                ...transactionOptions.transactionInput,
+                locationId: {
+                    name: '',
+                    value: ''
+                }
+            },
+            paginationInput: transactionOptions.paginationInput
         });
     }
 
     const clearItem = (): void => {
         setTransactionOptions({
-            ...transactionOptions,
-            itemId: {
-                name: '',
-                value: ''
-            }
+            transactionInput: {
+                ...transactionOptions.transactionInput,
+                itemId: {
+                    name: '',
+                    value: ''
+                }
+            },
+            paginationInput: transactionOptions.paginationInput
         });
     }
 
@@ -202,8 +221,11 @@ export default function PageTransactions() {
     const updateDisplayCount = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const { options, selectedIndex } = e.target;
         setTransactionOptions({
-            ...transactionOptions,
-            take: parseInt(options[selectedIndex].value, 10)
+            transactionInput: transactionOptions.transactionInput,
+            paginationInput: {
+                ...transactionOptions.paginationInput,
+                take: parseInt(options[selectedIndex].value, 10)
+            }
         });
     }
 
@@ -233,18 +255,54 @@ export default function PageTransactions() {
         fetchTransactions('forward');
     }
 
-    const fetchExportTransactions = (exportOptions: ExportOptions)
+    const updateDate = (e: React.ChangeEvent<HTMLInputElement>, field: string): void => {
+        setTransactionOptions({
+            transactionInput: {
+                ...transactionOptions.transactionInput,
+                between: {
+                    ...transactionOptions.transactionInput.between,
+                    [field]: e.target.value
+                }
+            },
+            paginationInput: transactionOptions.paginationInput,
+        });
+    }
+
+    const getTransactionOptions = (): TransactionInput => {
+        return transactionOptions.transactionInput;
+    }
 
     return (
         <>
             <div className='flex items-center gap-2'>
                 <h1 className='text-xl font-medium'>Transactions</h1>
-                <ExportCSVModal fetch={fetchExportTransactions} exportType='Transactions' />
+                <div className='ml-auto'>  
+                    <ExportTransactionCSVModal exportType='Transactions' onShowModal={getTransactionOptions} />
+                </div>
             </div>
 
-            <div className='p-2 border border-slate-300 rounded-lg mt-2'>
                 <p className='text-sm'>Filters</p>
                 <div className="grid gap-2 grid-cols-12">
+                    <div className="col-span-6 md:col-span-4 lg:col-span-3 text-sm">
+                        <label>From</label>
+                        <div className='flex'>
+                            <input type="date" className='border border-slate-300 rounded-lg px-2 py-1 flex-1 outline-none
+                                bg-white'
+                                value={transactionOptions.transactionInput.between.from} onChange={(e) => {
+                                    updateDate(e, 'from')
+                                }} />
+                        </div>
+                    </div>
+                    <div className="col-span-6 md:col-span-4 lg:col-span-3 text-sm">
+                        <label>To</label>
+                        <div className='flex'>
+                            <input type="date" className='border border-slate-300 rounded-lg px-2 py-1 flex-1 outline-none
+                                bg-white'
+                                value={transactionOptions.transactionInput.between.to} onChange={(e) => {
+                                    updateDate(e, 'to')
+                                }} />
+                        </div>
+                    </div>
                     <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <LocationSearch
                             fn={{
@@ -271,8 +329,8 @@ export default function PageTransactions() {
                             <label className='text-sm'>Transfer Type</label>
                         </div>
                         <div>
-                            <select value={transactionOptions.transferType} className='px-2 py-1 text-sm
-                                outline-none rounded-lg border border-slate-300 w-full' onChange={updateTransferType}>
+                            <select value={transactionOptions.transactionInput.transferType} className='px-2 py-1 text-sm
+                                outline-none rounded-lg border border-slate-300 w-full bg-white text-[16px] md:text-sm' onChange={updateTransferType}>
                                 <option value="--">All</option>
                                 <option value="transfer">Transfer</option>
                                 <option value="remove">Remove</option>
@@ -287,8 +345,8 @@ export default function PageTransactions() {
                             <label className='text-sm'># of transactions</label>
                         </div>
                         <div>
-                            <select value={transactionOptions.take} className='px-2 py-1 text-sm
-                                outline-none rounded-lg border border-slate-300 w-full' onChange={updateDisplayCount}>
+                            <select value={transactionOptions.paginationInput.take} className='px-2 py-1 text-sm
+                                outline-none rounded-lg border border-slate-300 w-full bg-white text-[16px] md:text-sm' onChange={updateDisplayCount}>
                                 <option value="5">5</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
@@ -297,7 +355,6 @@ export default function PageTransactions() {
                         </div>
                     </div>
                 </div>
-            </div>
 
             {isLoading ? (
                 <div className='flex items-center justify-center p-2'>
@@ -307,7 +364,7 @@ export default function PageTransactions() {
                 <div className='text-sm mt-2'>
                     {transactions?.length > 0 && (
                         <div className="grid-cols-12 gap-2 bg-gray-200 px-2 py-1 hidden md:grid">
-                            {transactionOptions.transferType === '--' ? (
+                            {transactionOptions.transactionInput.transferType === '--' ? (
                                 <>
                                     <div className='col-span-1 font-semibold'>Date</div>
                                     <div className='col-span-1 font-semibold'>Type</div>
@@ -343,11 +400,11 @@ export default function PageTransactions() {
                         return (
                             <div key={`t-${node.transaction_id}`} className={`grid grid-cols-12 gap-2 bg-gray-200 rounded-lg md:rounded-none my-2 md:my-0 ${bgClassname}
                                 px-2 py-1`}>
-                                <div className='col-span-6 md:col-span-1 flex items-center'>
-                                    <p className='font-medium block md:hidden'>Date: &nbsp;</p>
+                                <div className='col-span-6 md:col-span-1'>
+                                    <p className='font-medium block md:hidden'>Date</p>
                                     <p className='break-all'>{date.toLocaleDateString()}</p>
                                 </div>
-                                {transactionOptions.transferType === '--' && (
+                                {transactionOptions.transactionInput.transferType === '--' && (
                                     <div className='col-span-6 md:col-span-1 flex items-center'>
                                     <p className='font-medium block md:hidden ml-auto'>Type: &nbsp;</p>
                                         <p className='break-all'>{node.transfer_type}</p>
@@ -359,17 +416,16 @@ export default function PageTransactions() {
                                         <p className='font-medium'>Item</p>
                                     </div>
                                     <div>
-                                        <p>{node.item.name}</p>
+                                        <p>{node.item.name} <span className='inline md:hidden'>({node.qty})</span></p>
                                     </div>
                                     <div>
                                         <p className='text-xs font-semibold text-slate-500'>{node.item.sku || 'No SKU'}</p>
                                     </div>
                                 </div>
-                                <div className="col-span-1 block md:flex md:items-center">
-                                    <div className='block md:hidden'>
-                                        <p className='font-medium'>Qty</p>
+                                <div className='col-span-1 md:col-span-1 hidden md:block'>
+                                    <div>
+                                        <p className='font-medium'>{node.qty}</p>
                                     </div>
-                                    <p className='col-span-1'>{node.qty}</p>
                                 </div>
                                 <div className="col-span-6 md:col-span-2 block md:flex items-center">
                                     <div className='block md:hidden'>
@@ -379,7 +435,7 @@ export default function PageTransactions() {
                                         <Link href={`/app/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.from_location.name}</span>
-                                            <BiLinkExternal className='ml-auto' />
+                                            <BiLinkExternal className='ml-0 md:ml-auto' />
                                         </Link>
                                     </div>
                                 </div>
@@ -391,12 +447,12 @@ export default function PageTransactions() {
                                         <Link href={`/app/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.to_location.name}</span>
-                                            <BiLinkExternal className='ml-auto' />
+                                            <BiLinkExternal className='ml-0 md:ml-auto' />
                                         </Link>
                                     </div>
                                 </div>
                                 
-                                {transactionOptions.transferType === '--' ? (
+                                {transactionOptions.transactionInput.transferType === '--' ? (
                                     <div className="col-span-11 md:col-span-2">
                                         <p className='font-medium'>Reason</p>
                                         <div className="block md:flex items-center">

@@ -32,6 +32,13 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         return pageInfo?.hasNextPage;
     }, [pageInfo]);
 
+    useEffect(() => {
+        if (defaultValue === undefined){
+            return;
+        }
+        setVal(defaultValue);
+    }, [defaultValue]);
+
     const [focusedItem, setFocusedItem] = useState<string>('');
     const [isLoadingScroll, setIsLoadingScroll] = useState<boolean>(false);
     const scrollRef = useRef<HTMLInputElement>(null);

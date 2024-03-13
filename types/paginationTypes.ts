@@ -1,3 +1,6 @@
+import { DropDownSearchOption } from "./DropDownSearchOption";
+import { BetweenDate } from "./dbTypes";
+
 export type ItemArgs = {
     organizationId: string;
     search?: string;
@@ -6,14 +9,28 @@ export type ItemArgs = {
 };
 
 export type TransactionArgs = {
+    transactionInput: TransactionInput;
+    paginationInput: PaginationInput;
+}
+
+export interface InventoryInput {
+    locationId: string;
+}
+
+export interface TransactionInput {
     organizationId: string
-    locationId?: string
-    itemId?: string
+    locationId?: DropDownSearchOption
+    itemId?: DropDownSearchOption
+    transferType?: string;
+    between: BetweenDate;
+}
+
+export interface PaginationInput {
     first?: number
-    after?: string
-    transferType?: string
-    last?: number;
+    after?: string;
     before?: string;
+    last?: number;
+    take: number;
     sortColumn?: string;
     sortColumnValue?: string;
 }
@@ -30,7 +47,7 @@ export type Edge<T> = {
 
 export type PageInfo = {
     hasNextPage: boolean;
-    endCursor?: string;
+    endCursor?: string|null;
     hasPreviousPage?: boolean;
     startCursor?: string;
     sortColumnValueStart?: Date;

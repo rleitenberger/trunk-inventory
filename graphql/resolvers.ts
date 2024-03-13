@@ -9,82 +9,36 @@ import { GQLRequestContext } from '@/types/queryTypes';
 
 export const resolvers = {
     Query: {
-        getUsers: async(_: any, { organizationId, role, search, first, after }: {
+        getUsers: async(_: any, { organizationId, search }: {
             organizationId: string,
-            role?: string
             search?: string
-            first?: number
-            after?: string
         }) => {
-            const take = first || 25;
-            let cursorCondition = {};
-            if (after) {
-                cursorCondition = {
-                    user_id: {
-                        gt: after,
-                    },
-                };
-            }
 
+            
             const users = await prisma.organization_users.findMany({
                 where: {
-                    AND: [
-                        { organization_id: { equals: organizationId } },
-                        { active: { equals: true } },
-                        {
-                            users: { 
-                                AND: [
-                                    { active: { equals: true } },
-                                    {
-                                        OR: [
-                                            { username: { contains: search ? search: undefined } },
-                                            { name: { contains: search ? search : undefined } },
-                                            { email: { contains: search ? search : undefined } }
-                                        ]
-                                    }
-                                ]
-                            }
-                        },
-                        cursorCondition
-                    ]
+                    organization_id: {
+                        equals: organizationId
+                    }
                 },
-                select: {
-                    user_id: true,
+                include: {
                     users: {
                         select: {
-                            user_id: true,
+                            id: true,
+                            name:true,
                             username: true,
                             email: true,
-                            name:true
+                            admins:{
+                                select:{
+                                    user_id: true
+                                }
+                            }
                         }
                     }
                 }
             });
-
-            
-
-            const hasNextPage = users.length > take;
-            const edges: Edge<User>[] = (hasNextPage ? users.slice(0, -1) : users).map(user => {
-                return {
-                     node: user.users,
-                    cursor: user.user_id
-                }
-            });
-
-            const res = { 
-                edges: edges.map((item, index) => {
-                    return{
-                        node: item.node,
-                        cursor: item.node.user_id
-                    }
-                }),
-                pageInfo: {
-                    hasNextPage: hasNextPage,
-                    endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null
-                }
-            }
-
-            return res;
+        
+            return users;
         },
         getOrganizations: async () => {
             return await prisma.organizations.findMany();
@@ -188,64 +142,30 @@ export const resolvers = {
             });
             return res;
         },
-        getTransactions: async(_: any, { organizationId, locationId, itemId, first, after, transferType, before, last, sortColumn, sortColumnValue }: TransactionArgs, context: GQLRequestContext) => {
-
-            console.log(context.req.headers.get('Authorization'));
-
-            // const take = first || last || 25;
-            // const v = [
-            //     organizationId,
-            //     itemId ? itemId : null,
-            //     transferType ? (transferType === '--' ? null : transferType) : null,
-            //     locationId ? locationId : null,
-            //     sortColumnValue ? sortColumnValue : null,
-            //     after,
-            //     take + 1
-            // ];
-
-            // let cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) < (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `;
-            // let orderBy = Prisma.sql` ORDER BY created DESC `;
-            // let reverse = false;
-
-            // if (before){
-            //     v[5] = before;
-            //     cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) > (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `
-            //     orderBy = Prisma.sql` ORDER BY created ASC `;
-            //     reverse= true;
-            // }
-
-            // const transactions: Transaction[] = await prisma.$queryRaw`
-            // SELECT *
-            // FROM transactions
-            // WHERE organization_id = ${v[0]}
-            //     AND (${v[1]} IS NULL OR item_id = ${v[1]})
-            //     AND (${v[2]} IS NULL OR transfer_type = ${v[2]})
-            //     AND (${v[3]} IS NULL OR (from_location = ${v[3]} OR to_location = ${v[3]}))
-            //     AND ${cursorCondition}
-            // ${orderBy}
-            // LIMIT ${v[6]}`;
-            
-            
-            
+        getTransactions: async(_: any, { transactionInput, paginationInput }: TransactionArgs, context: GQLRequestContext) => {
+            const { organizationId, locationId, itemId, transferType, between } = transactionInput;
+            const { first, after, before, last, sortColumn, sortColumnValue } = paginationInput;
             const take = first || last || 25;
 
             const v = [
                 organizationId,
                 itemId ? itemId : null,
                 transferType ? (transferType === '--' ? null : transferType) : null,
-                locationId ? locationId : null,
+                !!locationId ? locationId : null,
+                !!between.from ? between.from : null,
+                !!between.to ? between.to : null,
                 sortColumnValue ? sortColumnValue : null,
                 after,
                 take + 1
             ];
 
-            let cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) < (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `;
+            let cursorCondition = Prisma.sql` ((${v[6]} IS NULL OR ${v[7]} IS NULL) OR ((created, transaction_id) < (FROM_UNIXTIME(${v[6]} / 1000), ${v[7]}))) `;
             let orderBy = Prisma.sql` ORDER BY created DESC `;
             let reverse = false;
 
             if (before){
-                v[5] = before;
-                cursorCondition = Prisma.sql` ((${v[4]} IS NULL OR ${v[5]} IS NULL) OR ((created, transaction_id) > (FROM_UNIXTIME(${v[4]} / 1000), ${v[5]}))) `
+                v[7] = before;
+                cursorCondition = Prisma.sql` ((${v[6]} IS NULL OR ${v[7]} IS NULL) OR ((created, transaction_id) > (FROM_UNIXTIME(${v[6]} / 1000), ${v[7]}))) `
                 orderBy = Prisma.sql` ORDER BY created ASC `;
                 reverse= true;
             }
@@ -257,11 +177,11 @@ export const resolvers = {
                 AND (${v[1]} IS NULL OR item_id = ${v[1]})
                 AND (${v[2]} IS NULL OR transfer_type = ${v[2]})
                 AND (${v[3]} IS NULL OR (from_location = ${v[3]} OR to_location = ${v[3]}))
+                AND (${v[4]} IS NULL OR ${v[4]} <= created)
+                AND (${v[5]} IS NULL OR ${v[5]} >= created)
                 AND ${cursorCondition}
             ${orderBy}
-            LIMIT ${v[6]}`;
-
-
+            LIMIT ${v[8]}`;
 
             const hasNextPage = first ? transactions.length > take : !!before;
             const hasPreviousPage = last ? transactions.length > take : !!after;

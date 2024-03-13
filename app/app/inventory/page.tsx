@@ -7,18 +7,17 @@ import { TransferOptions } from '@/types/TransferOptions';
 import { useApolloClient } from '@apollo/client';
 import { getItemsAtLocation } from '@/graphql/queries';
 import Loader from '@/components/Loader';
-import { PageInfo } from '@/types/paginationTypes';
+import { InventoryInput, PageInfo } from '@/types/paginationTypes';
 import { PaginatedLocationItemsArgs } from '@/types/queryTypes';
 import { useSearchParams } from 'next/navigation';
+import ExportInventoryCSVModal from '@/components/modal/ExportInventoryCSVModal';
+import { LocationItem } from '@/types/dbTypes';
 
 export default function PageInventory() {
     const apolloClient = useApolloClient();
 
-    const [inventoryOptions, setInventoryOptions] = useState<TransferOptions<DropDownSearchOption>>({
-        location: {
-            name: '',
-            value: '',
-        }
+    const [inventoryOptions, setInventoryOptions] = useState<InventoryInput>({
+        locationId: ''
     });
 
     const [defaultValue, setDefaultValue] = useState<DropDownSearchOption|null>(null);
@@ -37,11 +36,7 @@ export default function PageInventory() {
 
     const clearLocation = () => {
         setInventoryOptions({
-            ...inventoryOptions,
-            location: {
-                name: '',
-                value: ''
-            }
+            locationId: ''
         });
     }
 
@@ -49,21 +44,18 @@ export default function PageInventory() {
 
     const updateLocation = (e: DropDownSearchOption, name: string): void => {
         setInventoryOptions({
-            location: {
-                name: name,
-                value: e.value
-            }
+            locationId: e.value
         });
     }
 
     const fetchInventory = async (dir: 'forward'|'backward'): Promise<any> => {
-        if (!inventoryOptions?.location.value){
+        if (!inventoryOptions?.locationId){
             console.error('no location was selected');
             return [];
         }
 
         const variables: PaginatedLocationItemsArgs = {
-            locationId: inventoryOptions.location.value,
+            locationId: inventoryOptions.locationId,
             includeNegative: true
         }
 
@@ -137,8 +129,7 @@ export default function PageInventory() {
         };
 
         setInventoryOptions({
-            ...inventoryOptions,
-            location: defVal
+            locationId: defVal.value
         });
         setDefaultValue(defVal);
         setIsLoadingDefaultValue(false);
@@ -155,11 +146,20 @@ export default function PageInventory() {
         }
 
         getItems();
-    }, [inventoryOptions.location]);
+    }, [inventoryOptions.locationId]);
+
+    const getInventoryOptions = (): InventoryInput => {
+        return inventoryOptions;
+    }
 
     return (
         <>
-            <h1 className='text-xl font-medium'>Inventory</h1>
+            <div className="flex items-center gap-2">
+                <h1 className='text-xl font-medium'>Inventory</h1>
+                <div className="ml-auto">
+                    <ExportInventoryCSVModal exportType='Items' onShowModal={getInventoryOptions} />
+                </div>
+            </div>
             <div className='grid grid-cols-12 gap-4'>
 
                 <div className='col-span-12 sm:col-span-6 md:col-span-4'>

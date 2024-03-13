@@ -1,7 +1,6 @@
 import { ApiKey } from "@/types/dbTypes";
 import { NextRequest } from "next/server";
 import { addKeys, loadKeys } from "@/lib/keys";
-import { parseRequestBody } from "@/lib/common";
 
 interface ZohoAuthArgs {
     code: string;
@@ -19,7 +18,7 @@ interface ZohoTokenResponse {
 }
 
 const handler = async (req: NextRequest) => {
-    const data: ZohoAuthArgs = await parseRequestBody(req.body);
+    const data: ZohoAuthArgs = await req.json();
     const { organizationId, code, server, location } = data;
 
     if (!organizationId){

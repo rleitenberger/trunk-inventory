@@ -3,17 +3,6 @@ export interface Organization {
     name: string;
 }
 
-export interface User {
-    user_id: string;
-    name: string;
-    username: string;
-    email: string;
-    created?: Date;
-    modified?: Date;
-    password?: string;
-    active?: boolean;
-}
-
 export interface Transaction {
     transaction_id: string;
     organization_id: string;
@@ -224,4 +213,37 @@ export interface ZohoClientKeys {
     zohoInventoryKeysId?: string;
     clientId: string;
     clientSecret: string;
+}
+
+export interface BetweenDate {
+    from: string;
+    to: string;
+}
+
+export interface ExportOptions {
+    between: BetweenDate;
+}
+
+
+export interface User {
+    id: string;
+    name: string;
+    username?: string|null;
+    password?: string|null;
+    email: string;
+    emailVerified?: string|null;
+    image?: string|null;
+    account: Account;
+    isAdmin: boolean;
+}
+
+export interface Account {
+    userId: string;
+    type: string;
+    provider: string;
+    providerAccountId: string;
+    refresh_token?: string|null;
+    access_token?: string|null;
+    expires_at?: number|null;
+    token_type?: string|null;
 }

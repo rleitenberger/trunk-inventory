@@ -11,3 +11,8 @@ export interface ZohoAuthResponse {
     accessToken?: string;
     error?: string;
 }
+
+export interface ExportResponse { 
+    fileName: string;
+    content: string;
+}

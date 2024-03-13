@@ -103,7 +103,7 @@ export default function SyncItemsModal ({ organizationId }: {
                 setShowingSyncModal(false)
             }}>
                 <div>
-                    <select name="" id="" className="border border-slate-300 px-2 py-1 text-sm rounded-lg outline-none" value={selectedOrg}
+                    <select name="" id="" className="border border-slate-300 px-2 py-1 text-sm rounded-lg outline-none bg-white text-[16px] md:text-sm" value={selectedOrg}
                         onChange={updateSelectedOrg}>
                         {organizations?.map(e => {
                             return (

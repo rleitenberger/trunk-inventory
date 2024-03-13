@@ -82,7 +82,8 @@ export default function CreateReasonForm ({ types, fn }: {
             <div className="col-span-12">
                 <label>Transaction Type <span className="text-red-500">*</span></label>
                 <div>
-                    <select onChange={updateTransactionType} className="outline-none px-2 py-1 rounded-lg border border-slate-300 w-full">
+                    <select onChange={updateTransactionType} className="outline-none px-2 py-1 rounded-lg border border-slate-300 w-full bg-white
+                        text-[16px] md:text-sm">
                         <option value='' className="hidden">Select type</option>
                         {transactionTypes?.map(e => {
                             return (

@@ -322,7 +322,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
             <div className="text-sm mt-2">
                 <label className="font-medium">Field type <span className="text-red-500">*</span></label>
                 <div>
-                    <select className="border border-slate-300 rounded-lg px-2 py-1 outline-none w-full"
+                    <select className="border border-slate-300 rounded-lg px-2 py-1 outline-none w-full bg-white text-[16px] md:text-sm"
                         onChange={updateFieldType} value={fieldType}>
                         <option value='' className="hidden">Select field type</option>
                         {fieldTypes?.map((e: FieldType) => {
@@ -353,7 +353,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                                     <p>When</p>
                                 </div>
                                 <div className="col-span-3">
-                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none"
+                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
                                         value={dependentField.value} onChange={updateDependentField}>
                                         <option value='' className="hidden">Field</option>
                                         {otherFields?.map(e => {
@@ -368,7 +368,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                                     <p>is</p>
                                 </div>
                                 <div className="">
-                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none"
+                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
                                         value={conditionTypeId.value} onChange={updateConditionTypeId}>
                                         <option value='' className="hidden">Condition</option>
                                         {conditionTypes?.map(e => {
@@ -382,7 +382,8 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                                 <div className="flex-1">
                                     <p></p>
                                     {targetDataType === 'boolean' ? (
-                                        <select className="outline-none rounded-lg border border-slate-300 px-2 py-1"
+                                        <select className="outline-none rounded-lg border border-slate-300 px-2 py-1 bg-white
+                                            text-[16px] md:text-sm"
                                             value={requiredValue.value} onChange={updateRequiredValueBoolean}>
                                             <option value='' className="hidden">Value</option>
                                             <option value='true'>True</option>
