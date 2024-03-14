@@ -61,7 +61,10 @@ export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
     const fetchExportTransactions = async (): Promise<ExportResponse|null> => {
         const data = await fetch('/api/export?type=transactions', {
             method: 'POST',
-            body: JSON.stringify(exportOptions)
+            body: JSON.stringify(exportOptions),
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         const json = await data.json();
         if (json?.error){

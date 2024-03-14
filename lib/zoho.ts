@@ -83,6 +83,9 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     const url = `https://accounts.zoho.com/oauth/v2/token?refresh_token=${refresh}&client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&redirect_uri=http://localhost:3000/zoho`;
     const res = await fetch(url, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
     });
 
     const json = await res.json();

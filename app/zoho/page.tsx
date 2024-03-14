@@ -34,7 +34,10 @@ export default function ZohoInventory () {
                     server: server,
                     location: location,
                     organizationId: orgId
-                })
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             const json = await res.json();

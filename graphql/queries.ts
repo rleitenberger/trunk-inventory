@@ -1,5 +1,14 @@
 import { gql } from 'graphql-tag'
 
+export const getOrganizations = gql`
+    query getOrganizations {
+        getOrganizations {
+            organization_id
+            name
+        }
+    }
+`;
+
 export const getLocations = gql`
     query getLocations($organizationId: String!, $search: String) {
         getLocations(organizationId: $organizationId, search: $search) {

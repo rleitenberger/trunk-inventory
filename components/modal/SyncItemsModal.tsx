@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { BiSync } from "react-icons/bi";
 import Loader from "@/components/Loader";
 import Modal from "./Modal";
-import apolloClient from "@/lib/apollo";
 import { getLastItemSync } from "@/graphql/queries";
+import { useApolloClient } from "@apollo/client";
 
 export interface ZohoOrganization {
     name: string;
@@ -23,13 +23,19 @@ export default function SyncItemsModal ({ organizationId }: {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const apolloClient = useApolloClient();
+
     const syncItemsFromZoho = async (): Promise<void> => {
         setIsSyncing(true);
 
         let json = {} as any;
 
         try {
-            const res = await fetch(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`);
+            const res = await fetch(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`,{
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             json = await res.json();
     
         } catch (e) {
@@ -68,7 +74,11 @@ export default function SyncItemsModal ({ organizationId }: {
 
     useEffect(() => {
         const loadOrgs = async (): Promise<void> => {
-            const res = await fetch(`/api/zoho/inventory/organizations?organizationId=${organizationId}`);
+            const res = await fetch(`/api/zoho/inventory/organizations?organizationId=${organizationId}`, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             const json = await res.json();
             setOrganizations(json);
 

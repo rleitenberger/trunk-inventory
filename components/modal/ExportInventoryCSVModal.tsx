@@ -10,10 +10,11 @@ import { ExportResponse } from "@/types/responses";
 
 export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
     exportType: string;
-    onShowModal: () => InventoryInput;
+    onShowModal: () => DropDownSearchOption;
 }) {
-    const [exportOptions, setExportOptions] = useState<InventoryInput>({
-        locationId: ''
+    const [exportOptions, setExportOptions] = useState<DropDownSearchOption>({
+        name: '',
+        value: ''
     });
 
     const [showing, setShowing] = useState<boolean>(false);
@@ -31,7 +32,10 @@ export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
     const fetchExportInventory = async (): Promise<ExportResponse> => {
         const data = await fetch('/api/export?type=inventory', {
             method: 'POST',
-            body: JSON.stringify(exportOptions)
+            body: JSON.stringify(exportOptions),
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         const json = await data.json();
         if (json?.error){
@@ -68,13 +72,15 @@ export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
 
     const updateInventoryLocation = (e: DropDownSearchOption): void => {
         setExportOptions({
-            locationId: e.value
+            name: e.name,
+            value: e.value
         });
     }
 
     const clearInventoryLocation = () => {
         setExportOptions({
-            locationId: ''
+            name: '',
+            value: ''
         });
     }
     
@@ -95,10 +101,7 @@ export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
                                     title: 'Location',
                                     name: 'locationId'
                                 }}
-                                defaultValue={{
-                                    name: 'locationId',
-                                    value: exportOptions.locationId
-                                }}
+                                defaultValue={exportOptions}
                                 fn={{
                                     onChange: updateInventoryLocation,
                                     clear: clearInventoryLocation

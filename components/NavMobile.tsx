@@ -6,19 +6,27 @@ import { MdOutlineInventory } from "react-icons/md";
 import { IoReturnUpBack } from "react-icons/io5";
 import { LuMoveUpRight } from "react-icons/lu";
 import { AiFillMinusCircle } from "react-icons/ai";
+import { Organization } from "@/types/dbTypes";
 
-export default function NavMobile ({ isExpanded, children, setter }: {
+export default function NavMobile ({ isExpanded, setter, organizations }: {
     isExpanded: boolean;
-    children: React.ReactNode;
     setter: (val: boolean) => void;
+    organizations: Organization[];
 }) {
 
     return (
         <>
             {!isExpanded && (
                 <div className="fixed top-0 left-0 right-0 h-[50px] bg-[#ececec] flex md:hidden shadow-md
-                    items-center">
-                    <button className="p-2 ml-auto" onClick={()=>{
+                    items-center px-4">
+                    <select className="px-2 py-1 border border-slate-300 rounded-lg outline-none">
+                        {organizations?.map((e: Organization) => {
+                            return (
+                                <option key={`org-${e.organization_id}`}>{e.name}</option>
+                            )
+                        })}
+                    </select>
+                    <button className=" ml-auto" onClick={()=>{
                         setter(true)
                     }}>
                         <BiMenu className="text-4xl" />

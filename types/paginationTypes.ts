@@ -14,7 +14,7 @@ export type TransactionArgs = {
 }
 
 export interface InventoryInput {
-    locationId: string;
+    locationId: DropDownSearchOption;
 }
 
 export interface TransactionInput {

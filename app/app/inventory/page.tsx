@@ -16,8 +16,9 @@ import { LocationItem } from '@/types/dbTypes';
 export default function PageInventory() {
     const apolloClient = useApolloClient();
 
-    const [inventoryOptions, setInventoryOptions] = useState<InventoryInput>({
-        locationId: ''
+    const [locationId, setLocationId] = useState<DropDownSearchOption>({
+        name: '',
+        value: ''
     });
 
     const [defaultValue, setDefaultValue] = useState<DropDownSearchOption|null>(null);
@@ -35,27 +36,29 @@ export default function PageInventory() {
 
 
     const clearLocation = () => {
-        setInventoryOptions({
-            locationId: ''
+        setLocationId({
+            name: '',
+            value: ''
         });
     }
 
     const [page, setPage] = useState(0);
 
     const updateLocation = (e: DropDownSearchOption, name: string): void => {
-        setInventoryOptions({
-            locationId: e.value
+        setLocationId({
+            name: e.name,
+            value: e.value
         });
     }
 
     const fetchInventory = async (dir: 'forward'|'backward'): Promise<any> => {
-        if (!inventoryOptions?.locationId){
+        if (!locationId.value){
             console.error('no location was selected');
             return [];
         }
 
         const variables: PaginatedLocationItemsArgs = {
-            locationId: inventoryOptions.locationId,
+            locationId: locationId.value,
             includeNegative: true
         }
 
@@ -128,8 +131,9 @@ export default function PageInventory() {
             value: value
         };
 
-        setInventoryOptions({
-            locationId: defVal.value
+        setLocationId({
+            name: defVal.name,
+            value: defVal.value
         });
         setDefaultValue(defVal);
         setIsLoadingDefaultValue(false);
@@ -146,10 +150,10 @@ export default function PageInventory() {
         }
 
         getItems();
-    }, [inventoryOptions.locationId]);
+    }, [locationId]);
 
-    const getInventoryOptions = (): InventoryInput => {
-        return inventoryOptions;
+    const getInventoryOptions = (): DropDownSearchOption => {
+        return locationId;
     }
 
     return (
@@ -194,16 +198,16 @@ export default function PageInventory() {
                     {items?.length ? (
                         <>
                             <div className='grid grid-cols-12 gap-2 font-medium bg-gray-200 px-2 py-1 rounded-t-lg'>
-                                <div className='col-span-3 whitespace-nowrap break-words'>
+                                <div className='col-span-3 break-words'>
                                     <p>SKU</p>
                                 </div>
-                                <div className='col-span-3 whitespace-nowrap break-words'>
+                                <div className='col-span-4 break-words'>
                                     <p>Item Name</p>
                                 </div>
-                                <div className='col-span-2 whitespace-nowrap break-words'>
+                                <div className='col-span-1 break-words'>
                                     <p>Qty</p>
                                 </div>
-                                <div className='col-span-4 whitespace-nowrap break-words'>
+                                <div className='col-span-4 break-words'>
                                     <p>Description</p>
                                 </div>
                             </div>
@@ -212,17 +216,17 @@ export default function PageInventory() {
 
                                 return (
                                     <div key={e.item_id} className={`grid grid-cols-12 gap-2 ${bgClassname} px-2 py-1`}>
-                                    <div className='col-span-3 whitespace-nowrap break-words'>
+                                    <div className='col-span-3 break-words'>
                                         <p>{e.node.item.sku || <span className='text-slate-600 font-medium text-xs'>No SKU set</span>}</p>
                                     </div>
-                                        <div className='col-span-3 whitespace-nowrap break-words'>
-                                            <p>{e.node.item.name}</p>
+                                        <div className='col-span-4 break-words'>
+                                            <p className='elip'>{e.node.item.name}</p>
                                         </div>
-                                        <div className='col-span-2 whitespace-nowrap break-words'>
+                                        <div className='col-span-1 break-words'>
                                             <p>{e.node.qty}</p>
                                         </div>
-                                        <div className='col-span-4 whitespace-nowrap break-words'>
-                                            <p>{e.node.description || <span className='text-slate-600 font-medium text-xs'>No description set</span>}</p>
+                                        <div className='col-span-4'>
+                                            <p className='elip'>{e.node.description || <span className='text-slate-600 font-medium text-xs'>No description set</span>}</p>
                                         </div>
                                     </div>
                                 )
@@ -234,7 +238,13 @@ export default function PageInventory() {
                     ) : (
                         <>
                             {!isLoadingDefaultValue && (
-                                <p className='text-slate-600 font-medium text-center'>No items were found at this location</p>
+                                <>
+                                    {!locationId.value ? (
+                                        <p className='text-slate-600 font-medium text-center'>Select a location</p>
+                                    ) : (
+                                        <p className='text-slate-600 font-medium text-center'>No items were found at this location</p>
+                                    )}
+                                </>
                             )}
                         </>
                     )}

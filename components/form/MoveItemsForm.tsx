@@ -21,13 +21,11 @@ import { DynamicForm } from './DynamicForm';
 import { TransactionResponse } from '@/types/responses';
 import { IoIosMenu } from 'react-icons/io';
 import BoxTimer from './BoxTimer';
-import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
-    const router = useRouter();
     const [fieldValues, setFieldValues] = useState<FieldEntryValue[]>([]);
     const client = useApolloClient();
     const orgId = 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
@@ -242,7 +240,7 @@ export default function MoveItemsForm({ transferType }: {
     }, [transferOptions.from]);
 
     const redirectToHome = () => {
-        router.push('/app');
+        //router.push('/app');
     }
 
     return (

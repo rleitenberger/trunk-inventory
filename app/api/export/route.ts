@@ -9,6 +9,14 @@ const handler = async(req: NextRequest) => {
         });
     }
 
+    if (req.body?.locked){
+        return Response.json({
+            error: 'Stream is locked.',
+            url: req,
+            sent: false
+        });
+    }
+
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type');
 

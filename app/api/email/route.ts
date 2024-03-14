@@ -9,6 +9,7 @@ const handler = async (req: NextRequest) => {
     if (req.body?.locked){
         return Response.json({
             error: 'Stream is locked.',
+            url: req.url,
             sent: false
         });
     }

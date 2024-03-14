@@ -17,10 +17,8 @@ import Loader from "@/components/Loader";
 import { sendEmail } from "@/lib/emailer";
 import CreateReasonForm from "@/components/form/CreateReasonForm";
 import AdminNav from "@/components/AdminNav";
-import { useSession } from "next-auth/react";
 
 export default function PageAdmin() {
-    const u = useSession();
 
     const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>([]);
 

@@ -10,8 +10,9 @@ export interface PaginatedLocationItemsArgs {
     last?:number;
 }
 
-export interface GQLRequestContext {
+export interface GQLContext {
     req: NextRequest;
     res?: any;
     loaders: any;
+    userId: string|null;
 }

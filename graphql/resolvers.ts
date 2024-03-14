@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
-import { GQLRequestContext } from '@/types/queryTypes';
+import { GQLContext } from '@/types/queryTypes';
 
 export const resolvers = {
     Query: {
@@ -40,8 +40,21 @@ export const resolvers = {
         
             return users;
         },
-        getOrganizations: async () => {
-            return await prisma.organizations.findMany();
+        getOrganizations: async (_: any, args: any, context: GQLContext) => {
+            if (!context.userId){
+                return [];
+            }
+
+
+            return await prisma.organizations.findMany({
+                where: {
+                    organization_users: {
+                        some: {
+                            user_id: context.userId
+                        }
+                    }
+                }
+            });
         },
         getLocations: async (_: any, { organizationId, search }: { 
             organizationId: string
@@ -142,7 +155,7 @@ export const resolvers = {
             });
             return res;
         },
-        getTransactions: async(_: any, { transactionInput, paginationInput }: TransactionArgs, context: GQLRequestContext) => {
+        getTransactions: async(_: any, { transactionInput, paginationInput }: TransactionArgs, context: GQLContext) => {
             const { organizationId, locationId, itemId, transferType, between } = transactionInput;
             const { first, after, before, last, sortColumn, sortColumnValue } = paginationInput;
             const take = first || last || 25;
