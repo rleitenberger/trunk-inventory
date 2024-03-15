@@ -1,3 +1,4 @@
+import { PrismaClient } from "@prisma/client/extension";
 import DataLoader from "dataloader";
 import { NextRequest } from "next/server";
 
@@ -15,4 +16,5 @@ export interface GQLContext {
     res?: any;
     loaders: any;
     userId: string|null;
+    db?: PrismaClient;
 }

@@ -6,6 +6,9 @@ import { readFileSync } from "fs";
 import { resolvers } from "@/graphql/resolvers";
 import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonEmailsLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
 import { NextRequest } from "next/server";
+import { Prisma, PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { decode, JWT } from 'next-auth/jwt'
 
 const typeDefs = `${readFileSync(`graphql/schema.graphqls`)}`;
 const apolloServer = new ApolloServer({
@@ -14,22 +17,43 @@ const apolloServer = new ApolloServer({
 });
 
 const validateSessionToken = async (authHeader: string|null): Promise<string|null> => {
-    if (!authHeader){
+    if (!authHeader) {
         return null;
     }
     
     const [type, value] = authHeader?.split(' ') as [type: string, value: string];
 
+    if (value === 'no-auth'){
+
+    }
+
+    let token: JWT|null = null;
+
+    try {
+        token = await decode({
+            token: value,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+    } catch (e) {
+
+    }
+
+    let sessionToken = '';
+    if (token?.sessionToken){
+        sessionToken = token.sessionToken;
+    }
+
     const user = await prisma.session.findFirst({
         where: {
             sessionToken: {
-                equals: value
+                equals: sessionToken
             }
         }
     });
 
     return user?.userId ?? null;
 }
+
 
 const handler = startServerAndCreateNextHandler(apolloServer, {
     context: async (req: NextRequest) => {
@@ -52,7 +76,7 @@ const handler = startServerAndCreateNextHandler(apolloServer, {
             fieldEntries: fieldEntriesLoader,
             reasonEmails: reasonEmailsLoader
         },
-        userId: userId
+        userId: userId,
       };
     },
   });

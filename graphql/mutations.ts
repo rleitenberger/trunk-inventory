@@ -197,3 +197,22 @@ export const updateItemSyncLog = gql`
         }
     }
 `;
+
+export const addOrgUser = gql`
+    mutation addOrgUser($organizationId: String!, $email: String!) {
+        addOrgUser(organizationId: $organizationId, email: $email) {
+            added
+            message
+            invite {
+                invite_id
+                modified
+            }
+        }
+    }
+`;
+
+export const acceptOrgInvite = gql`
+    mutation acceptOrgInvite($inviteId: String) {
+        acceptOrgInvite(inviteId: $inviteId)
+    }
+`;

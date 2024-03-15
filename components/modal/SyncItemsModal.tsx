@@ -5,15 +5,14 @@ import Loader from "@/components/Loader";
 import Modal from "./Modal";
 import { getLastItemSync } from "@/graphql/queries";
 import { useApolloClient } from "@apollo/client";
+import useOrganization from "../providers/useOrganization";
 
 export interface ZohoOrganization {
     name: string;
     organization_id: string;
 }
 
-export default function SyncItemsModal ({ organizationId }: {
-    organizationId: string;
-}) {
+export default function SyncItemsModal () {
     const router = useRouter();
 
     const [organizations, setOrganizations] = useState<ZohoOrganization[]>([]);
@@ -24,6 +23,7 @@ export default function SyncItemsModal ({ organizationId }: {
     const [success, setSuccess] = useState('');
 
     const apolloClient = useApolloClient();
+    const { organizationId, count } = useOrganization();
 
     const syncItemsFromZoho = async (): Promise<void> => {
         setIsSyncing(true);

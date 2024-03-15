@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 
 export default function ZohoInventory () {
     const params= useSearchParams();
-    const orgId = useOrganization();
+    const { organizationId, count } = useOrganization();
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -22,7 +22,7 @@ export default function ZohoInventory () {
         const location = params.get('location');
         const server = params.get('accounts-server');
 
-        if (!code || !location || !server || !orgId){
+        if (!code || !location || !server || !organizationId){
             return;
         }
 
@@ -33,7 +33,7 @@ export default function ZohoInventory () {
                     code: code,
                     server: server,
                     location: location,
-                    organizationId: orgId
+                    organizationId: organizationId
                 }),
                 headers: {
                     'Content-Type': 'application/json'

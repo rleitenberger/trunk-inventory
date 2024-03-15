@@ -1,4 +1,3 @@
-import prisma from '@/lib/prisma';
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
 import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
@@ -6,15 +5,37 @@ import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
 import { GQLContext } from '@/types/queryTypes';
+import prisma from '@/lib/prisma';
 
 export const resolvers = {
     Query: {
+        getIsAdmin: async(_: any, { organizationId }: {
+            organizationId: string;
+        }, context: GQLContext) => {
+            if (!context.userId){
+                return false;
+            }
+
+            const user = await prisma.organization_users.findFirst({
+                where: {
+                    AND: [
+                        { user_id: { equals: context.userId } },
+                        { organization_id: { equals: organizationId } },
+                        { active: { equals: true } },
+                    ]
+                }
+            });
+
+            if (!user){
+                return false;
+            }
+
+            return user.role === 'admin';
+        },
         getUsers: async(_: any, { organizationId, search }: {
             organizationId: string,
             search?: string
-        }) => {
-
-            
+        }, context: GQLContext) => {
             const users = await prisma.organization_users.findMany({
                 where: {
                     organization_id: {
@@ -28,13 +49,9 @@ export const resolvers = {
                             name:true,
                             username: true,
                             email: true,
-                            admins:{
-                                select:{
-                                    user_id: true
-                                }
-                            }
+                            admins: true
                         }
-                    }
+                    },
                 }
             });
         
@@ -59,7 +76,7 @@ export const resolvers = {
         getLocations: async (_: any, { organizationId, search }: { 
             organizationId: string
             search: string 
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.locations.findMany({
                 where: {
                     AND: [
@@ -74,7 +91,8 @@ export const resolvers = {
                 ]
             });
         },
-        getItems: async(_: any, {organizationId, search, first, after }: ItemArgs) => {
+        getItems: async(_: any, {organizationId, search, first, after }: ItemArgs,
+                context: GQLContext) => {
             const take = first || 10;
             let cursorCondition = {};
             if (after) {
@@ -105,7 +123,7 @@ export const resolvers = {
             });
 
             const hasNextPage = items.length > take;
-            const edges: Edge<Item>[] = (hasNextPage ? items.slice(0, -1) : items).map(item => ({
+            const edges: Edge<Item>[] = (hasNextPage ? items.slice(0, -1) : items).map((item: Item) => ({
                 node: item,
                 cursor: item.item_id, // Use the item_id as the cursor
             }));
@@ -126,7 +144,7 @@ export const resolvers = {
         getTransactionType: async(_:any, { organizationId, slug }: {
             organizationId: string
             slug: string
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.transaction_types.findFirst({
                 where: {
                     AND: [
@@ -138,7 +156,7 @@ export const resolvers = {
         },
         getReasons: async(_:any, { transactionTypeId }: {
             transactionTypeId: string
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons.findMany({
                 where: {
                     AND: [
@@ -252,7 +270,7 @@ export const resolvers = {
             last?: number;
             before?: string;
             includeNegative: boolean;
-        }) => {
+        }, context: GQLContext) => {
             const take = first || last || 25;
             let cursorCondition = {};
 
@@ -304,7 +322,7 @@ export const resolvers = {
                 items.reverse();
             }
 
-            const edges: Edge<LocationItem>[] = (hasNextPage || hasPreviousPage ? items.slice(0, -1) : items).map(li => ({
+            const edges: Edge<LocationItem>[] = (hasNextPage || hasPreviousPage ? items.slice(0, -1) : items).map((li: any) => ({
                 node: {
                     item: li.items,
                     location: li.locations,
@@ -332,7 +350,7 @@ export const resolvers = {
         },
         getTransactionTypes: async (_:any, { organizationId }: {
             organizationId: string
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.transaction_types.findMany({
                 where: {
                     organization_id: {
@@ -343,7 +361,7 @@ export const resolvers = {
         },
         getConditionTypes: async(_:any, { targetDataType }: {
             targetDataType: string
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.condition_types.findMany({
                 where: {
                     target_data_type: {
@@ -354,7 +372,7 @@ export const resolvers = {
         },
         getFieldConditions: async(_:any, { conditionField }: {
             conditionField: string
-        }) => {
+        }, context: GQLContext) => {
             return prisma.conditions.findMany({
                 where: {
                     AND: [
@@ -364,13 +382,13 @@ export const resolvers = {
                 }
             });
         },
-        getFieldTypes: async(_:any) => {
+        getFieldTypes: async(_:any, args: any, context: GQLContext) => {
             return prisma.field_types.findMany();
         },
         getOtherReasonFields: async(_:any, { reasonId, reasonFieldId }: {
             reasonId: string;
             reasonFieldId?: string;
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.reasons_fields.findMany({
                 where: {
                     AND: [
@@ -383,7 +401,7 @@ export const resolvers = {
         },
         getZohoClientKeys: async(_:any, { organizationId }: {
             organizationId: string;
-        }): Promise<ZohoInventoryApiKeys> => {
+        }, context: GQLContext): Promise<ZohoInventoryApiKeys> => {
             const keys = await prisma.zoho_inventory_keys.findFirst({
                 where: {
                     organization_id: {
@@ -415,7 +433,7 @@ export const resolvers = {
         },
         getLastItemSync: async (_: any, { organizationId }: {
             organizationId: string;
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.item_sync_logs.findFirst({
                 where: {
                     organization_id: { equals: organizationId }
@@ -427,9 +445,134 @@ export const resolvers = {
         }
     },
     Mutation: {
+        acceptOrgInvite: async(_: any, { inviteId }: {
+            inviteId: string
+        }, context: GQLContext) => {
+            const invite = await prisma.user_invite_requests.update({
+                data: {
+                    active: false,
+                    modified: new Date()
+                },
+                where: {
+                    invite_id: inviteId
+                }
+            });
+
+            const userId = context?.userId ?? '';
+            if (!invite?.invite_id || context.userId) {
+                return false;
+            }
+
+            const added = await prisma.organization_users.upsert({
+                update: {
+                    active: true,
+                    role: 'user'
+                },
+                where: {
+                    organization_id_user_id: {
+                        user_id: userId,
+                        organization_id: invite.organization_id
+                    }
+                },
+                create: {
+                    organization_id: invite.organization_id,
+                    user_id: userId,
+                    role: 'user'
+                }
+            });
+
+            return true;
+        },
+        addOrgUser: async(_: any, { organizationId, email }: {
+            organizationId: string;
+            email: string;
+        }, context: GQLContext) => {
+
+            const inviteExists = await prisma.user_invite_requests.findFirst({
+                where: {
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { email: { equals: email } }
+                    ]
+                }
+            });
+
+            if (inviteExists?.invite_id){
+                const invite = await prisma.user_invite_requests.update({
+                    data: {
+                        active: true,
+                        modified: new Date(),
+                    },
+                    where: {
+                        invite_id: inviteExists.invite_id
+                    }
+                });
+
+                return {
+                    added: true,
+                    message: email + ' has been invited to join the organization.',
+                    invite: invite
+                }
+            }
+
+            const userExists = await prisma.user.findFirst({
+                where: {
+                    email: { equals: email }
+                }
+            });
+
+            if (userExists){
+                const invite = await prisma.user_invite_requests.create({
+                    data: {
+                        invite_id: randomUUID(),
+                        organization_id: organizationId,
+                        email: email
+                    }
+                });
+
+                return {
+                    added: true,
+                    message: email + ' has been invited to join the organization.',
+                    invite: invite
+                }
+            }
+
+            const user = await prisma.organization_users.findFirst({
+                where: {
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { users: {
+                            email: { equals: email } }
+                        },
+                        { active: { equals: true } }
+                    ]
+                }
+            });
+
+            if (user?.active === true){
+                return {
+                    added: false,
+                    message: 'A user with that email is already a member of the organization.'
+                }
+            }
+
+            const invite = await prisma.user_invite_requests.create({
+                data: {
+                    invite_id: randomUUID(),
+                    organization_id: organizationId,
+                    email: email
+                }
+            });
+
+            return {
+                added: true,
+                message: email + ' has been invited to join the organization.',
+                invite: invite
+            }
+        },
         createItemSyncLog: async (_: any, { organizationId }: {
             organizationId: string;
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.item_sync_logs.create({
                 data: {
                     item_sync_log_id: randomUUID(),
@@ -443,7 +586,7 @@ export const resolvers = {
             items_updated?: number;
             total_items?: number;
             status?: string;
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.item_sync_logs.update({
                 where: {
                     item_sync_log_id: item_sync_log_id
@@ -459,7 +602,7 @@ export const resolvers = {
         upsertZohoClientKeys: async(_: any, { organizationId, zohoClientInput }: {
             organizationId: string;
             zohoClientInput: ZohoClientKeys
-        }) => {
+        }, context: GQLContext) => {
             if (!organizationId){
                 return false;
             }
@@ -507,7 +650,7 @@ export const resolvers = {
             transferInput: TransferInput;
             fieldEntries: FieldsEntriesInput[];
             transferType: string;
-        }, context: any) => {
+        }, context: GQLContext) => {
             const transactionId = randomUUID().toString();
             const entries: ReasonsFieldsEntry[] = fieldEntries.map((e: FieldsEntriesInput): ReasonsFieldsEntry => {
                 return {
@@ -657,7 +800,7 @@ export const resolvers = {
                                 url: `${scheme ?? 'http'}://${host}/app/transactions/${transactionId}`
                             },
                             type: transferType,
-                            emails: email?.reason_emails?.map(e => {
+                            emails: email?.reason_emails?.map((e: any) => {
                                 return e.email;
                             }) ?? [],
                             date: transaction.created,
@@ -673,7 +816,7 @@ export const resolvers = {
                                 qty: transferInput.qty,
                                 sku: toLocation.items.sku
                             },
-                            fields: fields.map(e => {
+                            fields: fields.map((e: any) => {
                                 return {
                                     key: e.reasons_fields.field_name,
                                     value: e.field_value
@@ -699,7 +842,7 @@ export const resolvers = {
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string
             newName: string
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons.update({
                 data: {
                     name: newName
@@ -716,7 +859,7 @@ export const resolvers = {
             fieldName: string;
             fieldType: string;
             conditions: ConditionInput[]
-        }) => {
+        }, context: GQLContext) => {
 
             const res = await prisma.reasons_fields.create({
                 data: {
@@ -757,7 +900,7 @@ export const resolvers = {
             fieldName: string;
             fieldType: string;
             conditions: any[];
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons_fields.update({
                 data: {
                     field_name: fieldName,
@@ -797,7 +940,7 @@ export const resolvers = {
         },
         deleteReasonField: async(_:any, { reasonFieldId }: {
             reasonFieldId: string
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons_fields.update({
                 data: {
                     active: false
@@ -816,7 +959,7 @@ export const resolvers = {
             reasonName: string;
             transactionTypeId: string;
             description?: string;
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons.create({
                 data: {
                     reason_id: randomUUID(),
@@ -830,7 +973,7 @@ export const resolvers = {
         },
         deleteReason: async(_:any, { reasonId }: {
             reasonId: string
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons.update({
                 data: {
                     active: false
@@ -845,7 +988,7 @@ export const resolvers = {
         updateReasonSendsEmail: async (_:any, { reasonId, sendsEmail }: {
             reasonId: string;
             sendsEmail: boolean;
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.reasons.update({
                 data: {
                     sends_email: sendsEmail
@@ -862,7 +1005,7 @@ export const resolvers = {
             dependentField: string;
             requiredValue: string;
             conditionTypeId: string;
-        }) => {
+        }, context: GQLContext) => {
             return await prisma.conditions.create({
                 data: {
                     condition_id: randomUUID(),
@@ -877,7 +1020,7 @@ export const resolvers = {
             conditionId: string;
             requiredValue: string;
             conditionTypeId: string;
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.conditions.update({
                 data: {
                     required_value: requiredValue,
@@ -893,7 +1036,7 @@ export const resolvers = {
         },
         deleteFieldCondition: async(_: any, { conditionId }: {
             conditionId: string
-        }) => {
+        }, context: GQLContext) => {
             const res = await prisma.conditions.update({
                 data: {
                     active: false
@@ -906,7 +1049,7 @@ export const resolvers = {
         createReasonEmail: async(_: any, { reasonId, email }: {
             reasonId: string,
             email: string
-        }) => {
+        }, context: GQLContext) => {
             const reasonEmailId = randomUUID();
             const added = await prisma.reason_emails.create({
                 data: {
@@ -920,7 +1063,7 @@ export const resolvers = {
         },
         deleteReasonEmail: async(_: any, { reasonEmailId }: {
             reasonEmailId: string;
-        }) => {
+        }, context: GQLContext) => {
             const removed = await prisma.reason_emails.delete({
                 where: {
                     reason_email_id: reasonEmailId
@@ -933,7 +1076,7 @@ export const resolvers = {
             locationName: string;
             organizationId: string;
             isWarehouse: boolean;
-        }) => {
+        }, context: GQLContext) => {
             const location = await prisma.locations.create({
                 data: {
                     location_id: randomUUID(),
@@ -950,7 +1093,7 @@ export const resolvers = {
             locationId: string;
             locationName: string;
             isWarehouse: boolean;
-        }) => {
+        }, context: GQLContext) => {
             const location = await prisma.locations.update({
                 data: {
                     orderPriority: isWarehouse ? 2 : 1,
@@ -967,7 +1110,7 @@ export const resolvers = {
             locationId: string;
             locationName: string;
             isWarehouse: boolean;
-        }) => {
+        }, context: GQLContext) => {
             const location = await prisma.locations.update({
                 data: {
                     name: locationName,
@@ -981,7 +1124,7 @@ export const resolvers = {
         },
         deleteLocation: async(_: any, { locationId }: {
             locationId: string;
-        }) => {
+        }, context: GQLContext) => {
             const location = await prisma.locations.update({
                 data: {
                     active: false,

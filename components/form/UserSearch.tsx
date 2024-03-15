@@ -15,7 +15,7 @@ export default function UserSearch ({ val, fn, displayOptions, role }: {
 
     
     const apolloClient = useApolloClient();
-    const organizationId = useOrganization();
+    const { organizationId, count } = useOrganization();
 
     const fetchItems = async(search: string, pageInfo: PageInfo|undefined = undefined): Promise<PaginatedDropDownSearchOptions> => {
         
@@ -68,8 +68,7 @@ export default function UserSearch ({ val, fn, displayOptions, role }: {
                     refetch: fetchItems,
                     ...fn
                 }}
-                objectName={displayOptions.name}
-                val={val} />
+                objectName={displayOptions.name} />
         </>
     )
 }

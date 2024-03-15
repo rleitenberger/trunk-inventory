@@ -21,13 +21,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
 
   const token = cookies().get('next-auth.session-token')?.value ?? 'no-auth';
 
   return (
     <SessionWrapper>
-      <PrismaProvider>
         <ApolloProviderWrapper token={token}>
           <html lang="en">
             <body className={inter.className}>
@@ -36,7 +34,6 @@ export default function RootLayout({
             </body>
           </html>
         </ApolloProviderWrapper>
-      </PrismaProvider>
     </SessionWrapper>
   );
 }

@@ -69,6 +69,7 @@ model locations_items_qty {
 model organization_users {
   organization_id String        @db.VarChar(36)
   user_id         String        @db.VarChar(36)
+  role            String        @default("user") @db.VarChar(10)
   created         DateTime      @default(now()) @db.Timestamp(0)
   modified        DateTime      @default(now()) @db.Timestamp(0)
   active          Boolean       @default(true)
@@ -297,4 +298,13 @@ model verificationtoken {
   expires    DateTime @db.Timestamp(0)
 
   @@ignore
+}
+
+model user_invite_requests {
+  invite_id       String   @id @db.VarChar(36)
+  organization_id String   @db.VarChar(36)
+  email           String   @db.VarChar(200)
+  created         DateTime @default(now()) @db.Timestamp(0)
+  modified        DateTime @default(now()) @db.Timestamp(0)
+  active          Boolean  @default(true)
 }

@@ -11,7 +11,7 @@ import { BiKey } from "react-icons/bi";
 
 const AddZohoKeysModal = () => {
     const apolloClient = useApolloClient();
-    const orgId = useOrganization();
+    const { organizationId, count } = useOrganization();
 
     const [keys, setKeys] = useState<ZohoClientKeys>({
         clientId: '',
@@ -28,7 +28,7 @@ const AddZohoKeysModal = () => {
     }
 
     useEffect(() => {
-        if (!orgId){
+        if (!organizationId){
             return;
         }
 
@@ -36,7 +36,7 @@ const AddZohoKeysModal = () => {
             const { data } = await apolloClient.query({
                 query: getZohoClientKeys,
                 variables: {
-                    organizationId: orgId
+                    organizationId: organizationId
                 }
             });
 
@@ -53,13 +53,13 @@ const AddZohoKeysModal = () => {
         }
 
         loadClientKeys();
-    }, [orgId]);
+    }, [organizationId]);
 
     const upsertKeys = async (): Promise<void> => {
         const { data } = await apolloClient.mutate({
             mutation: upsertZohoClientKeys,
             variables: {
-                organizationId: orgId,
+                organizationId: organizationId,
                 zohoClientInput: keys
             }
         });

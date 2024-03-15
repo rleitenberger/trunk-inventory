@@ -33,7 +33,7 @@ export default function CreateReasonForm ({ types, fn }: {
 
     const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>(types || []);
 
-    const organizationId = useOrganization();
+    const { organizationId, count } = useOrganization();
     const apolloClient = useApolloClient();
 
     useEffect(() => {

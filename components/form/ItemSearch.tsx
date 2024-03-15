@@ -15,7 +15,7 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
     defaultValue?: DropDownSearchOption
 }) {    
     const apolloClient = useApolloClient();
-    const organizationId = useOrganization();
+    const { organizationId, count } = useOrganization();
     const ref=useRef<any>();
 
     useEffect(() => {

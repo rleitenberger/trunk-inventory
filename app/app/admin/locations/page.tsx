@@ -13,8 +13,7 @@ import { AiFillMinusCircle } from "react-icons/ai";
 import { BiCheck, BiPlus } from "react-icons/bi";
 
 export default function PageAdminLocations ({  }) {
-
-    const orgId = useOrganization();
+    const { organizationId, count } = useOrganization();
     const apolloClient = useApolloClient();
 
     const [locationName, setLocationName] = useState<string>('');
@@ -40,7 +39,7 @@ export default function PageAdminLocations ({  }) {
         const { data } = await apolloClient.mutate({
             mutation: createLocation,
             variables: {
-                organizationId: orgId,
+                organizationId: organizationId,
                 locationName: locationName
             }
         });
@@ -83,7 +82,7 @@ export default function PageAdminLocations ({  }) {
             const { data } = await apolloClient.query({
                 query: getLocations,
                 variables: {
-                    organizationId: orgId
+                    organizationId: organizationId
                 },
                 fetchPolicy: 'network-only'
             });

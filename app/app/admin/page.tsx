@@ -35,7 +35,7 @@ export default function PageAdmin() {
     const [showingCreateField, setShowingCreateField] = useState<boolean>(false);
     const [showingEditField, setShowingEditField] = useState<boolean>(false);
 
-    const organizationId = useOrganization();
+    const { organizationId, count } = useOrganization();
     
     const apolloClient = useApolloClient();
 

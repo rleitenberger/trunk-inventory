@@ -1,13 +1,19 @@
-import React, { createContext } from "react";
+import { OrganizationProviderType } from "@/types/hookTypes";
+import React, { createContext, useContext } from "react";
 
-export const OrganizationContext = createContext('');
+export const OrganizationContext = createContext<OrganizationProviderType>({
+    organizationId: '',
+    count: 0,
+});
 
-export const OrganizationProvider = ({ children, selectedOrg }: {
+
+export const OrganizationProvider = ({ children, value }: {
     children: React.ReactNode
-    selectedOrg: string;
+    value: OrganizationProviderType
 }) => {
+
     return (
-        <OrganizationContext.Provider value={selectedOrg}>
+        <OrganizationContext.Provider value={value}>
             {children}
         </OrganizationContext.Provider>
     )

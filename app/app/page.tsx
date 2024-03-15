@@ -1,4 +1,8 @@
+'use client';
+
 import HomeCard from "@/components/HomeCard";
+import { useIsAdmin } from "@/components/providers/IsAdminProvider";
+import useOrganization from "@/components/providers/useOrganization";
 import Image from "next/image";
 import Link from "next/link";
 import { AiFillMinusCircle } from "react-icons/ai";
@@ -6,9 +10,13 @@ import { BiRightArrow, BiRightArrowAlt, BiTransfer } from "react-icons/bi";
 import { IoIosList } from "react-icons/io";
 import { IoReturnUpBack } from "react-icons/io5";
 import { LuMoveUpRight } from "react-icons/lu";
-import { MdOutlineInventory } from "react-icons/md";
+import { MdAdminPanelSettings, MdOutlineInventory } from "react-icons/md";
 
 export default function Home() {
+
+  const { organizationId, count } = useOrganization();
+  const isAdmin = useIsAdmin();
+
   return (
     <div className="grid grid-cols-12 gap-4 pt-8 md:pt-0">
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
@@ -55,14 +63,26 @@ export default function Home() {
           </div>
         </Link>
       </HomeCard>
-      <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
-        <Link href='/app/transactions' className="p-4 block">
-          <div>
-            <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
-            View Transactions
-          </div>
-        </Link>
-      </HomeCard>
+      {isAdmin && (
+        <>
+          <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <Link href='/app/transactions' className="p-4 block">
+              <div>
+                <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
+                View Transactions
+              </div>
+            </Link>
+          </HomeCard>
+          <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <Link href='/app/admin' className="p-4 block">
+              <div>
+                <MdAdminPanelSettings className="mx-auto text-xl text-gray-700 my-2" />
+                Admin
+              </div>
+            </Link>
+          </HomeCard>
+        </>
+      )}
     </div>
   )
 }

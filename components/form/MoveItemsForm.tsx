@@ -5,7 +5,6 @@ import { useApolloClient } from '@apollo/client';
 import { getReasons } from '@/graphql/queries';
 import type { TransferOptions } from '@/types/TransferOptions';
 import { BiTransfer } from 'react-icons/bi';
-import useOrganization from '@/components/providers/useOrganization';
 import { getTransactionType } from '@/graphql/queries';
 import { Condition, Reason, ReasonsFields } from '@/types/dbTypes';
 import { createTransaction } from '@/graphql/mutations';

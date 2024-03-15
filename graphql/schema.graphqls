@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-    getUsers(organizationId: String!, search: String): [User]!
+    getUsers(organizationId: String!, search: String): [OrgUser]!
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
@@ -19,6 +19,8 @@ type Query {
     getOtherReasonFields(reasonId: String!, reasonFieldId: String): [ReasonFields]!
     getZohoClientKeys(organizationId: String!): ZohoKeys
     getLastItemSync(organizationId: String!): ItemSyncLog
+    getIsAdmin(organizationId: String!): Boolean
+    getUserInvites(organizationId: String!): [UserInvite]!
 }
 
 type Mutation {
@@ -52,6 +54,34 @@ type Mutation {
 
     createItemSyncLog(organizationId: String!): ItemSyncLog!
     updateItemSyncLog(itemSyncLog: ItemSyncLogInput): ItemSyncLog!
+
+    addOrgUser(organizationId: String!, email: String!): AddOrgUserResponse!
+    acceptOrgInvite(inviteId: String!): Boolean
+}
+
+type OrgUser {
+    organization_id: String!
+    user_id: String!
+    created: String!
+    modified: String!
+    active: Boolean!
+    users: User!
+    role: String!
+}
+
+type AddOrgUserResponse {
+    added: Boolean!
+    message: String!
+    invite: UserInvite!
+}
+
+type UserInvite {
+    invite_id: String!
+    organization_id: String!
+    email: String!
+    active: Boolean!
+    created: String!
+    modified: String!
 }
 
 input TransactionInput {
@@ -89,7 +119,11 @@ type User {
     email: String!
     emailVerified: String
     image: String
-    isAdmin: Boolean!
+    admins: Admins!
+}
+
+type Admins {
+    user_id: String
 }
 
 type Account {

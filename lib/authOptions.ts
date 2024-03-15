@@ -39,10 +39,9 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                         OR: [
                             { username: credentials?.username },
                         ]
-                    }
+                    },
                 });
                 
-
                 if (!credentials?.password || !user?.password){
                     return null;
                 }
@@ -66,12 +65,17 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                             userId: user.id
                         }
                     });
+
+                    if (context.params.nextauth.includes('credentials') &&
+                        context.params.nextauth.includes('callback')) {
+
+                            const r = cookies().set('next-auth.session-token', sessionToken, {
+                                expires: sessionExpiry,
+                                secure: true,
+                                httpOnly: true
+                            });
+                        }
     
-                    const r = cookies().set('next-auth.session-token', sessionToken, {
-                        expires: sessionExpiry,
-                        secure: true,
-                        httpOnly: true
-                    });
                 }
 
                 const obj = {
@@ -86,9 +90,15 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
             }),
         ],
         secret: 'D!recTec',
+        session: {
+            strategy: 'jwt'
+        },
+        
         jwt: {
+            /*
             encode: async (params): Promise<string> => {
 
+                console.log('###########################################\n\n\n\nENCODE\n', params);
                 if (context.params.nextauth.includes('callback') &&
                     context.params.nextauth.includes('credentials')) {
                     const cookie = cookies().get('next-auth.session-token');
@@ -104,7 +114,10 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                     maxAge: params.maxAge
                 });
             },
-            decode: async ({ token, secret }: JWTDecodeParams): Promise<JWT|null> => {
+            decode: async (args: JWTDecodeParams): Promise<JWT|null> => {
+                const {token, secret} = args;
+                console.log('###########################################\n\n\n\nDECODE\n', args);
+                console.log('CONTEXT', context)
                 if (context.params.nextauth.includes('callback') &&
                     context.params.nextauth.includes('credentials')) {
                     return null;
@@ -114,7 +127,7 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                     token: token,
                     secret: secret
                 });
-            }
+            }*/
         },
         callbacks: {
             signIn: async ({ user, account, credentials }): Promise<boolean> => {
@@ -139,9 +152,15 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
 
                 return baseUrl;
             },
-            session: async({ session, newSession, user }): Promise<Session|DefaultSession> => {
-                if (user) {
+            session: async({ session, token, user }): Promise<Session|DefaultSession> => {
+                if (token && session?.user) {
+                    session.user.id = token.id;
+                    session.user.sessionToken = token.sessionToken;
+                }
+
+                if (user && session?.user) {
                     session.user.id = user.id;
+                    session.user.sessionToken = user.sessionToken;
                 }
 
 

@@ -1,26 +1,26 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import React, { useContext, useMemo, useState } from 'react';
-import { IconType } from 'react-icons';
-import { AiFillMinusCircle } from 'react-icons/ai';
-import { BiChevronRight, BiHome, BiMenu, BiTransfer, BiUser } from 'react-icons/bi';
-import { IoIosList } from 'react-icons/io';
-import { IoReturnUpBack } from 'react-icons/io5';
-import { LuMoveUpRight } from 'react-icons/lu';
-import { MdOutlineInventory } from 'react-icons/md';
-import MenuItem from './MenuItem';
-import { Organization } from '@/types/dbTypes';
-import { createContext } from 'vm';
-import { OrganizationProvider } from './providers/OrganizationProvider';
+import { BiChevronRight, BiHome, BiLogOut, BiMenu, BiTransfer } from "react-icons/bi"
+import MenuItem from "@/components/MenuItem"
+import { getOrganizations } from "@/graphql/queries"
+import { Organization } from "@/types/dbTypes"
+import { useMemo, useState } from "react"
+import Image from "next/image"
+import { AiFillMinusCircle } from "react-icons/ai"
+import { LuMoveUpRight } from "react-icons/lu"
+import { IoReturnUpBack } from "react-icons/io5"
+import { MdAdminPanelSettings, MdOutlineInventory } from "react-icons/md"
+import { IoIosList } from "react-icons/io"
+import useOrganization from "./providers/useOrganization"
+import { useIsAdmin } from "./providers/IsAdminProvider"
 
 interface NavInfo {
     navClass: string
     chevronClass: string
 }
 
-export default function Nav({ children, organizations }: {
-    children: React.ReactNode
-    organizations: Organization[]
+export default function Nav({ children, update, organizations }: {
+    children: React.ReactNode;
+    update: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    organizations: Organization[];
 }) {
     const [navExpanded, setNavExpanded] = useState(false);
     const navInfo = useMemo<NavInfo>(() => {
@@ -36,16 +36,13 @@ export default function Nav({ children, organizations }: {
     const textAnimation = useMemo<string>(() => {
         return navExpanded ? 'show-text' : 'hide-text';
     }, [navExpanded]);
+    
+    const { organizationId, count } = useOrganization();
 
-    const [org, setOrg] = useState<string>('');
-    const updateOrg = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        const { options, selectedIndex } = e.target;
-        setOrg(options[selectedIndex].value);
-    }
+    const isAdmin = useIsAdmin();
 
     return (
         <div className={`h-screen grid overflow-hidden ${navInfo.navClass} transition-all duration-200 relative`}>
-            
             <div className='bg-primary relative hidden md:block'>
                 <div className='grid grid-cols-1 gap-2 py-4 px-2'>
                     <Image src="/logo.webp" width="50" height="50" alt="logo" className='mx-auto' />
@@ -55,7 +52,13 @@ export default function Nav({ children, organizations }: {
                     <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' textClass={textAnimation} />
                     <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' textClass={textAnimation} />
                     <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' textClass={textAnimation} />
-                    <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
+                    {isAdmin && (
+                        <>
+                            <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
+                            <MenuItem href='/app/admin' Icon={MdAdminPanelSettings} text='Admin' textClass={textAnimation} />
+                        </>
+                    )}
+                    <MenuItem href='/logout' Icon={BiLogOut} text='Logout' textClass={textAnimation} />
                 </div>
                 <div className='absolute bottom-0 left-0 py-3 px-5'>
                     <button onClick={()=>{setNavExpanded(!navExpanded)}} className="w-full nav-icon" title={navExpanded ? 'Shrink' : 'Expand'}>
@@ -67,13 +70,15 @@ export default function Nav({ children, organizations }: {
             {!navExpanded && (
                 <div className="fixed top-0 left-0 right-0 h-[50px] bg-[#ececec] flex md:hidden shadow-md
                     items-center px-4">
-                    <select className="px-2 py-1 border border-slate-300 rounded-lg outline-none" value={org} onChange={updateOrg}>
-                        {organizations?.map((e: Organization) => {
-                            return (
-                                <option key={`org-${e.organization_id}`}>{e.name}</option>
-                            )
-                        })}
-                    </select>
+                    {!!organizations?.length && (
+                        <select className="px-2 py-1 border border-slate-300 rounded-lg outline-none text-[16px] md:text-sm" value={organizationId} onChange={update}>
+                            {organizations?.map((e: Organization) => {
+                                return (
+                                    <option key={`org-${e.organization_id}`}>{e.name}</option>
+                                )
+                            })}
+                        </select>
+                    )}
                     <button className=" ml-auto" onClick={()=>{setNavExpanded(true)}}>
                         <BiMenu className="text-4xl" />
                     </button>
@@ -100,14 +105,18 @@ export default function Nav({ children, organizations }: {
                     <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' />
                     <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' />
                     <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' />
-                    <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' />
+                    {isAdmin && (
+                        <>
+                            <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' />
+                            <MenuItem href='/app/admin' Icon={MdAdminPanelSettings} text='Admin' />
+                        </>
+                    )}
+                    <MenuItem href='/logout' Icon={BiLogOut} text='Logout' />
                 </div>
             </div>
 
             <div className="overflow-y-auto px-6 py-[68px] md:py-6">
-                <OrganizationProvider selectedOrg={org}>
-                    {children}
-                </OrganizationProvider>
+                {children}
             </div>
         </div>
     )

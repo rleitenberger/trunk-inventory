@@ -102,7 +102,8 @@ export type TransactionType = {
 
 export type OrgUser = {
     organization: Organization;
-    user: User;
+    users: User;
+    role: string;
 }
 
 export interface ConditionReasonField {
@@ -246,4 +247,12 @@ export interface Account {
     access_token?: string|null;
     expires_at?: number|null;
     token_type?: string|null;
+}
+
+export interface UserInvite {
+    invite_id: string;
+    email: string;
+    active: boolean;
+    created: string;
+    modified: string;
 }

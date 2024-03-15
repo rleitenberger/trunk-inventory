@@ -167,11 +167,13 @@ export const getItemsAtLocation = gql`
 export const getUsers = gql`
     query getUsers($organizationId: String!, $search: String) {
         getUsers(organizationId: $organizationId, search: $search) {
-            id
-            name
-            email
-            image
-            isAdmin
+            users {
+                name
+                username
+                email
+                id
+            }
+            role
         }
     }
 `;
@@ -231,6 +233,27 @@ export const getLastItemSync = gql`
             total_items
             created
             status
+        }
+    }
+`;
+
+export const getIsAdmin = gql`
+    query getIsAdmin($organizationId: String!) {
+        getIsAdmin(organizationId: $organizationId)
+    }
+`;
+
+export const getUserInvites = gql`
+    query getUserInvites($organizationId: String!) {
+        getuserInvites(organizationId: $organizationId) {
+            added
+            message
+            invite {
+                email
+                invite_id
+                active
+                created
+            }
         }
     }
 `;

@@ -1,3 +1,6 @@
-export default function useOrganization() {
-    return 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
-}
+import { useContext } from "react";
+import { OrganizationContext } from "./OrganizationProvider";
+
+const useOrganization = () => useContext(OrganizationContext);
+
+export default useOrganization;

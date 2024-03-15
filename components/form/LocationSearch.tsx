@@ -12,7 +12,7 @@ export default function LocationSearch ({ fn, displayOptions, defaultValue=undef
     fn: DropDownValueFunctionGroup
     defaultValue?: DropDownSearchOption
 }) { 
-    const organizationId = useOrganization();
+    const { organizationId, count } = useOrganization();
     const apolloClient = useApolloClient();
 
     const fetchLocations = async(search: string): Promise<DropDownSearchOption[]> => {

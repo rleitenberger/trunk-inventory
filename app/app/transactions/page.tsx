@@ -1,18 +1,18 @@
 'use client';
 
 import Loader from '@/components/Loader';
+import AdminGuard from '@/components/auth/AdminGuard';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import ExportTransactionCSVModal from '@/components/modal/ExportTransactionsCSVModal';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
-import { BetweenDate, ExportOptions, ReasonsFieldsEntry, Transaction, TransactionClient, TransactionEdge } from '@/types/dbTypes';
-import { TransferType } from '@/types/formTypes';
-import { PageInfo, TransactionArgs, TransactionInput } from '@/types/paginationTypes';
+import { BetweenDate, ExportOptions, ReasonsFieldsEntry, TransactionClient, TransactionEdge } from '@/types/dbTypes';
+import { TransactionArgs, TransactionInput } from '@/types/paginationTypes';
 import { useApolloClient } from '@apollo/client';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BiChevronLeft, BiChevronRight, BiLinkExternal, BiTransfer } from 'react-icons/bi';
 import { FaCaretDown } from 'react-icons/fa';
 import { MdOutlineTableView } from 'react-icons/md';
@@ -23,10 +23,10 @@ export default function PageTransactions() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const apollo = useApolloClient();
 
-    const orgId = useOrganization();
+    const { organizationId, count } = useOrganization();
     const [transactionOptions, setTransactionOptions] = useState<TransactionArgs>({
         transactionInput: {
-            organizationId: orgId,
+            organizationId: organizationId,
             locationId: {
                 name: '',
                 value: ''
@@ -89,7 +89,7 @@ export default function PageTransactions() {
 
         let variables: TransactionArgs = {
             transactionInput: {
-                organizationId: orgId,
+                organizationId: organizationId,
                 locationId: transactionOptions.transactionInput.locationId?.value,
                 itemId: transactionOptions.transactionInput.itemId?.value,
                 transferType: transactionOptions.transactionInput.transferType,
@@ -162,14 +162,14 @@ export default function PageTransactions() {
     }
 
     useEffect(() => {
-        if (!orgId){
+        if (!organizationId){
             return;
         }
 
         resetPageData();
         fetchTransactions('ignore');
 
-    }, [transactionOptions.transactionInput, transactionOptions.transactionInput.itemId, transactionOptions.paginationInput.take, orgId]);
+    }, [transactionOptions.transactionInput, transactionOptions.transactionInput.itemId, transactionOptions.paginationInput.take, organizationId]);
 
     const clearLocation = (): void => {
         setTransactionOptions({
@@ -273,7 +273,7 @@ export default function PageTransactions() {
     }
 
     return (
-        <>
+        <AdminGuard callbackUrl='/app/transactions'>
             <div className='flex items-center gap-2'>
                 <h1 className='text-xl font-medium'>Transactions</h1>
                 <div className='ml-auto'>  
@@ -515,6 +515,6 @@ export default function PageTransactions() {
                     </div>
                 </div>
             )}
-        </>
+        </AdminGuard>
     )
 }
