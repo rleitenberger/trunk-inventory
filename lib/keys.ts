@@ -1,5 +1,6 @@
 import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import crypto from 'crypto';
+import prisma from "@/lib/prisma";
 
 export const addKeys = async (keys: ZohoInventoryApiKeys) => {
     const { iv } = await prisma.zoho_inventory_keys.findFirst({

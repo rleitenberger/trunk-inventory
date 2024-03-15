@@ -4,6 +4,11 @@ import { NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
+
+    if (!searchParams.get('organizationId')){
+        return Response.json([]);
+    }
+
     const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '');
 
     if (!auth.verified){

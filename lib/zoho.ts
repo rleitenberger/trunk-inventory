@@ -1,6 +1,7 @@
 import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { ZohoAuthResponse } from "@/types/responses";
 import { addKeys, decrypt } from "./keys";
+import prisma from "@/lib/prisma";
 
 const REDIRECT = 'http://localhost:3000/zoho'
 

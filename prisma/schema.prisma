@@ -25,7 +25,7 @@ model admins {
 model items {
   item_id             String                @id @db.VarChar(36)
   organization_id     String                @db.VarChar(36)
-  zi_item_id          String                @db.VarChar(50)
+  zi_item_id          String                @unique(map: "items_zi_item_id") @db.VarChar(50)
   name                String                @db.Text
   item_price          String?               @db.VarChar(10)
   item_cost           String?               @db.VarChar(10)

@@ -1,5 +1,8 @@
+import prisma from "@/lib/prisma";
 import { verifyZohoAuth } from "@/lib/zoho";
+import { Item } from "@/types/dbTypes";
 import { ZohoAuthResponse } from "@/types/responses";
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const handler = async (req: NextRequest) => {
@@ -8,6 +11,14 @@ const handler = async (req: NextRequest) => {
 
     if (!auth.verified){
         return Response.json(auth);
+    }
+
+    const organizationId = searchParams.get('organizationId');
+
+    if (!organizationId){
+        return Response.json({
+            error: 'Invalid organization ID'
+        });
     }
 
     const zohoOrgId = searchParams.get('zohoOrganizationId');
@@ -30,7 +41,7 @@ const handler = async (req: NextRequest) => {
 
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-    while (hasMore){
+    while (hasMore && index < 2){
         if (!auth.accessToken || !zohoOrgId){
             break;
         }
@@ -48,7 +59,52 @@ const handler = async (req: NextRequest) => {
         index++;
     }
 
-    return Response.json(allItems);
+    const transactions = await prisma.$transaction(async (prisma) =>{
+        const updates = allItems.map((e: any) => {
+            prisma.items.upsert({
+                create: {
+                    item_id: randomUUID(),
+                    organization_id: organizationId,
+                    zi_item_id: e.itemId,
+                    name: e.name,
+                    description: e.description
+                },
+                update: {
+                    name: e.name,
+                    sku: e.sku,
+                    description: e.description,
+                    modified: new Date(),
+                },
+                where: {
+                    zi_item_id: e.itemId
+                }
+            });
+        });
+
+        await Promise.all(updates);
+    });
+    
+    let added = 0;
+    let updated = 0;
+
+    const now = new Date();
+
+    transactions?.map((e: Item) => {
+        const createdDate = new Date(e.created);
+        if (e.created === e.modified){
+            added++;
+        }
+
+        if (e.created < e.modified) {
+            updated++;
+        }
+    })
+
+    return Response.json({
+        total: transactions.length,
+        added: added,
+        updated: updated
+    });
 }
 
 const getItems = async(page: number, orgId: string, accessToken?: string): Promise<any> => {
@@ -68,7 +124,8 @@ const getItems = async(page: number, orgId: string, accessToken?: string): Promi
             return {
                 itemId: e.item_id,
                 name: e.name,
-                description: e.description
+                description: e.description,
+                sku: e.sku
             }
         }) ?? [],
         page_context: json.page_context
