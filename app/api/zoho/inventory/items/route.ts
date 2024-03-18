@@ -7,26 +7,27 @@ import { NextRequest, NextResponse } from "next/server";
 
 const handler = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
-    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '');
 
-    if (!auth.verified){
-        return Response.json(auth);
-    }
+    const syncId = searchParams.get('syncId') ?? '';
+    const accessToken = searchParams.get('accessToken');
 
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId){
+    if(!accessToken){
         return Response.json({
-            error: 'Invalid organization ID'
+            error: 'Missing access token'
         });
     }
 
-    const zohoOrgId = searchParams.get('zohoOrganizationId');
-    if (!zohoOrgId){
-        return Response.json({
-            error: 'Please select an organization'
-        });
-    }
+    const organzationId = searchParams.get('organizationId') ?? '';
+    const zohoOrgId = searchParams.get('zohoOrganizationId') ?? '';
+
+    await prisma.item_sync_logs.update({
+        data: {
+            status: 'uploading'
+        },
+        where: {
+            item_sync_log_id: syncId
+        }
+    });
 
     const allItems: any = [];
     let index = 1;
@@ -42,11 +43,7 @@ const handler = async (req: NextRequest) => {
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
     while (hasMore && index < 2){
-        if (!auth.accessToken || !zohoOrgId){
-            break;
-        }
-
-        const res = await getItems(index, zohoOrgId, auth.accessToken);
+        const res = await getItems(index, zohoOrgId, accessToken);
         if (res?.error){
             break;   
         }
@@ -59,51 +56,92 @@ const handler = async (req: NextRequest) => {
         index++;
     }
 
-    const transactions = await prisma.$transaction(async (prisma) =>{
-        const updates = allItems.map((e: any) => {
-            prisma.items.upsert({
-                create: {
-                    item_id: randomUUID(),
-                    organization_id: organizationId,
-                    zi_item_id: e.itemId,
-                    name: e.name,
-                    description: e.description
-                },
-                update: {
-                    name: e.name,
-                    sku: e.sku,
-                    description: e.description,
-                    modified: new Date(),
-                },
-                where: {
-                    zi_item_id: e.itemId
-                }
-            });
-        });
-
-        await Promise.all(updates);
+    await prisma.item_sync_logs.update({
+        data: {
+            status: 'uploading'
+        },
+        where: {
+            item_sync_log_id: syncId
+        }
     });
+
     
-    let added = 0;
-    let updated = 0;
+    const transactions = await prisma.$transaction([
+        prisma.items.findMany({
+            where: { active: { equals: true } },
+        })
+    ]);
+
+    const [items] = transactions;
+    const existingZiIds = new Set(items.map((e: Item) => e.zi_item_id));
+
+    const itemsToAdd = allItems.filter((item: Item) => !existingZiIds.has(item.zi_item_id));
+    const itemsToUpdate = allItems.filter((item: Item) => existingZiIds.has(item.zi_item_id))
+                                .map((e: Item) => {
+                                    return {
+                                        item_id: e.item_id,
+                                        zi_item_id: e.zi_item_id,
+                                        sku: e.sku,
+                                        description: e.description,
+                                        modified: new Date(),
+                                    }
+                                });
+
+                                console.log(itemsToUpdate[0])
+
+    return Response.json({});
+
+    const ops = await prisma.$transaction([
+        prisma.items.updateMany({
+            data: itemsToUpdate,
+        }),
+        prisma.items.createMany({
+            data: itemsToUpdate,
+            skipDuplicates: true
+        })
+    ]);
 
     const now = new Date();
 
-    transactions?.map((e: Item) => {
-        const createdDate = new Date(e.created);
-        if (e.created === e.modified){
-            added++;
-        }
+    const addLen = itemsToAdd.length;
+    const updateLen = itemsToUpdate.length;
 
-        if (e.created < e.modified) {
-            updated++;
+    /*
+    const res = await prisma.$transaction( async(prisma) => {
+        try {
+            for (let i = 0; i < allItems.length; i++) {
+                const item: Item = allItems[i];
+                await prisma.items.upsert({
+                    where: {
+                        zi_item_id: item.zi_item_id
+                    },
+                    update: {
+                        name: item.name,
+                        sku: item.sku,
+                        description: item.description,
+                        modified: new Date(),
+                    },
+                    create: {
+                        item_id: randomUUID(),
+                        name: item.name,
+                        zi_item_id: item.zi_item_id,
+                        organization_id: organizationId,
+                        description: item.description,
+                        sku: item.sku,
+                    }
+                });
+            }
+        } catch (e) {
         }
-    })
+    }, {
+        timeout: 15000,
+    });*/
+
 
     return Response.json({
-        total: transactions.length,
-        added: added,
-        updated: updated
+        total: addLen + updateLen,
+        added: addLen,
+        updated: updateLen
     });
 }
 
@@ -122,7 +160,8 @@ const getItems = async(page: number, orgId: string, accessToken?: string): Promi
     return {
         items: json?.items?.map((e: any) => {
             return {
-                itemId: e.item_id,
+                item_id: randomUUID(),
+                zi_item_id: e.item_id,
                 name: e.name,
                 description: e.description,
                 sku: e.sku
