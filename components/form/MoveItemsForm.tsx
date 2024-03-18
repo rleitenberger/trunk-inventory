@@ -239,7 +239,9 @@ export default function MoveItemsForm({ transferType }: {
     }, [transferOptions.from]);
 
     const redirectToHome = () => {
-        //router.push('/app');
+        const a = document.createElement('a');
+        a.href='/app';
+        a.click();
     }
 
     return (

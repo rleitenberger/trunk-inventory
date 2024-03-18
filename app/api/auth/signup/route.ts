@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 const handler = async(req: NextRequest) => {
     try {
         const data = await req.json();
-        const { name, username, email, password, confirmPassword, terms, csrfToken } = data;
+        const { name, username, email, password, confirmPassword, terms, csrfToken, inviteId } = data;
 
         if (
             !((name && username && email && password && confirmPassword))
@@ -64,6 +64,48 @@ const handler = async(req: NextRequest) => {
                 providerAccountId: user.id
             }
         });
+
+        if (inviteId) {
+            const invite = await prisma.user_invite_requests.findFirst({
+                where: {
+                    AND: [
+                        { invite_id: { equals: inviteId } },
+                        { active: { equals: true } }
+                    ]
+                }
+            });
+
+            if (invite?.invite_id){
+                await prisma.$transaction([
+                    prisma.organization_users.upsert({
+                        create: {
+                            organization_id: invite.organization_id,
+                            user_id: user.id,
+                            role: 'user'
+                        },
+                        update: {
+                            active: true,
+                            role: 'user',
+                            modified: new Date(),
+                        },
+                        where: {
+                            organization_id_user_id: {
+                                organization_id: invite.organization_id,
+                                user_id: user.id
+                            }
+                        }
+                    }),
+                    prisma.user_invite_requests.update({
+                        data: {
+                            active: false,
+                        },
+                        where: {
+                            invite_id: invite.invite_id
+                        }
+                    })
+                ]);
+            }
+        }
 
         if (user && account) {
             return Response.json({

@@ -96,8 +96,9 @@ export type DynamicInputField = {
 
 export type TransactionType = {
     type: string;
-    transaction_type_id: string
-    description?: string
+    transaction_type_id: string;
+    organization_id: string;
+    description?: string;
 }
 
 export type OrgUser = {
@@ -255,4 +256,14 @@ export interface UserInvite {
     active: boolean;
     created: string;
     modified: string;
+}
+
+export interface SyncDetails {
+    item_sync_log_id: string;
+    organization_id?: string;
+    status: string;
+    items_added: string;
+    items_updated: string;
+    total_items: string;
+    created: string;
 }

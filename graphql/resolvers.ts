@@ -1,5 +1,5 @@
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransactionType, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
@@ -445,6 +445,55 @@ export const resolvers = {
         }
     },
     Mutation: {
+        createOrganization: async(_: any, { name }: {
+            name: string;
+        }, context: GQLContext) => {
+            if (!name || !context?.userId){
+                return {
+                    organization_id: '',
+                }
+            }
+
+            const newOrganization = await prisma.organizations.create({
+                data: {
+                    organization_id: randomUUID(),
+                    name: name
+                }
+            });
+
+            const addUser = await prisma.organization_users.upsert({
+                create: {
+                    organization_id: newOrganization.organization_id,
+                    user_id: context.userId,
+                    role: 'admin',
+                },
+                update: {
+                    active: true,
+                    role: 'admin',
+                },
+                where: {
+                    organization_id_user_id: {
+                        organization_id: newOrganization.organization_id,
+                        user_id: context.userId
+                    }
+                }
+            });
+
+            const _types: TransactionType[] = ['transfer', 'pull', 'push', 'remove'].map((e: string) => {
+                return {
+                    organization_id: newOrganization.organization_id,
+                    type: e,
+                    transaction_type_id: randomUUID(),
+                    description: ''
+                }
+            })
+
+            const types = await prisma.transaction_types.createMany({
+                data: _types,
+            });
+
+            return newOrganization;
+        },
         acceptOrgInvite: async(_: any, { inviteId }: {
             inviteId: string
         }, context: GQLContext) => {
@@ -488,6 +537,9 @@ export const resolvers = {
             email: string;
         }, context: GQLContext) => {
 
+            let inviteId: string = '';
+            let emailInvite: boolean = false;
+
             const inviteExists = await prisma.user_invite_requests.findFirst({
                 where: {
                     AND: [
@@ -505,13 +557,31 @@ export const resolvers = {
                     },
                     where: {
                         invite_id: inviteExists.invite_id
+                    },
+                    select: {
+                        invite_id: true,
+                        organizations:{
+                            select: {
+                                name: true
+                            }
+                        },
+                        email: true,
+                        organization_id: true
                     }
                 });
+
+                const emailData = await sendInviteEmail({
+                    inviteId: invite.invite_id,
+                    orgId: organizationId,
+                    email: email,
+                    orgName: invite.organizations.name,
+                    context: context
+                })
 
                 return {
                     added: true,
                     message: email + ' has been invited to join the organization.',
-                    invite: invite
+                    invite: invite,
                 }
             }
 
@@ -533,7 +603,7 @@ export const resolvers = {
                 return {
                     added: true,
                     message: email + ' has been invited to join the organization.',
-                    invite: invite
+                    invite: invite,
                 }
             }
 
@@ -561,13 +631,31 @@ export const resolvers = {
                     invite_id: randomUUID(),
                     organization_id: organizationId,
                     email: email
+                },
+                select: {
+                    invite_id: true,
+                    organizations: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    email: true,
+                    organization_id: true
                 }
             });
+
+            const emailData = await sendInviteEmail({
+                inviteId: invite.invite_id,
+                orgId: organizationId,
+                email: email,
+                orgName: invite.organizations.name,
+                context: context
+            })
 
             return {
                 added: true,
                 message: email + ' has been invited to join the organization.',
-                invite: invite
+                invite: invite,
             }
         },
         createItemSyncLog: async (_: any, { organizationId }: {
@@ -797,7 +885,7 @@ export const resolvers = {
                         body: JSON.stringify({
                             transaction: {
                                 id: transactionId,
-                                url: `${scheme ?? 'http'}://${host}/app/transactions/${transactionId}`
+                                url: `${scheme ?? 'http'}://${host}/app/transactions/${transactionId}`,
                             },
                             type: transferType,
                             emails: email?.reason_emails?.map((e: any) => {
@@ -1183,5 +1271,41 @@ export const resolvers = {
         condition_type: async(parent: Condition, args: any, context:any) => {
             return context.loaders.conditionType.load(parent.condition_type_id);
         }
+    }
+}
+
+
+const sendInviteEmail = async ({ inviteId, orgId, orgName, email, context }: {
+    inviteId: string;
+    orgId: string;
+    orgName: string;
+    email: string;
+    context: GQLContext;
+}): Promise<object> => {
+    const scheme = context.req.headers.get('x-forwarded-proto');
+    const host = context.req.headers.get('host');
+    
+    try {
+        const result = await fetch(`${scheme ?? 'http'}://${host}/api/email/invite`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                url: (scheme ?? 'http') + '://' + host + '/register?inviteId=' + inviteId + '&organizationId=' + orgId + '&email=' + email,
+                orgName: orgName,
+            })
+        });
+
+        return await result.json();
+
+    } catch (e) {
+        //handle exception
+    }
+
+    return {
+        error: 'Could not send an invite email'
     }
 }

@@ -61,7 +61,9 @@ export default function ZohoInventory () {
     const router = useRouter();
 
     const redirectUserBack = () => {
-        router.push('/admin/items');
+        const a = document.createElement('a');
+        a.href='/admin/items';
+        a.click();
     }
 
     return isLoading ? (

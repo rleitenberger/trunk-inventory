@@ -1,5 +1,13 @@
 import { gql } from 'graphql-tag'
 
+export const createOrganization = gql`
+    mutation createOrganization($name: String!) {
+        createOrganization(name: $name) {
+            organization_id
+        }
+    }
+`;
+
 export const createTransaction = gql`
     mutation createTransaction($orgId: String!, $transferInput: TransferInput!, $fieldEntries: [FieldsEntriesInput]!, $transferType: String!) {
         createTransaction(orgId: $orgId, transferInput: $transferInput, fieldEntries: $fieldEntries, transferType: $transferType) {

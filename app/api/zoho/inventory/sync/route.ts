@@ -7,38 +7,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 const handler = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
-    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '');
+    const syncId = searchParams.get('syncId');
 
-    if (!auth.verified){
-        return Response.json(auth);
-    }
-
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId){
+    if (!syncId){
         return Response.json({
-            error: 'Invalid organization ID'
+            error: 'Missing sync log ID'
         });
     }
 
-    const zohoOrgId = searchParams.get('zohoOrganizationId');
-    if (!zohoOrgId){
-        return Response.json({
-            error: 'Please select an organization'
-        });
-    }
-
-    const syncId = await prisma.item_sync_logs.create({
-        data: {
-            item_sync_log_id: randomUUID(),
-            organization_id: organizationId,
-            status: 'downloading'
-        }
+    const log = await prisma.item_sync_logs.findFirst({
+        where: { item_sync_log_id: { equals: syncId } }
     });
 
-    const response = await fetch(process.env.NEXTAUTH_URL + `/api/zoho/inventory/sync?organizationId=${organizationId}&zohoOrganizationId=${zohoOrgId}&syncId=${syncId}`);
-    
-    return Response.json(response);
+    return Response.json(log);
 }
 
 export { handler as GET };

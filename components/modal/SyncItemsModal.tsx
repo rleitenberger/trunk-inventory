@@ -1,11 +1,13 @@
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BiSync } from "react-icons/bi";
 import Loader from "@/components/Loader";
 import Modal from "./Modal";
 import { getLastItemSync } from "@/graphql/queries";
 import { useApolloClient } from "@apollo/client";
 import useOrganization from "../providers/useOrganization";
+import { toast } from "react-toastify";
+import { SyncDetails } from "@/types/dbTypes";
 
 export interface ZohoOrganization {
     name: string;
@@ -17,7 +19,6 @@ export default function SyncItemsModal () {
 
     const [organizations, setOrganizations] = useState<ZohoOrganization[]>([]);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
-    const [lastSyncDetails, setLastSyncDetails] = useState<string>('');
     const [showingSyncModal, setShowingSyncModal] = useState<boolean>(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -28,10 +29,27 @@ export default function SyncItemsModal () {
     const syncItemsFromZoho = async (): Promise<void> => {
         setIsSyncing(true);
 
+        let url = `/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`;
+
+        try {
+            const log = await fetch(url);
+            const logJson = await log.json();
+
+            if (!logJson.success){
+                throw new Error('There was an error syncing the items. Please try again later.');
+            }
+
+            url = url + `&syncId=${logJson.syncLogId}`;
+        } catch (e: any) {
+            toast.error(e.message);
+            setIsSyncing(false);
+            return;
+        }
+
         let json = {} as any;
 
         try {
-            const res = await fetch(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`,{
+            const res = await fetch(url,{
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -57,7 +75,7 @@ export default function SyncItemsModal () {
             return;
         }
 
-        setSuccess('Sync complete. Discovered items: ' + json.length)
+        toast.success('Sync complete.\nAdded: ' + json.added + '\nUpdated: ' + json.updated + '\nTotal: ' + json.total);
     }
 
     const showSyncModal = (): void => {
@@ -70,7 +88,7 @@ export default function SyncItemsModal () {
         const { options, selectedIndex } = e.target;
         setSelectedOrg(options[selectedIndex].value);
     }
-    const [lastSync, setLastSync] = useState({});
+    const [lastSync, setLastSync] = useState<SyncDetails|null>(null);
 
     useEffect(() => {
         const loadOrgs = async (): Promise<void> => {
@@ -100,12 +118,32 @@ export default function SyncItemsModal () {
                 return;
             }
 
+            console.log(data.getLastItemSync);
+
+            console.log(data.getLastItemSync);
             setLastSync(data.getLastItemSync);
         }
 
         loadOrgs();
         loadLastSync();
     }, [organizationId]);
+
+    const lastSyncState = useMemo(() => {
+        switch (lastSync?.status){
+            case 'pending':
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-yellow-500 rounded-lg">{lastSync.status}</div>
+            case 'downloading':
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-blue-500 rounded-lg">{lastSync.status}</div>
+            case 'uploading':
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-teal-400 rounded-lg">{lastSync.status}</div>
+            case 'finished':
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-green-500 rounded-lg">{lastSync.status}</div>
+            case 'error':
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-red-500 rounded-lg">{lastSync.status}</div>
+            default:
+                return <div className="ml-auto uppercase font-medium text-white text-xs px-3 py-1 bg-slate-400 rounded-lg">not found</div>
+        }
+    }, [lastSync]);
 
     return (
         <>
@@ -137,6 +175,34 @@ export default function SyncItemsModal () {
                                 </>
                             )}
                         </button>
+                </div>
+
+                <div>
+                    {lastSync && (
+                        <div>
+                            <div className="flex items-center">
+                                <p className="text-lg font-medium">Latest sync</p>
+                                {lastSyncState}
+                            </div>
+                            <div className="h-[1px] bg-slate-300 my-1"></div>
+                            <div className="flex items-center">
+                                <p>Date:</p>
+                                <p className="ml-auto font-medium">{new Date(parseInt(lastSync.created, 10)).toLocaleDateString()}</p>
+                            </div>
+                            <div className="flex items-center">
+                                <p>Items added:</p>
+                                <p className="ml-auto font-medium">{lastSync.items_added}</p>
+                            </div>
+                            <div className="flex items-center">
+                                <p>Items updated:</p>
+                                <p className="ml-auto font-medium">{lastSync.items_updated}</p>
+                            </div>
+                            <div className="flex items-center">
+                                <p>Total items indexed: </p>
+                                <p className="ml-auto font-medium">{lastSync.total_items}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Modal>
             <button className="bg-blue-500 px-3 py-1 rounded-lg outline-none transition-all text-white hover:bg-blue-600 flex items-center gap-2

@@ -333,108 +333,111 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
                     </select>
                 </div>
             </div>
-            <div className="grid grid-cols-12 mt-2 text-sm">
-                <div className="col-span-12 flex items-center">
-                    <p className="font-medium">Visibility conditions</p>
-                    {fieldType && (
-                        <button className="ml-auto p-2 rounded-lg transition-colors duration-150 hover:bg-slate-300/40"
-                            title="Add condition" onClick={()=>{
-                                setAddingCondition(!addingCondition);
-                            }}>
-                                <BiPlus className={`transition-all ${addingConditionRotation}`} />
-                        </button>
+            {false && (
+                <div className="grid grid-cols-12 mt-2 text-sm">
+                    <div className="col-span-12 flex items-center">
+                        <p className="font-medium">Visibility conditions</p>
+                        {fieldType && (
+                            <button className="ml-auto p-2 rounded-lg transition-colors duration-150 hover:bg-slate-300/40"
+                                title="Add condition" onClick={()=>{
+                                    setAddingCondition(!addingCondition);
+                                }}>
+                                    <BiPlus className={`transition-all ${addingConditionRotation}`} />
+                            </button>
+                        )}
+                    </div>
+                    {fieldType ? (
+                        <div className="col-span-12">
+                            {addingCondition && (
+                                <div className="flex items-center gap-2 flex-wrap w-full">
+                                    <div className="col-span-1">
+                                        <p>When</p>
+                                    </div>
+                                    <div className="col-span-3">
+                                        <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
+                                            value={dependentField.value} onChange={updateDependentField}>
+                                            <option value='' className="hidden">Field</option>
+                                            {otherFields?.map(e => {
+                                                return (
+                                                    <option key={`field-${e.reasons_fields_id}`} value={e.reasons_fields_id}>{e.field_name}</option>
+                                                )
+                                            })}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="">
+                                        <p>is</p>
+                                    </div>
+                                    <div className="">
+                                        <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
+                                            value={conditionTypeId.value} onChange={updateConditionTypeId}>
+                                            <option value='' className="hidden">Condition</option>
+                                            {conditionTypes?.map(e => {
+                                                return (
+                                                    <option key={`ctype-${e.condition_type_id}`} value={e.condition_type_id}>{e.name}</option>
+                                                )
+                                            })}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="flex-1">
+                                        <p></p>
+                                        {targetDataType === 'boolean' ? (
+                                            <select className="outline-none rounded-lg border border-slate-300 px-2 py-1 bg-white
+                                                text-[16px] md:text-sm"
+                                                value={requiredValue.value} onChange={updateRequiredValueBoolean}>
+                                                <option value='' className="hidden">Value</option>
+                                                <option value='true'>True</option>
+                                                <option value='false'>False</option>
+                                            </select>
+                                        ) : (
+                                            <input type="text" placeholder="value" className="w-full px-2 py-1 border border-slate-300 rounded-lg outline-none" 
+                                                value={requiredValue.value} onChange={updateRequiredValue} />
+                                        )}
+                                    </div>
+
+                                    <button className="p-2 bg-green-500 transition-colors hover:bg-green-600 rounded-lg text-white"
+                                        onClick={addCondition}>
+                                        <BiCheck />
+                                    </button>
+                                </div>
+                            )}
+                            {conditions?.length ? (
+                                <div className="max-h-[150px] overflow-y-auto">
+                                    {conditions?.map(e => {
+                                        return (
+                                            <div className='grid grid-cols-12 gap-2' key={`cond-${e.condition_id}`}>
+                                                <button className="transition-colors rounded-lg hover:bg-slate-300 col-span-1 p-2"
+                                                    onClick={()=>{
+                                                        removeCondition(e.condition_id)
+                                                    }}>
+                                                    <AiFillMinusCircle className="text-red-500 mx-auto" />
+                                                </button>
+                                                <div className="col-span-11 p-2">
+                                                    When <span className="font-medium text-xs px-2 py-1 bg-slate-300/40 rounded-sm">{e.dependent_field.field_name}</span> is {e.condition_type.name} {e.required_value}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <>
+                                    {!addingCondition && (
+                                        <div className="col-span-12">
+                                            <p className="text-slate-600 text-center">No conditions have been added</p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="col-span-12">
+                            <p className="text-slate-600 text-center">Select field type</p>
+                        </div>
                     )}
                 </div>
-                {fieldType ? (
-                    <div className="col-span-12">
-                        {addingCondition && (
-                            <div className="flex items-center gap-2 flex-wrap w-full">
-                                <div className="col-span-1">
-                                    <p>When</p>
-                                </div>
-                                <div className="col-span-3">
-                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
-                                        value={dependentField.value} onChange={updateDependentField}>
-                                        <option value='' className="hidden">Field</option>
-                                        {otherFields?.map(e => {
-                                            return (
-                                                <option key={`field-${e.reasons_fields_id}`} value={e.reasons_fields_id}>{e.field_name}</option>
-                                            )
-                                        })}
-                                    </select>
-                                </div>
-                                
-                                <div className="">
-                                    <p>is</p>
-                                </div>
-                                <div className="">
-                                    <select className="px-2 py-1 rounded-lg border border-slate-300 outline-none bg-white text-[16px] md:text-sm"
-                                        value={conditionTypeId.value} onChange={updateConditionTypeId}>
-                                        <option value='' className="hidden">Condition</option>
-                                        {conditionTypes?.map(e => {
-                                            return (
-                                                <option key={`ctype-${e.condition_type_id}`} value={e.condition_type_id}>{e.name}</option>
-                                            )
-                                        })}
-                                    </select>
-                                </div>
-                                
-                                <div className="flex-1">
-                                    <p></p>
-                                    {targetDataType === 'boolean' ? (
-                                        <select className="outline-none rounded-lg border border-slate-300 px-2 py-1 bg-white
-                                            text-[16px] md:text-sm"
-                                            value={requiredValue.value} onChange={updateRequiredValueBoolean}>
-                                            <option value='' className="hidden">Value</option>
-                                            <option value='true'>True</option>
-                                            <option value='false'>False</option>
-                                        </select>
-                                    ) : (
-                                        <input type="text" placeholder="value" className="w-full px-2 py-1 border border-slate-300 rounded-lg outline-none" 
-                                            value={requiredValue.value} onChange={updateRequiredValue} />
-                                    )}
-                                </div>
-
-                                <button className="p-2 bg-green-500 transition-colors hover:bg-green-600 rounded-lg text-white"
-                                    onClick={addCondition}>
-                                    <BiCheck />
-                                </button>
-                            </div>
-                        )}
-                        {conditions?.length ? (
-                            <div className="max-h-[150px] overflow-y-auto">
-                                {conditions?.map(e => {
-                                    return (
-                                        <div className='grid grid-cols-12 gap-2' key={`cond-${e.condition_id}`}>
-                                            <button className="transition-colors rounded-lg hover:bg-slate-300 col-span-1 p-2"
-                                                onClick={()=>{
-                                                    removeCondition(e.condition_id)
-                                                }}>
-                                                <AiFillMinusCircle className="text-red-500 mx-auto" />
-                                            </button>
-                                            <div className="col-span-11 p-2">
-                                                When <span className="font-medium text-xs px-2 py-1 bg-slate-300/40 rounded-sm">{e.dependent_field.field_name}</span> is {e.condition_type.name} {e.required_value}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        ) : (
-                            <>
-                                {!addingCondition && (
-                                    <div className="col-span-12">
-                                        <p className="text-slate-600 text-center">No conditions have been added</p>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                ) : (
-                    <div className="col-span-12">
-                        <p className="text-slate-600 text-center">Select field type</p>
-                    </div>
-                )}
-            </div>
+            )}
+            
             <div className="flex">
                 <button className="px-4 py-1 text-sm text-white font-medium my-2 bg-blue-500
                     ml-auto transition-colors duration-150 hover:bg-blue-600 rounded-lg outline-none"

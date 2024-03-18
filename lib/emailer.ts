@@ -43,3 +43,39 @@ export const sendEmail = async ({ to, subject, details, fields, url }: {
         rejected: rejected
     };
 }
+
+export const sendInviteEmail = async ({ to, orgName, url }: {
+    to: string;
+    orgName: string;
+    url: string;
+}): Promise<object> => {
+    
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        secure:false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    
+    const info = await transporter.sendMail({
+        from: 'DirecTec LLC <no-reply@directecllc.com>',
+        to: to,
+        subject: `${orgName} Inventory Invite`,
+        html: email.wrapper(
+            `${email.header}
+            <h2>You've been invited to join ${orgName}</h2>
+            ${url && email.linkButton(url, 'Click here to sign up')}`
+        )
+    });
+
+    const { accepted, rejected } = info;
+    return {
+        sentEmails: rejected.length === 0,
+        accepted: accepted,
+        rejected: rejected
+    };
+}

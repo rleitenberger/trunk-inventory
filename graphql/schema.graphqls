@@ -79,9 +79,9 @@ type UserInvite {
     invite_id: String!
     organization_id: String!
     email: String!
-    active: Boolean!
-    created: String!
-    modified: String!
+    active: Boolean
+    created: String
+    modified: String
 }
 
 input TransactionInput {

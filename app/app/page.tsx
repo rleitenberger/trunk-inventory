@@ -1,6 +1,7 @@
 'use client';
 
 import HomeCard from "@/components/HomeCard";
+import CreateOrganizationForm from "@/components/form/CreateOrganizationForm";
 import { useIsAdmin } from "@/components/providers/IsAdminProvider";
 import useOrganization from "@/components/providers/useOrganization";
 import Image from "next/image";
@@ -17,7 +18,7 @@ export default function Home() {
   const { organizationId, count } = useOrganization();
   const isAdmin = useIsAdmin();
 
-  return (
+  return count > 0 ? (
     <div className="grid grid-cols-12 gap-4 pt-8 md:pt-0">
       <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
         <Link href='/app/transfer' className="p-4 block">
@@ -83,6 +84,10 @@ export default function Home() {
           </HomeCard>
         </>
       )}
-    </div>
-  )
+    </div>) : (
+      <div className="flex items-center gap-2 justify-center flex-col">
+        <p className="text-lg font-medium">Create an organization</p>
+        <CreateOrganizationForm />
+      </div>
+    )
 }

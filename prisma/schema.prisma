@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ['interactiveTransactions"]
 }
 
 generator pothos {
@@ -82,18 +81,19 @@ model organization_users {
 }
 
 model organizations {
-  organization_id     String                @id @db.VarChar(36)
-  name                String                @db.VarChar(100)
-  created             DateTime              @default(now()) @db.Timestamp(0)
-  modified            DateTime              @default(now()) @db.Timestamp(0)
-  active              Boolean               @default(true)
-  admins              admins[]
-  item_sync_logs      item_sync_logs[]
-  locations           locations[]
-  organization_users  organization_users[]
-  transaction_types   transaction_types[]
-  transactions        transactions[]
-  zoho_inventory_keys zoho_inventory_keys[]
+  organization_id      String                 @id @db.VarChar(36)
+  name                 String                 @db.VarChar(100)
+  created              DateTime               @default(now()) @db.Timestamp(0)
+  modified             DateTime               @default(now()) @db.Timestamp(0)
+  active               Boolean                @default(true)
+  admins               admins[]
+  item_sync_logs       item_sync_logs[]
+  locations            locations[]
+  organization_users   organization_users[]
+  transaction_types    transaction_types[]
+  transactions         transactions[]
+  user_invite_requests user_invite_requests[]
+  zoho_inventory_keys  zoho_inventory_keys[]
 }
 
 model transactions {
@@ -302,10 +302,13 @@ model verificationtoken {
 }
 
 model user_invite_requests {
-  invite_id       String   @id @db.VarChar(36)
-  organization_id String   @db.VarChar(36)
-  email           String   @db.VarChar(200)
-  created         DateTime @default(now()) @db.Timestamp(0)
-  modified        DateTime @default(now()) @db.Timestamp(0)
-  active          Boolean  @default(true)
+  invite_id       String        @id @db.VarChar(36)
+  organization_id String        @db.VarChar(36)
+  email           String        @db.VarChar(200)
+  created         DateTime      @default(now()) @db.Timestamp(0)
+  modified        DateTime      @default(now()) @db.Timestamp(0)
+  active          Boolean       @default(true)
+  organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_invites_org_id")
+
+  @@index([organization_id], map: "fk_invites_org_id")
 }
