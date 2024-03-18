@@ -89,7 +89,7 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
             }
             }),
         ],
-        secret: 'D!recTec',
+        secret: process.env.NEXTAUTH_SECRET,
         session: {
             strategy: 'jwt'
         },
