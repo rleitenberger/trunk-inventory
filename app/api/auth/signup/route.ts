@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import { hashBcrypt } from "@/lib/bcrypt";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
