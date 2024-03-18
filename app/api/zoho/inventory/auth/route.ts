@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import { ApiKey } from "@/types/dbTypes";
 import { NextRequest } from "next/server";
 import { addKeys, loadKeys } from "@/lib/keys";

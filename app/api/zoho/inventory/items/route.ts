@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import prisma from "@/lib/prisma";
 import { verifyZohoAuth } from "@/lib/zoho";
 import { Item } from "@/types/dbTypes";

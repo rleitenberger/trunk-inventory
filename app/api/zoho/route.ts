@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 

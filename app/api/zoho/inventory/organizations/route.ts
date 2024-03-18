@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import { verifyZohoAuth } from "@/lib/zoho";
 import { ZohoAuthResponse } from "@/types/responses";
 import { NextRequest } from "next/server";

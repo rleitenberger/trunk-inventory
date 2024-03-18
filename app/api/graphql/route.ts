@@ -1,4 +1,6 @@
 /* eslint-disable */
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
