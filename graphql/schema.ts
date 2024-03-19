@@ -60,6 +60,9 @@ type Mutation {
 
     addOrgUser(organizationId: String!, email: String!): AddOrgUserResponse!
     acceptOrgInvite(inviteId: String!): Boolean
+    deleteOrgUser(userId: String!, organizationId: String!): Boolean!
+
+    updateUserRole(userId: String!, organizationId: String, role: String!): Boolean!
 }
 
 type OrgUser {

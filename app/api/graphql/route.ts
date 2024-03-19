@@ -22,26 +22,30 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
     const [type, value] = authHeader?.split(' ') as [type: string, value: string];
 
     if (value === 'no-auth'){
-
+        return '';
     }
 
     let token: JWT|null = null;
+    const secret = process.env.NEXTAUTH_SECRET as string;
+
+    if (!secret){
+        throw new Error('Could not load JWT secret');
+    }
 
     try {
         token = await decode({
             token: value,
-            secret: 'D!recTec'
+            secret: secret
         })
     } catch (e) {
         throw new Error('Could not decode session token')
     }
 
     let sessionToken = token?.sessionToken ?? '';
-
     const user = await prisma.session.findFirst({
         where: {
             sessionToken: {
-                equals: sessionToken.toString()
+                equals: sessionToken as string
             }
         },
         select: {
@@ -50,9 +54,8 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
     });
 
     if (!user){
-        throw new Error('Invalid user');
+        throw new Error('Invalid user ID');
     }
-
 
     return user.userId;
 }

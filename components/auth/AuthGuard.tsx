@@ -10,12 +10,6 @@ export function AuthGuard({ children }: {
 }) {
     const { data: session, status } = useAuth();
 
-    useEffect(() => {
-        if (status === 'unauthenticated'){
-            console.error('unauthenticated');
-        }
-    }, [session, status]);
-
     if (status === 'loading') {
         return (
             <div className="h-full flex items-center justify-center flex-col gap-2">

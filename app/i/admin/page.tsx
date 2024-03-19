@@ -531,11 +531,14 @@ export default function PageAdmin() {
                             )
                         })}
                     </select>
-                    <button className='px-3 py-1 rounded-lg bg-blue-500 transition-colors duration-150 hover:bg-blue-600 flex items-center gap-2
-                        text-white ml-auto' onClick={showCreateReason}>
-                        <AiFillPlusCircle />
-                        Add reason
-                    </button>
+                    {!!selectedTransactionTypeId && (
+                        <button className='px-3 py-1 rounded-lg bg-blue-500 transition-colors duration-150 hover:bg-blue-600 flex items-center gap-2
+                            text-white ml-auto' onClick={showCreateReason}>
+                            <AiFillPlusCircle />
+                            Add reason
+                        </button>
+                    )}
+                    
                 </div>
                 {loadingReasons ? (
                     <div className="flex items-center justify-center gap-2 p-4">
@@ -674,22 +677,31 @@ export default function PageAdmin() {
                                 </div>
                             )
                         })}
-                        {!reasons?.length && (
-                            <div className="col-span-12 text-slate-500">
-                                <div className="text-center">
-                                    <p>No reasons have been added to this transaction type.</p>
-                                </div>
-                                <div className="text-center">
-                                    <button className="flex items-center gap-2 justify-center p-2 rounded-lg transition-colors
-                                    hover:bg-slate-300/40 duration-150 mx-auto my-2" onClick={()=>{
-                                        setShowingCreateReason(true)
-                                    }}>
-                                        <AiFillPlusCircle className="text-lg"/>
-                                        Click here to add a new reason
-                                    </button>
-                                </div>
+                        {selectedTransactionTypeId ? (
+                            <>
+                                {!reasons?.length && (
+                                    <div className="col-span-12 text-slate-500">
+                                        <div className="text-center">
+                                            <p>No reasons have been added to this transaction type.</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <button className="flex items-center gap-2 justify-center p-2 rounded-lg transition-colors
+                                            hover:bg-slate-300/40 duration-150 mx-auto my-2" onClick={()=>{
+                                                setShowingCreateReason(true)
+                                            }}>
+                                                <AiFillPlusCircle className="text-lg"/>
+                                                Click here to add a new reason
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="col-span-12">
+                                <p className="text-slate-500 text-center font-medium">Select a transaction type</p>
                             </div>
                         )}
+                        
                     </div>
                 )}
                 

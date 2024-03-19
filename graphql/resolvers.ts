@@ -38,9 +38,10 @@ export const resolvers = {
         }, context: GQLContext) => {
             const users = await prisma.organization_users.findMany({
                 where: {
-                    organization_id: {
-                        equals: organizationId
-                    }
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { active: { equals: true } }
+                    ]
                 },
                 include: {
                     users: {
@@ -446,6 +447,81 @@ export const resolvers = {
         }
     },
     Mutation: {
+        updateUserRole: async(_: any, { organizationId, userId, role }: {
+            organizationId: string;
+            userId: string;
+            role: string;
+        }, context: GQLContext): Promise<boolean> => {
+            if (!context.userId) {
+                return false;
+            }
+
+            const getUser = await prisma.organization_users.findFirst({
+                where: {
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { user_id: { equals: context.userId as string } },
+                        { active: { equals: true } },
+                        { role: { in: ['admin', 'owner'] }}
+                    ]
+                }
+            });
+
+            if (!getUser) {
+                return false;
+            }
+
+            const updateUser = await prisma.organization_users.update({
+                data: {
+                    role: role
+                },
+                where: {
+                    organization_id_user_id: {
+                        organization_id: organizationId,
+                        user_id: userId
+                    }
+                }
+            });
+
+            return updateUser.role === role;
+        },
+        deleteOrgUser: async(_: any, { organizationId, userId }: {
+            organizationId: string;
+            userId: string;
+        }, context: GQLContext): Promise<boolean> => {
+            if (!context.userId) {
+                return false;
+            }
+
+            const getUser = await prisma.organization_users.findFirst({
+                where: {
+                    AND: [
+                        { organization_id: { equals: organizationId } },
+                        { user_id: { equals: context.userId as string } },
+                        { active: { equals: true } },
+                        { role: { in: ['admin', 'owner'] }}
+                    ]
+                }
+            });
+
+            if (!getUser) {
+                return false;
+            }
+
+            const removeUser = await prisma.organization_users.update({
+                data: {
+                    active: false,
+                },
+                where: {
+                    organization_id_user_id: {
+                        organization_id: organizationId,
+                        user_id: userId
+                    }
+                }
+            });
+
+            return !removeUser.active;
+        },
         createOrganization: async(_: any, { name }: {
             name: string;
         }, context: GQLContext) => {

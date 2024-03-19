@@ -224,3 +224,15 @@ export const acceptOrgInvite = gql`
         acceptOrgInvite(inviteId: $inviteId)
     }
 `;
+
+export const deleteOrgUser = gql`
+    mutation deleteOrgUser($userId: String!, $organizationId: String!) {
+        deleteOrgUser(userId: $userId, organizationId: $organizationId)
+    }
+`;
+
+export const updateUserRole = gql`
+    mutation updateUserRole($userId: String!, $organizationId: String!, $role: String!) {
+        updateUserRole(userId: $userId, organizationId: $organizationId, role: $role)
+    }
+`;
