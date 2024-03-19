@@ -53,6 +53,28 @@ export default function ZohoApiConsoleTutorialModal () {
             case 3:
                 return (
                     <>
+                        <div className="flex items-center gap-1 flex-wrap">
+                            Enter the following information in the
+                            <Image src="/img/tutorial/zoho/client-details-btn.png" width={100} height={30} alt='client details button' />
+                            tab
+                        </div>
+                        <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-6">
+                                <div className="mt-1">
+                                    <strong>Client Name:</strong><br />Trunk Inventory
+                                </div>
+                                <div className="mt-1">
+                                    <strong>Homepage URL</strong><br />https://inventory.directecllc.com
+                                </div>
+                                <div className="mt-1">
+                                    <strong>Authorized Redirect URIs</strong><br />- https://inventory.directecllc.com<br />- https://inventory.directecllc.com/zoho
+                                </div>
+                            </div>
+                            <div className="col-span-6">
+                                <Image src="/img/tutorial/zoho/client-details-info.png" width={250} height={150} alt="client details info"
+                                    className="mx-auto my-2" />
+                            </div>
+                        </div>
                     </>
                 )
             case 4:
@@ -61,7 +83,7 @@ export default function ZohoApiConsoleTutorialModal () {
                         <div className="flex items-center gap-1 flex-wrap">
                             Click on
                             <Image src='/img/tutorial/zoho/client-secret-btn.png' width={100} height={30} alt="client secret button" />
-                            and copy the Client ID and Client Secret here
+                            and to find your Client ID and Client Secret
                         </div>
                         <div>
                             <Image src="/img/tutorial/zoho/get-keys.png" width={400} height={200} alt="get keys location"
