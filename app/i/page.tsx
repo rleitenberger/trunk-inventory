@@ -19,9 +19,6 @@ export default function Home() {
   const isAdmin = useIsAdmin();
 
   return (
-    loading ? (
-      <div></div>
-    ) : (
       <>
         {count > 0 ? (
           <div className="grid grid-cols-12 gap-4 pt-8 md:pt-0">
@@ -96,6 +93,5 @@ export default function Home() {
             </div>
           )}
       </>
-    )
   )
 }
