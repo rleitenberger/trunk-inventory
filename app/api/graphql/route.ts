@@ -30,10 +30,10 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
     try {
         token = await decode({
             token: value,
-            secret: 'D!recTec'
+            secret: process.env.NEXTAUTH_SECRET ?? ''
         })
     } catch (e) {
-
+        throw new Error('Could not decode session token')
     }
 
     let sessionToken = token?.sessionToken ?? '';
@@ -43,10 +43,17 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
             sessionToken: {
                 equals: sessionToken.toString()
             }
+        },
+        select: {
+            sessionToken: true
         }
     });
 
-    return '5f131dee-8779-46aa-9f22-26ac8335da87';
+    if (!user){
+        throw new Error('Invalid user');
+    }
+
+    return user.sessionToken;
 }
 
 
