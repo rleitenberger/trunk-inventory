@@ -67,6 +67,8 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                         }
                     });
 
+                    /*
+
                     if (context.params.nextauth.includes('credentials') &&
                         context.params.nextauth.includes('callback')) {
 
@@ -76,6 +78,7 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                                 httpOnly: true
                             });
                         }
+                        */
     
                 }
 
