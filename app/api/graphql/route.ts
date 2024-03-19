@@ -7,8 +7,8 @@ import { NextRequest } from "next/server";
 import { Prisma, PrismaClient } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { decode, JWT } from 'next-auth/jwt'
+import { typeDefs } from '@/graphql/schema';
 
-const typeDefs = `${readFileSync(`graphql/schema.graphqls`)}`;
 const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
