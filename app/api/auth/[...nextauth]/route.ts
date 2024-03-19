@@ -1,4 +1,6 @@
-
+export const dynamic = 'auto';
+export const revalidate = false;
+export const fetchCache = 'force-no-store';
 
 import NextAuth from "next-auth";
 import { NextRequest } from "next/server";
