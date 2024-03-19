@@ -39,8 +39,8 @@ export const email = {
     },
     linkButton: (url: string, buttonText: string) => {
         return `
-            <div>
-                <a href="${url}" style="display:block; width:fit-content; margin:20px auto; text-decoration:none; padding: 10px 20px; border-radius: 10px; background-color:#FCA653; color: #000000;">${buttonText}</a>
+            <div style="text-align: center;>
+                <a href="${url}" style="display:block; width:fit-content; max-width:200px; text-align: center; margin:20px auto; text-decoration:none; padding: 10px 20px; border-radius: 10px; background-color:#FCA653; color: #000000;">${buttonText}</a>
             </div>
         `;
     }
