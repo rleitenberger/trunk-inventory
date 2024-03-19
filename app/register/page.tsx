@@ -75,7 +75,7 @@ export default function Register() {
                 await signIn('credentials', {
                     username: fields.username,
                     password: fields.password,
-                    callbackUrl: '/app',
+                    callbackUrl: '/i',
                 });
             }
         });
@@ -88,7 +88,7 @@ export default function Register() {
             {isRedirecting ? (
                 <>
                     <Loader size="md" />
-                    <Link href="/app" className="text-blue-500 underline text-sm">Please click here if you are not automatically redirected</Link>
+                    <Link href="/i" className="text-blue-500 underline text-sm">Please click here if you are not automatically redirected</Link>
                 </>
             ) : (
                 <div className="w-full px-6 md:px-0 flex flex-col gap-2">

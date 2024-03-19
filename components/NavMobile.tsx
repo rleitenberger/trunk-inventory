@@ -48,13 +48,13 @@ export default function NavMobile ({ isExpanded, setter, organizations }: {
                     <Image src="/logo.webp" width="120" height="120" alt="logo" className="mx-auto" />
                 </div>
                 <div className="block md:hidden overflow-hidden">
-                    <MenuItem href='/app/' Icon={BiHome} text='Home' />
-                    <MenuItem href='/app/transfer' Icon={BiTransfer} text='Transfer' />
-                    <MenuItem href='/app/remove' Icon={AiFillMinusCircle} text='Remove Item' />
-                    <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' />
-                    <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' />
-                    <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' />
-                    <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' />
+                    <MenuItem href='/i/' Icon={BiHome} text='Home' />
+                    <MenuItem href='/i/transfer' Icon={BiTransfer} text='Transfer' />
+                    <MenuItem href='/i/remove' Icon={AiFillMinusCircle} text='Remove Item' />
+                    <MenuItem href='/i/pull' Icon={LuMoveUpRight} text='Pull Item' />
+                    <MenuItem href='/i/return' Icon={IoReturnUpBack} text='Return Item' />
+                    <MenuItem href='/i/inventory' Icon={MdOutlineInventory} text='Inventory' />
+                    <MenuItem href='/i/transactions' Icon={IoIosList} text='Transactions' />
                 </div>
             </div>
         </>

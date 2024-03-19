@@ -52,7 +52,7 @@ export default function LoginForm({ callbackUrl }: {
         setIsLoading(true);
         await signIn('credentials', {
             ...fields,
-            callbackUrl: '/app',
+            callbackUrl: '/i',
         });
 
         setIsLoading(false);

@@ -13,8 +13,13 @@ export default function NavWrapper ({ children }: {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const apolloClient = useApolloClient();
 
+    const [loadingOrgs, setLoadingOrgs] = useState<boolean>(false);
+
     useEffect(()=>{
+        setLoadingOrgs(true);
+
         if (!apolloClient){
+            setLoadingOrgs(false);
             return;
         }
 
@@ -26,6 +31,8 @@ export default function NavWrapper ({ children }: {
             if (data?.getOrganizations){
                 setOrganizations(data.getOrganizations);
             }
+            
+            setLoadingOrgs(false);
         }
 
         loadOrgs();
@@ -53,8 +60,9 @@ export default function NavWrapper ({ children }: {
         return {
             organizationId: org,
             count: organizations?.length ?? 0,
+            loading: loadingOrgs
         } as OrganizationProviderType;
-    }, [org, organizations]);
+    }, [org, organizations, loadingOrgs]);
 
     return (
         <OrganizationProvider value={orgType}>

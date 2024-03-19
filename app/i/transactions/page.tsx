@@ -273,7 +273,7 @@ export default function PageTransactions() {
     }
 
     return (
-        <AdminGuard callbackUrl='/app/transactions'>
+        <AdminGuard callbackUrl='/i/transactions'>
             <div className='flex items-center gap-2'>
                 <h1 className='text-xl font-medium'>Transactions</h1>
                 <div className='ml-auto'>  
@@ -432,7 +432,7 @@ export default function PageTransactions() {
                                         <p className='font-medium'>From</p>
                                     </div>
                                     <div>
-                                        <Link href={`/app/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
+                                        <Link href={`/i/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.from_location.name}</span>
                                             <BiLinkExternal className='ml-0 md:ml-auto' />
@@ -444,7 +444,7 @@ export default function PageTransactions() {
                                         <p className='font-medium'>To</p>
                                     </div>
                                     <div>
-                                        <Link href={`/app/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
+                                        <Link href={`/i/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
                                             className=' flex items-center gap-2 text-blue-500'>
                                             <span>{node.to_location.name}</span>
                                             <BiLinkExternal className='ml-0 md:ml-auto' />

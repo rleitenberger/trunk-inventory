@@ -32,7 +32,7 @@ export default function CreateOrganizationForm () {
         }
 
         const a = document.createElement('a');
-        a.href='/app';
+        a.href='/i';
         a.click();
     }
     

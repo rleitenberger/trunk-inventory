@@ -33,5 +33,5 @@ export function AuthGuard({ children }: {
         )
     }
 
-    return  <LoginForm callbackUrl='/app' />
+    return  <LoginForm callbackUrl='/i' />
 }

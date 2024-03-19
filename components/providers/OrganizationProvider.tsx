@@ -4,6 +4,7 @@ import React, { createContext, useContext } from "react";
 export const OrganizationContext = createContext<OrganizationProviderType>({
     organizationId: '',
     count: 0,
+    loading: false,
 });
 
 

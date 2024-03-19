@@ -46,16 +46,16 @@ export default function Nav({ children, update, organizations }: {
             <div className='bg-primary relative hidden md:block'>
                 <div className='grid grid-cols-1 gap-2 py-4 px-2'>
                     <Image src="/logo.webp" width="50" height="50" alt="logo" className='mx-auto' />
-                    <MenuItem href='/app/' Icon={BiHome} text='Home' textClass={textAnimation} />
-                    <MenuItem href='/app/transfer' Icon={BiTransfer} text='Transfer' textClass={textAnimation} />
-                    <MenuItem href='/app/remove' Icon={AiFillMinusCircle} text='Remove Item' textClass={textAnimation} />
-                    <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' textClass={textAnimation} />
-                    <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' textClass={textAnimation} />
-                    <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' textClass={textAnimation} />
+                    <MenuItem href='/i/' Icon={BiHome} text='Home' textClass={textAnimation} />
+                    <MenuItem href='/i/transfer' Icon={BiTransfer} text='Transfer' textClass={textAnimation} />
+                    <MenuItem href='/i/remove' Icon={AiFillMinusCircle} text='Remove Item' textClass={textAnimation} />
+                    <MenuItem href='/i/pull' Icon={LuMoveUpRight} text='Pull Item' textClass={textAnimation} />
+                    <MenuItem href='/i/return' Icon={IoReturnUpBack} text='Return Item' textClass={textAnimation} />
+                    <MenuItem href='/i/inventory' Icon={MdOutlineInventory} text='Inventory' textClass={textAnimation} />
                     {isAdmin && (
                         <>
-                            <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
-                            <MenuItem href='/app/admin' Icon={MdAdminPanelSettings} text='Admin' textClass={textAnimation} />
+                            <MenuItem href='/i/transactions' Icon={IoIosList} text='Transactions' textClass={textAnimation} />
+                            <MenuItem href='/i/admin' Icon={MdAdminPanelSettings} text='Admin' textClass={textAnimation} />
                         </>
                     )}
                     <MenuItem href='/logout' Icon={BiLogOut} text='Logout' textClass={textAnimation} />
@@ -99,16 +99,16 @@ export default function Nav({ children, update, organizations }: {
                     <Image src="/logo.webp" width="120" height="120" alt="logo" className="mx-auto" />
                 </div>
                 <div className="block md:hidden overflow-hidden">
-                    <MenuItem href='/app/' Icon={BiHome} text='Home' />
-                    <MenuItem href='/app/transfer' Icon={BiTransfer} text='Transfer' />
-                    <MenuItem href='/app/remove' Icon={AiFillMinusCircle} text='Remove Item' />
-                    <MenuItem href='/app/pull' Icon={LuMoveUpRight} text='Pull Item' />
-                    <MenuItem href='/app/return' Icon={IoReturnUpBack} text='Return Item' />
-                    <MenuItem href='/app/inventory' Icon={MdOutlineInventory} text='Inventory' />
+                    <MenuItem href='/i/' Icon={BiHome} text='Home' />
+                    <MenuItem href='/i/transfer' Icon={BiTransfer} text='Transfer' />
+                    <MenuItem href='/i/remove' Icon={AiFillMinusCircle} text='Remove Item' />
+                    <MenuItem href='/i/pull' Icon={LuMoveUpRight} text='Pull Item' />
+                    <MenuItem href='/i/return' Icon={IoReturnUpBack} text='Return Item' />
+                    <MenuItem href='/i/inventory' Icon={MdOutlineInventory} text='Inventory' />
                     {isAdmin && (
                         <>
-                            <MenuItem href='/app/transactions' Icon={IoIosList} text='Transactions' />
-                            <MenuItem href='/app/admin' Icon={MdAdminPanelSettings} text='Admin' />
+                            <MenuItem href='/i/transactions' Icon={IoIosList} text='Transactions' />
+                            <MenuItem href='/i/admin' Icon={MdAdminPanelSettings} text='Admin' />
                         </>
                     )}
                     <MenuItem href='/logout' Icon={BiLogOut} text='Logout' />

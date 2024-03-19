@@ -240,7 +240,7 @@ export default function MoveItemsForm({ transferType }: {
 
     const redirectToHome = () => {
         const a = document.createElement('a');
-        a.href='/app';
+        a.href='/i';
         a.click();
     }
 
