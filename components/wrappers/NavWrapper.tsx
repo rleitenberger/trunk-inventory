@@ -54,7 +54,7 @@ export default function NavWrapper ({ children }: {
         }
 
         setOrg(organizations[0].organization_id)
-    }, [organizations]);
+    }, [organizations, org]);
 
     const orgType = useMemo(() => {
         return {

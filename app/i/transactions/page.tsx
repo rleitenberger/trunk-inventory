@@ -9,10 +9,10 @@ import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { BetweenDate, ExportOptions, ReasonsFieldsEntry, TransactionClient, TransactionEdge } from '@/types/dbTypes';
-import { TransactionArgs, TransactionInput } from '@/types/paginationTypes';
+import { PageInfo, TransactionArgs, TransactionInput } from '@/types/paginationTypes';
 import { useApolloClient } from '@apollo/client';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BiChevronLeft, BiChevronRight, BiLinkExternal, BiTransfer } from 'react-icons/bi';
 import { FaCaretDown } from 'react-icons/fa';
 import { MdOutlineTableView } from 'react-icons/md';
@@ -84,7 +84,7 @@ export default function PageTransactions() {
     }
 
 
-    async function fetchTransactions(direction: 'forward'|'backward'|'ignore') {
+    const fetchTransactions = useCallback(async (direction: 'forward'|'backward'|'ignore') => {
         setIsLoading(true);
 
         let variables: TransactionArgs = {
@@ -139,18 +139,24 @@ export default function PageTransactions() {
                 }
             })
         );
-        setPageInfo({
-            ...pageInfo,
-            endCursor: trans.pageInfo.endCursor,
-            startCursor: trans.pageInfo.startCursor,
-            hasNextPage: trans.pageInfo.hasNextPage,
-            sortColumn: 'created',
-            sortColumnValueStart: trans.pageInfo.sortColumnValueStart,
-            sortColumnValueEnd: trans.pageInfo.sortColumnValueEnd
+        setPageInfo((prev) => {
+            return {
+                ...prev,
+                endCursor: trans.pageInfo.endCursor,
+                startCursor: trans.pageInfo.startCursor,
+                hasNextPage: trans.pageInfo.hasNextPage,
+                sortColumn: 'created',
+                sortColumnValueStart: trans.pageInfo.sortColumnValueStart,
+                sortColumnValueEnd: trans.pageInfo.sortColumnValueEnd
+            };
         });
-    }
+    }, [organizationId, pageInfo, transactionOptions, apollo]);
 
-    const resetPageData = async (callbackfn?: Promise<void>) => {
+    useEffect(() => {
+        if (!organizationId){
+            return;
+        }
+
         setPageInfo({
             ...pageInfo,
             endCursor: '',
@@ -159,17 +165,10 @@ export default function PageTransactions() {
             sortColumnValueEnd: ''
         });
         setPage(1);
-    }
 
-    useEffect(() => {
-        if (!organizationId){
-            return;
-        }
-
-        resetPageData();
         fetchTransactions('ignore');
 
-    }, [transactionOptions.transactionInput, transactionOptions.transactionInput.itemId, transactionOptions.paginationInput.take, organizationId]);
+    }, [transactionOptions, organizationId, fetchTransactions, pageInfo]);
 
     const clearLocation = (): void => {
         setTransactionOptions({

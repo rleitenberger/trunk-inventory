@@ -31,7 +31,7 @@ export function IsAdminProvider ({ children }: {
         }
 
         loadIsAdmin();
-    }, [organizationId]);
+    }, [organizationId, apolloClient]);
 
     return (
         <IsAdminContext.Provider value={isAdmin}>

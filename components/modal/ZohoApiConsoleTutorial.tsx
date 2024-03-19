@@ -2,6 +2,7 @@ import { useState } from "react";
 import Modal from "./Modal";
 import { BiChevronLeft, BiChevronRight, BiLinkExternal } from "react-icons/bi";
 import { AiFillQuestionCircle } from "react-icons/ai";
+import Image from "next/image";
 
 export default function ZohoApiConsoleTutorialModal () {
 
@@ -28,11 +29,11 @@ export default function ZohoApiConsoleTutorialModal () {
                             <a href="https://api-console.zoho.com/" rel="noopener noreferrer" target="_blank"
                                 className="flex items-center gap-2 underline font-medium text-blue-500">Zoho API Console <BiLinkExternal /></a>,
                             and click the 
-                            <img src="/img/tutorial/zoho/add-client.png" width={100} height={30} alt="add client" />
+                            <Image src="/img/tutorial/zoho/add-client.png" width={100} height={30} alt="add client" />
                             button
                         </div>
                         <div>
-                            <img src="/img/tutorial/zoho/add-client-location.png" width={400} height={200} alt="add client button location"
+                            <Image src="/img/tutorial/zoho/add-client-location.png" width={400} height={200} alt="add client button location"
                                 className="mx-auto my-2" />
                         </div>
                     </>
@@ -44,7 +45,7 @@ export default function ZohoApiConsoleTutorialModal () {
                             Scroll to &quot;<strong>Server-based Applications</strong>&quot; and click &quot;<strong>Create now</strong>&quot;
                         </div>
                         <div>
-                            <img src="/img/tutorial/zoho/server-based-app.png" width={400} height={200} alt="server based applications"
+                            <Image src="/img/tutorial/zoho/server-based-app.png" width={400} height={200} alt="server based applications"
                                 className="mx-auto my-2" />
                         </div>
                     </>
@@ -59,11 +60,11 @@ export default function ZohoApiConsoleTutorialModal () {
                     <>
                         <div className="flex items-center gap-1 flex-wrap">
                             Click on
-                            <img src='/img/tutorial/zoho/client-secret-btn.png' width={100} height={30} alt="client secret button" />
+                            <Image src='/img/tutorial/zoho/client-secret-btn.png' width={100} height={30} alt="client secret button" />
                             and copy the Client ID and Client Secret here
                         </div>
                         <div>
-                            <img src="/img/tutorial/zoho/get-keys.png" width={400} height={200} alt="get keys location"
+                            <Image src="/img/tutorial/zoho/get-keys.png" width={400} height={200} alt="get keys location"
                                 className="mx-auto my-2" />
                         </div>
                     </>

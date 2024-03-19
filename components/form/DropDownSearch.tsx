@@ -57,32 +57,6 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         onLocationChanged
     }));
 
-    const checkScrollEnd = async () => {
-        if (!scrollRef.current){
-            return;
-        }
-
-        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-        if (scrollTop + clientHeight >= scrollHeight) {
-
-            setIsLoadingScroll(true);
-            await onReachedScrollEnd();
-            setIsLoadingScroll(false);
-        }
-    }
-
-    useEffect(() => {
-        const scrollElement = scrollRef.current;
-        if (!scrollElement){
-            return;
-        }
-
-        scrollElement.addEventListener('scroll', checkScrollEnd);
-
-        return () => {
-            scrollElement.removeEventListener('scroll', checkScrollEnd);
-        }
-    }, [checkScrollEnd, scrollRef.current]);
 
     const onClick = (): void => {
         setIsSearching(true);
@@ -185,7 +159,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         }
 
         updateOptions();
-    }, [searchQuery]);
+    }, [searchQuery, fn]);
 
     const setOption = (e: DropDownSearchOption): void => {
         fn.onChange(e, objectName);
@@ -197,7 +171,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         setIsSearching(false);
     }
 
-    async function onReachedScrollEnd() {
+    const onReachedScrollEnd = useCallback(async () => {
         if (!pageInfo.hasNextPage){
             return;
         }
@@ -224,7 +198,35 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         if (opts.length){
             setFocusedItem(opts[0].value);
         }
-    }
+    }, [pageInfo, fn, options, searchQuery]);
+
+    const checkScrollEnd = useCallback(async () => {
+        if (!scrollRef.current){
+            return;
+        }
+
+        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+        if (scrollTop + clientHeight >= scrollHeight) {
+
+            setIsLoadingScroll(true);
+            await onReachedScrollEnd();
+            setIsLoadingScroll(false);
+        }
+    }, [onReachedScrollEnd]);
+
+    
+    useEffect(() => {
+        const scrollElement = scrollRef.current;
+        if (!scrollElement){
+            return;
+        }
+
+        scrollElement.addEventListener('scroll', checkScrollEnd);
+
+        return () => {
+            scrollElement.removeEventListener('scroll', checkScrollEnd);
+        }
+    }, [checkScrollEnd]);
 
     useEffect(() => {
         if (!isLoading){
@@ -236,7 +238,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         }
         
         loaderRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start'});
-    }, [isLoadingScroll]);
+    }, [isLoadingScroll, isLoading]);
 
     return (
         <div className='rounded-lg bg-white'>
@@ -309,4 +311,5 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
     )
 });
 
+DropDownSearch.displayName = 'DropDownSearch';
 export default DropDownSearch;

@@ -33,7 +33,7 @@ export default function BoxTimer ({ delay, onDelayReached, note }: {
         }
 
         onDelayReached();
-    }, [delayReached]);
+    }, [delayReached, onDelayReached]);
 
     return (
         <div className="relative">

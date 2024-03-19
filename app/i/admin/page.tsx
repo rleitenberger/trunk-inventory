@@ -52,7 +52,7 @@ export default function PageAdmin() {
         }
 
         getTypes();
-    }, [common.getTransactionTypes]);
+    }, [organizationId, apolloClient]);
 
     useEffect(() => {
         if (!selectedTransactionTypeId){
@@ -69,7 +69,7 @@ export default function PageAdmin() {
         }
 
         getReasons();
-    }, [selectedTransactionTypeId]);
+    }, [selectedTransactionTypeId, apolloClient]);
 
     const modifyReasonName = async (reasonId: string, newName: string): Promise<boolean> => {
         const res = await apolloClient.mutate({

@@ -1,7 +1,7 @@
 'use client';
 
 import LocationSearch from '@/components/form/LocationSearch';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { TransferOptions } from '@/types/TransferOptions';
 import { useApolloClient } from '@apollo/client';
@@ -51,7 +51,7 @@ export default function PageInventory() {
         });
     }
 
-    const fetchInventory = async (dir: 'forward'|'backward'): Promise<any> => {
+    const fetchInventory = useCallback(async (dir: 'forward'|'backward'): Promise<any> => {
         if (!locationId.value){
             console.error('no location was selected');
             return [];
@@ -83,7 +83,7 @@ export default function PageInventory() {
         setPageInfo(data.getItemsAtLocation.pageInfo);
 
         return data.getItemsAtLocation.edges;
-    }
+    }, [locationId, apolloClient, pageInfo]);
 
     const prevPage = () => {
         if (page === 0){
@@ -103,7 +103,7 @@ export default function PageInventory() {
 
     const hasPrevPage = useMemo(() => {
         return page > 0;
-    }, [pageInfo]);
+    }, [page]);
 
     useEffect(() => {
         let defVal = {
@@ -137,7 +137,7 @@ export default function PageInventory() {
         });
         setDefaultValue(defVal);
         setIsLoadingDefaultValue(false);
-    }, []);
+    }, [params]);
 
     useEffect(() => {
         setIsLoading(true);
@@ -150,7 +150,7 @@ export default function PageInventory() {
         }
 
         getItems();
-    }, [locationId]);
+    }, [locationId, fetchInventory]);
 
     const getInventoryOptions = (): DropDownSearchOption => {
         return locationId;

@@ -15,19 +15,19 @@ import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
 import { FieldEntry, FieldEntryValue, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
-import DynamicInputField from './DynamicInputField';
-import { DynamicForm } from './DynamicForm';
+import DynamicForm from '@/components/form/DynamicForm';
 import { TransactionResponse } from '@/types/responses';
 import { IoIosMenu } from 'react-icons/io';
-import BoxTimer from './BoxTimer';
+import BoxTimer from '@/components/form/BoxTimer';
 import Head from 'next/head';
+import useOrganization from '@/components/providers/useOrganization';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
     const [fieldValues, setFieldValues] = useState<FieldEntryValue[]>([]);
     const client = useApolloClient();
-    const orgId = 'd33e613c-c4b1-4829-a600-eacf71c3f4ed';
+    const { organizationId, count, loading } = useOrganization();
 
     const [transferOptions, setTransferOptions] = useState<TransferOptions<DropDownSearchOption>>(moveDefaults[transferType]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -101,7 +101,7 @@ export default function MoveItemsForm({ transferType }: {
         }, {});
 
         const variables = {
-            orgId: orgId,
+            orgId: organizationId,
             transferType: transferType,
             transferInput: {
                 ...vals
@@ -126,7 +126,7 @@ export default function MoveItemsForm({ transferType }: {
             const transactionType = await client.query({
                 query: getTransactionType,
                 variables: {
-                    organizationId: orgId,
+                    organizationId: organizationId,
                     slug: transferType
                 }
             });
@@ -154,7 +154,7 @@ export default function MoveItemsForm({ transferType }: {
         }
 
         loadReasons();
-    }, []);
+    }, [client, transferType, organizationId]);
 
     
     const _clear = (key: string) => {
@@ -209,7 +209,7 @@ export default function MoveItemsForm({ transferType }: {
                 conditions: e.conditions,
             }
         });
-    }, [transferOptions.reasonId]);
+    }, [transferOptions.reasonId, reasons]);
 
     useEffect(() => {
         setFieldValues(requiredFields.map((e: FieldEntry) => {
@@ -218,7 +218,7 @@ export default function MoveItemsForm({ transferType }: {
                 value: ''
             }
         }));
-    }, [transferOptions.reasonId]);
+    }, [transferOptions.reasonId, requiredFields]);
 
     const updateDynamicField = useCallback((newValue: DropDownSearchOption, name: string): any => {
         setFieldValues(prev => {

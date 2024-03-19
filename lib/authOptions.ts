@@ -1,4 +1,4 @@
-import { DefaultSession, NextAuthOptions, Session } from "next-auth";
+import { Account, DefaultSession, ModifiedUser, NextAuthOptions, Profile, Session } from "next-auth";
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { JWT, JWTDecodeParams, JWTEncodeParams } from "next-auth/jwt";
@@ -7,7 +7,8 @@ import { encode, decode } from 'next-auth/jwt'
 import prisma from "@/lib/prisma";
 import { compareBcrypt } from "@/lib/bcrypt";
 import { randomUUID } from 'crypto';
-import { RouteHandlerContext } from "@/types/authTypes";
+import { ModifiedSession, RouteHandlerContext } from "@/types/authTypes";
+import { AdapterUser } from "next-auth/adapters";
 
 const createUUID = () => {
     return ('10000000-1000-4000-8000-100000000000').replace(/[018]/g, (c: any) =>
@@ -152,21 +153,30 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
 
                 return baseUrl;
             },
-            session: async({ session, token, user }): Promise<Session|DefaultSession> => {
-                if (token && session?.user) {
-                    session.user.id = token.id;
-                    session.user.sessionToken = token.sessionToken;
+            session: async({ session, token, user }: {
+                session: Session;
+                token: JWT;
+                user: ModifiedUser
+            }): Promise<Session|DefaultSession> => {
+                if (token?.sessionToken && session?.user) {
+                    session.user.id = token.id as string;
+                    session.user.sessionToken = token.sessionToken as string;
                 }
 
                 if (user && session?.user) {
                     session.user.id = user.id;
-                    session.user.sessionToken = user.sessionToken;
+                    session.user.sessionToken = user.sessionToken as string;
                 }
 
 
                 return { ...session };
             },
-            jwt: async ({ token, user, account, profile }): Promise<JWT> => {
+            jwt: async ({ token, user, account, profile }: {
+                token: JWT;
+                user: ModifiedUser;
+                account: Account;
+                profile: Profile;
+            }): Promise<JWT> => {
                 if (user){
                     token.id = user.id
                     token.sessionToken = user.sessionToken;

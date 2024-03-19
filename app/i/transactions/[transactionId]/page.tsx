@@ -17,7 +17,7 @@ export default function Transaction ({ params }: {
         }
 
         loadTransaction();
-    }, []);
+    }, [params]);
 
     return (
         <div></div>

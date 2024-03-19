@@ -53,7 +53,7 @@ const AddZohoKeysModal = () => {
         }
 
         loadClientKeys();
-    }, [organizationId]);
+    }, [organizationId, apolloClient]);
 
     const upsertKeys = async (): Promise<void> => {
         const { data } = await apolloClient.mutate({

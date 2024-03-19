@@ -47,7 +47,7 @@ export default function CreateReasonForm ({ types, fn }: {
         }
 
         getTypes();
-    }, [transactionTypes]);
+    }, [transactionTypes, apolloClient, organizationId]);
 
     const addReason = async () => {
         const { data } = await apolloClient.mutate({

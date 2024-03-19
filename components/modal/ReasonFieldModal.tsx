@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ModalFnArgs, TypedModalArgs } from "@/types/formTypes";
 import { Condition, ConditionInput, ConditionType, FieldType, ReasonsFields } from "@/types/dbTypes";
 import { createFieldCondition, createReasonField, updateReasonField } from "@/graphql/mutations";
@@ -128,7 +128,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
         }
 
         getFieldTypes();
-    }, []);
+    }, [fieldTypes, apolloClient, obj?.conditions]);
 
     const [addingCondition, setAddingCondition] = useState<boolean>(false);
 
@@ -158,7 +158,7 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
         }
 
         getFields();
-    }, [obj?.reasons_fields_id]);
+    }, [obj?.reasons_fields_id, obj?.reason_id, apolloClient]);
 
     const [dependentField, setDependentField] = useState<KVP>({
         key: '',
@@ -236,24 +236,9 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
 
         getCondTypes();
 
-    }, [dependentField]);
+    }, [dependentField, apolloClient, fieldTypes, otherFields]);
 
-    const clearConditionFields = () => {
-        setDependentField({
-            key: '',
-            value: ''
-        });
-        setRequiredValue({
-            key: '',
-            value: ''
-        });
-        setConditionTypeId({
-            key: '',
-            value: ''
-        });
-    }
-
-    const addCondition = (): void => {
+    const addCondition = useCallback(() => {
         const newCondition = {
             condition_id: uuidv4(),
             condition_field: {
@@ -272,13 +257,12 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
             new: true
         };
 
-        setConditions([
-            ...conditions,
-            newCondition
-        ]);
+        setConditions((prev) => {
+            return [ ...prev, newCondition ];
+        });
 
         setAddingCondition(false);
-    }
+    }, [conditionTypeId, dependentField, requiredValue]);
 
     const removeCondition = (conditionId: string): void => {
         setConditions((prev: Condition[]):Condition[] => {
@@ -290,9 +274,20 @@ export default function ReasonFieldModal ({ showing, fn, type, obj }: {
 
     useEffect(() => {
         if (!addCondition) {
-            clearConditionFields();
+            setDependentField({
+                key: '',
+                value: ''
+            });
+            setRequiredValue({
+                key: '',
+                value: ''
+            });
+            setConditionTypeId({
+                key: '',
+                value: ''
+            });
         }
-    }, [addingCondition, clearConditionFields]);
+    }, [addingCondition, addCondition]);
 
     /*
     const addFieldCondition = async () => {

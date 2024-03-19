@@ -1,14 +1,13 @@
 import { FieldEntry } from "@/types/formTypes";
 import DynamicInputField from '@/components/form/DynamicInputField';
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
-import React, { useEffect, useMemo, useState } from "react";
-import { DropDownFunctionGroup, DynamicFormFunctionGroup } from "@/types/dropDown";
+import React from "react";
 
 function donothing(objectName?: string) {
 
 }
 
-export const DynamicForm = React.memo(({ requiredFields, onChange }:
+const DynamicForm = React.memo(({ requiredFields, onChange }:
     { 
         requiredFields: FieldEntry[]
         onChange: (e: DropDownSearchOption, name: string) => void
@@ -35,3 +34,6 @@ export const DynamicForm = React.memo(({ requiredFields, onChange }:
         </>
     )
 });
+
+DynamicForm.displayName = 'DynamicForm';
+export default DynamicForm;

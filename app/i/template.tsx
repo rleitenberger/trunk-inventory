@@ -4,7 +4,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import NavWrapper from "@/components/wrappers/NavWrapper";
 
-export default async function Template({ children }: { children: React.ReactNode}) {
+export default function Template({ children }: { children: React.ReactNode}) {
     return (
         <NavWrapper>
             <AuthProvider>

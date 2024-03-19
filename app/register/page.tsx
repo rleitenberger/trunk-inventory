@@ -31,7 +31,7 @@ export default function Register() {
             tmp.email = email;
             return tmp;
         });
-    }, []);
+    }, [searchParams]);
 
     const updateField = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target as { name: string, value: string };

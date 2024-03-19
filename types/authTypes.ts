@@ -1,3 +1,5 @@
+import { ISODateString } from "next-auth";
+
 export interface RegisterFields {
     name: string;
     username: string;
@@ -15,4 +17,15 @@ export interface LoginFields {
 
 export interface RouteHandlerContext {
     params: { nextauth: string[] }
+}
+
+export interface ModifiedSession {
+    user?: {
+        id?: string | null;
+        name?: string | null
+        email?: string | null
+        image?: string | null
+        sessionToken?: string | null
+      }
+      expires: ISODateString,
 }

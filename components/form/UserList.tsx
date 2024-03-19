@@ -32,7 +32,7 @@ export default function UserList ({ }) {
         }
 
         loadUsers();
-    }, [organizationId]);
+    }, [organizationId, apolloClient]);
 
     return (
         <div className="grid grid-cols-12 gap-2 text-sm">

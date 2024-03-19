@@ -3,9 +3,7 @@
 import Loader from "@/components/Loader";
 import BoxTimer from "@/components/form/BoxTimer";
 import useOrganization from "@/components/providers/useOrganization";
-import { useRouter, useSearchParams } from "next/navigation";
-import { GetServerSidePropsContext } from "next/types";
-import { ParsedUrlQuery } from "querystring";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function ZohoInventory () {
@@ -56,9 +54,7 @@ export default function ZohoInventory () {
 
         getTokens();
 
-    }, []);
-
-    const router = useRouter();
+    }, [organizationId, params]);
 
     const redirectUserBack = () => {
         const a = document.createElement('a');

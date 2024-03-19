@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { readFileSync } from "fs";
@@ -32,21 +30,18 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
     try {
         token = await decode({
             token: value,
-            secret: process.env.NEXTAUTH_SECRET
+            secret: process.env.NEXTAUTH_SECRET ?? ''
         })
     } catch (e) {
 
     }
 
-    let sessionToken = '';
-    if (token?.sessionToken){
-        sessionToken = token.sessionToken;
-    }
+    let sessionToken = token?.sessionToken ?? '';
 
     const user = await prisma.session.findFirst({
         where: {
             sessionToken: {
-                equals: sessionToken
+                equals: sessionToken.toString()
             }
         }
     });

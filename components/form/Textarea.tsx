@@ -24,7 +24,7 @@ export default function Textarea ({ fn, displayOptions }: {
             name: displayOptions.name,
             value: e.target.value
         }, displayOptions.name);
-    }, []);
+    }, [displayOptions.name, fn]);
     
     return (
         <div className="text-sm">

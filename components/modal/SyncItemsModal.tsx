@@ -117,16 +117,12 @@ export default function SyncItemsModal () {
                 console.error('No sync found');
                 return;
             }
-
-            console.log(data.getLastItemSync);
-
-            console.log(data.getLastItemSync);
             setLastSync(data.getLastItemSync);
         }
 
         loadOrgs();
         loadLastSync();
-    }, [organizationId]);
+    }, [organizationId, apolloClient]);
 
     const lastSyncState = useMemo(() => {
         switch (lastSync?.status){

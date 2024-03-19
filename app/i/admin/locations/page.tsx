@@ -98,7 +98,7 @@ export default function PageAdminLocations ({  }) {
         }
 
         fetchLocations();
-    }, []);
+    }, [apolloClient, organizationId]);
 
     const addingLocationRotation = useMemo((): string => {
         return isAddingLocation ? 'rotate-45' : 'rotate-0';

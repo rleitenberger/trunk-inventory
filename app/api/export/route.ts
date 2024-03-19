@@ -1,3 +1,4 @@
+import prisma from "@/lib/prisma";
 import { Item, LocationItem, TransferInput } from "@/types/dbTypes";
 import { TransactionInput, InventoryInput } from "@/types/paginationTypes";
 import { NextRequest } from "next/server";
