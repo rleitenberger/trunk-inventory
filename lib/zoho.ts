@@ -3,7 +3,7 @@ import { ZohoAuthResponse } from "@/types/responses";
 import { addKeys, decrypt } from "./keys";
 import prisma from "@/lib/prisma";
 
-const REDIRECT = 'http://localhost:3000/zoho'
+const REDIRECT =  process.env.NEXTAUTH_URL + '/zoho'
 
 export const verifyZohoAuth = async (organizationId: string): Promise<ZohoAuthResponse> => {
     const keys = await prisma.zoho_inventory_keys.findFirst({
@@ -81,7 +81,7 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     const clientSecret = decrypt(keys.client_secret, keys.iv);
     const refresh = decrypt(keys.refresh_token, keys.iv);
 
-    const url = `https://accounts.zoho.com/oauth/v2/token?refresh_token=${refresh}&client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&redirect_uri=http://localhost:3000/zoho`;
+    const url = `https://accounts.zoho.com/oauth/v2/token?refresh_token=${refresh}&client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&redirect_uri=${process.env.NEXTAUTH_URL}/zoho`;
     const res = await fetch(url, {
         method: 'POST',
         headers: {

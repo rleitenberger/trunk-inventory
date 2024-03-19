@@ -31,7 +31,7 @@ const handler = async (req: NextRequest) => {
     }
 
     const keys = await loadKeys(organizationId);
-    const url = `${server}/oauth/v2/token?code=${code}&client_id=${keys?.client_id}&client_secret=${keys?.client_secret}&redirect_uri=http://localhost:3000/zoho&grant_type=authorization_code`;
+    const url = `${server}/oauth/v2/token?code=${code}&client_id=${keys?.client_id}&client_secret=${keys?.client_secret}&redirect_uri=${process.env.NEXTAUTH_URL}/zoho&grant_type=authorization_code`;
     const res = await fetch(url, {
         method: 'POST',
         headers: {
