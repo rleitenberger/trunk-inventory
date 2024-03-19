@@ -67,7 +67,7 @@ export const sendInviteEmail = async ({ to, orgName, url }: {
         subject: `${orgName} Inventory Invite`,
         html: email.wrapper(
             `${email.header}
-            <h2>You've been invited to join ${orgName}</h2>
+            <h2 style="text-align: center;">You've been invited to join ${orgName}</h2>
             ${url && email.linkButton(url, 'Click here to sign up')}`
         )
     });
