@@ -17,6 +17,7 @@ import Loader from "@/components/Loader";
 import { sendEmail } from "@/lib/emailer";
 import CreateReasonForm from "@/components/form/CreateReasonForm";
 import AdminNav from "@/components/AdminNav";
+import { toast } from "react-toastify";
 
 export default function PageAdmin() {
 
@@ -385,7 +386,7 @@ export default function PageAdmin() {
 
     const addEmail = async(): Promise<void> => {
         if (!emailToAdd.email){
-            console.error('Email is missing');
+            toast.error('Email can not be empty');
             return;
         }
 
@@ -398,7 +399,7 @@ export default function PageAdmin() {
         });
 
         if (!data?.createReasonEmail){
-            console.error('Email was not added');
+            toast.error('Email was not added. Please try again later.');
             return;
         }
 

@@ -65,8 +65,7 @@ export default function SyncItemsModal () {
 
         if (json?.redirectUrl){
             if (json.redirectUrl === '[showModal]'){
-                alert('You must add your client keys first.');
-                console.error('You must add your client keys first.');
+                toast.error('You must add your client keys first.');
                 setIsSyncing(false);
                 return;
                 //trigger show in children

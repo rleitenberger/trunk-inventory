@@ -8,6 +8,7 @@ import Modal from "./Modal";
 import { ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { upsertZohoClientKeys } from "@/graphql/mutations";
 import { BiKey } from "react-icons/bi";
+import { toast } from "react-toastify";
 
 const AddZohoKeysModal = () => {
     const apolloClient = useApolloClient();
@@ -65,7 +66,7 @@ const AddZohoKeysModal = () => {
         });
 
         if (!data?.upsertZohoClientKeys){
-            console.error('could not update keys');
+            toast.error('Could not update keys. Please try again later.');
             return;
         }
 

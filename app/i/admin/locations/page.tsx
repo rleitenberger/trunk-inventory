@@ -11,6 +11,7 @@ import { useApolloClient } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
 import { AiFillMinusCircle } from "react-icons/ai";
 import { BiCheck, BiPlus } from "react-icons/bi";
+import { toast } from "react-toastify";
 
 export default function PageAdminLocations ({  }) {
     const { organizationId, count } = useOrganization();
@@ -45,7 +46,7 @@ export default function PageAdminLocations ({  }) {
         });
 
         if (!data?.createLocation){
-            console.error('Location was not added');
+            toast.error('Location was not added. Please try again later.');
             return;
         }
 
@@ -66,7 +67,7 @@ export default function PageAdminLocations ({  }) {
         });
 
         if (!data?.deleteLocation) {
-            console.error('Location was not deleted');
+            toast.error('Location was not deleted. Please try again later.');
             return;
         }
 
@@ -90,7 +91,7 @@ export default function PageAdminLocations ({  }) {
             setIsLoadingLocations(false);
 
             if (!data?.getLocations){
-                console.error('Could not get locations');
+                console.error('Could not get locations.');
                 return;
             }
 
@@ -114,7 +115,7 @@ export default function PageAdminLocations ({  }) {
         });
 
         if (!data?.updateLocationName){
-            console.error('Location name was not updated');
+            toast.error('Location name was not updated. Please try again later.');
             return false;
         }
 

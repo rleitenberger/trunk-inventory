@@ -72,27 +72,27 @@ export default function MoveItemsForm({ transferType }: {
     const transferItem = async () => {
 
         if (!transferOptions.from.value || !transferOptions.to.value){
-            console.error('Missing location(s)');
+            toast.error('Missing location(s)');
             return;
         }
 
         if (!transferOptions.itemId.value){
-            console.error('Missing item');
+            toast.error('Missing item');
             return;
         }
 
         if (!transferOptions.qty.value){
-            console.error('Quantity can not be 0');
+            toast.error('Quantity can not be 0');
             return;
         }
 
         if (transferOptions.qty.value < 0){
-            console.error('Quantity can not be less than 0');
+            toast.error('Quantity can not be less than 0');
             return;
         }
 
         if (!transferOptions.reasonId.value){
-            console.error('You must select a reason');
+            toast.error('You must select a reason');
             return;
         }
 

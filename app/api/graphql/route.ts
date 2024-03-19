@@ -14,15 +14,15 @@ const apolloServer = new ApolloServer({
     resolvers,
 });
 
-const validateSessionToken = async (authHeader: string|null): Promise<string|null> => {
+const validateSessionToken = async (authHeader: string|null): Promise<string> => {
     if (!authHeader) {
-        return null;
+        throw new Error('No authorization header found.');
     }
     
     const [type, value] = authHeader?.split(' ') as [type: string, value: string];
 
     if (value === 'no-auth'){
-        return '';
+        throw new Error('Invalid authorization.');
     }
 
     let token: JWT|null = null;
@@ -38,7 +38,7 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
             secret: secret
         })
     } catch (e) {
-        throw new Error('Could not decode session token. submitted: ' + value + ' | secret:' + secret)
+        throw new Error('Could not decode session token.');
     }
 
     let sessionToken = token?.sessionToken ?? '';
@@ -64,7 +64,13 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
 const handler = startServerAndCreateNextHandler(apolloServer, {
     context: async (req: NextRequest) => {
       const authHeader = req.headers.get('Authorization');
-      const userId = await validateSessionToken(authHeader);
+      let userId = '';
+
+      try {
+        userId = await validateSessionToken(authHeader);
+      } catch (e) {
+        userId = '';
+      }
 
       return {
         req,

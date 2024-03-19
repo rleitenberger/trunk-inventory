@@ -6,6 +6,7 @@ import { InventoryInput } from "@/types/paginationTypes";
 import LocationSearch from "../form/LocationSearch";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { ExportResponse } from "@/types/responses";
+import { toast } from "react-toastify";
 
 
 export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
@@ -39,7 +40,7 @@ export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
         });
         const json = await data.json();
         if (json?.error){
-            console.error('Error: ' + json.error);
+            toast.error('Error: ' + json.error + '. Please try again later.');
             return {
                 fileName: 'download.csv',
                 content: '',
