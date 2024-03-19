@@ -8,9 +8,10 @@ import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDo
 import { useEffect, useRef } from "react"
 import { FaBox, FaBoxOpen } from "react-icons/fa"
 
-export default function ItemSearch ({ fn, displayOptions, locationId=undefined, defaultValue=undefined, }: {
+export default function ItemSearch ({ fn, displayOptions, updatesDefault=false, locationId=undefined, defaultValue=undefined, }: {
     displayOptions: DropDownDisplayGroup
     fn: DropDownValueFunctionGroup
+    updatesDefault?: boolean;
     locationId?: string
     defaultValue?: DropDownSearchOption
 }) {    
@@ -96,6 +97,7 @@ export default function ItemSearch ({ fn, displayOptions, locationId=undefined, 
                     ...fn
                 }}
                 defaultValue={defaultValue}
+                updatesDefault={updatesDefault}
                 objectName={displayOptions.name}
                 ref={ref} />
         </>

@@ -157,18 +157,20 @@ export default function PageTransactions() {
             return;
         }
 
-        setPageInfo({
-            ...pageInfo,
-            endCursor: '',
-            startCursor: '',
-            sortColumnValueStart: '',
-            sortColumnValueEnd: ''
+        setPageInfo((prev) => {
+            return {
+                ...prev,
+                endCursor: '',
+                startCursor: '',
+                sortColumnValueStart: '',
+                sortColumnValueEnd: ''
+            }
         });
         setPage(1);
 
         fetchTransactions('ignore');
 
-    }, [transactionOptions, organizationId, fetchTransactions, pageInfo]);
+    }, [transactionOptions, organizationId]);
 
     const clearLocation = (): void => {
         setTransactionOptions({

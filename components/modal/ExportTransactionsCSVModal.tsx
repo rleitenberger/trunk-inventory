@@ -7,6 +7,7 @@ import { ExportResponse } from "@/types/responses";
 import LocationSearch from "../form/LocationSearch";
 import ItemSearch from "../form/ItemSearch";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
+import useOrganization from "../providers/useOrganization";
 
 
 export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
@@ -58,10 +59,15 @@ export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
         setShowing(false);
     }
 
+    const { organizationId, count, loading } = useOrganization();
+
     const fetchExportTransactions = async (): Promise<ExportResponse|null> => {
         const data = await fetch('/api/export?type=transactions', {
             method: 'POST',
-            body: JSON.stringify(exportOptions),
+            body: JSON.stringify({
+                ...exportOptions,
+                organizationId: organizationId
+            }),
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -171,6 +177,7 @@ export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
                                             name: 'locationId',
                                             title: 'Location'
                                         }}
+                                        updatesDefault={true}
                                         defaultValue={exportOptions.locationId}
                                         fn={{
                                             onChange: changeField,
@@ -186,6 +193,7 @@ export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
                                         title: 'Item'
                                     }}
                                     defaultValue={exportOptions.itemId}
+                                    updatesDefault={true}
                                     fn={{
                                         onChange: changeField,
                                         clear: () => { clearField('itemId') }

@@ -9,15 +9,19 @@ import { DropDownDisplayGroup, DropDownFunctionGroup } from '@/types/dropDown';
 
 const MAX_DISPLAY: number = 10;
 
-const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefined}: { 
+const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, defaultValue=undefined}: { 
     fn: DropDownFunctionGroup
-    objectName: string
+    objectName: string;
+    updatesDefault?: boolean;
     defaultValue?: DropDownSearchOption
 }, ref) => {
-    const [val, setVal] = useState<DropDownSearchOption>(defaultValue || {
-        name:'',
+    const [val, setVal] = useState<DropDownSearchOption>({
+        name: '',
         value: ''
     });
+
+    const [defaultV, setDefaultV] = useState<DropDownSearchOption|undefined>(defaultValue);
+
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -33,11 +37,37 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
     }, [pageInfo]);
 
     useEffect(() => {
-        if (defaultValue === undefined){
+        if (defaultV === undefined){
             return;
         }
-        setVal(defaultValue);
+
+        console.log('dv', defaultV);
+
+        setVal(defaultV);
+    }, []);
+
+    useEffect(() => {
+        setDefaultV(defaultValue);
     }, [defaultValue]);
+
+    useEffect(() => {
+        console.log(objectName, 'ud, ' + updatesDefault)
+        if (!updatesDefault) {
+            return;
+        }
+
+        if (typeof defaultV === 'undefined'){
+            setVal({
+                name: '',
+                value: ''
+            })
+        }
+
+        setVal(defaultV || {
+            name: '',
+            value: ''
+        });
+    }, [defaultV]);
 
     const [focusedItem, setFocusedItem] = useState<string>('');
     const [isLoadingScroll, setIsLoadingScroll] = useState<boolean>(false);
@@ -198,7 +228,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
         if (opts.length){
             setFocusedItem(opts[0].value);
         }
-    }, [pageInfo, fn, options, searchQuery]);
+    }, [pageInfo, fn, options]);
 
     const checkScrollEnd = useCallback(async () => {
         if (!scrollRef.current){
@@ -280,7 +310,7 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, defaultValue=undefine
                                 </div>
                             ) : (
                                 <>
-                                    {searchQuery.length > 2 && !isLoading && (<div className='bg-white px-2 py-1 text-sm'>No results found</div>)}
+                                    {searchQuery.length > 2 && !isLoading && (<div className='bg-white px-2 py-1 text-sm mt-2 border border-slate-300 rounded-lg shadow-md'>No results found</div>)}
                                 </>
                             )}
                         </div>

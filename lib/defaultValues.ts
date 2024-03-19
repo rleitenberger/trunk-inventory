@@ -64,7 +64,7 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'Customer Location',
             value: '0aff29d1-d58e-11ee-b92b-4cd717dba858'
         },
-        item: {
+        itemId: {
             name: '',
             value: ''
         },
@@ -86,7 +86,7 @@ export const moveDefaults: TransferOptionsCollection = {
             name: 'Parts Room',
             value: 'd0223790-565d-440e-8667-5c05228afe33',
         },
-        item: {
+        itemId: {
             name: '',
             value: ''
         },

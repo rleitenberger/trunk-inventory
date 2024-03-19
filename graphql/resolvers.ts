@@ -169,6 +169,7 @@ export const resolvers = {
                     name: true,
                     sends_email:true,
                     reasons_fields: true,
+                    description: true
                 }
             });
             return res;

@@ -21,6 +21,7 @@ import { IoIosMenu } from 'react-icons/io';
 import BoxTimer from '@/components/form/BoxTimer';
 import Head from 'next/head';
 import useOrganization from '@/components/providers/useOrganization';
+import { toast } from 'react-toastify';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
@@ -122,8 +123,13 @@ export default function MoveItemsForm({ transferType }: {
     }
 
     useEffect(() => {
+
+        if (!client || !organizationId){
+            return;
+        }
+
         async function loadReasons() {
-            const transactionType = await client.query({
+            const { data } = await client.query({
                 query: getTransactionType,
                 variables: {
                     organizationId: organizationId,
@@ -131,7 +137,12 @@ export default function MoveItemsForm({ transferType }: {
                 }
             });
 
-            const { transaction_type_id } = transactionType.data?.getTransactionType;
+            if (!data?.getTransactionType){
+                toast.error('Could not load transaction type');
+                return;
+            }
+
+            const { transaction_type_id } = data?.getTransactionType;
             if (!transaction_type_id){
                 //error
                 return;
@@ -224,7 +235,7 @@ export default function MoveItemsForm({ transferType }: {
         setFieldValues(prev => {
             return prev.map(e => { 
                 if (e.field_name === name) {
-                    return { ...e, value: newValue.value };
+                    return { ...e, value: newValue.value.toString() };
                 }
                 return e;
             });
@@ -244,6 +255,19 @@ export default function MoveItemsForm({ transferType }: {
         a.click();
     }
 
+    const reasonDesc = useMemo(() => {
+        const idx = reasons?.map((e: Reason) => e.reason_id).indexOf(transferOptions.reasonId.value);
+
+        if (idx === -1){
+            return '';
+        }
+
+        return reasons[idx]?.description;
+    }, [transferOptions.reasonId]);
+    
+    useEffect(() => {
+        console.log(transferOptions)
+    }, [transferOptions]);
     return (
         <>
             <Head>
@@ -313,12 +337,15 @@ export default function MoveItemsForm({ transferType }: {
                         <select value={transferOptions.reasonId.value} onChange={onReasonChange} className='w-full 
                             px-2 py-1 text-sm border border-slate-300 outline-none rounded-lg bg-white text-[16px] md:text-sm'>
                             <option value='' className='hidden'>Select reason</option>
-                            {reasons.map((e: Reason) => {
+                            {reasons?.map((e: Reason) => {
                                 return (
                                     <option key={`reason-${e.reason_id}`} value={e.reason_id}>{e.name}</option>
                                 )
                             })}
                         </select>
+                        {!!reasonDesc?.length && (
+                            <p className='text-sm font-medium px-2 py-1'>{reasonDesc}</p>
+                        )}
                     </div>
                 </div>
                 <div className='grid grid-cols-12 gap-2'>

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { Item, LocationItem, TransferInput } from "@/types/dbTypes";
 import { TransactionInput, InventoryInput } from "@/types/paginationTypes";
 import { NextRequest } from "next/server";
@@ -113,7 +114,7 @@ const handler = async(req: NextRequest) => {
             csvContent = header + transactionsText.join('\n');
 
         } else if (type === 'inventory') {
-            const data: InventoryInput = jsonData;
+            const data: DropDownSearchOption = jsonData;
 
             let where = {
                 AND: [
@@ -121,10 +122,10 @@ const handler = async(req: NextRequest) => {
                 ] as any
             };
 
-            const hasLocation = !!data.locationId;
+            const hasLocation = !!data.value;
     
             if (hasLocation) {
-                where.AND.push({ location_id: { equals: data.locationId } });
+                where.AND.push({ location_id: { equals: data.value } });
             }
     
             const items = await prisma.locations_items_qty.findMany({
@@ -155,7 +156,7 @@ const handler = async(req: NextRequest) => {
             if (hasLocation) {
                 fileName = items[0]?.locations.name + ' - ' + fileName;
             } else {
-                fileName = 'Inventory ' + fileName;
+                fileName = (!!data.name ? `${data.name} ` : '') + 'Inventory ' + fileName;
             }
     
             csvContent = header + itemsText.join('\n');

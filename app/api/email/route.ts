@@ -24,6 +24,14 @@ const handler = async (req: NextRequest) => {
 const handleDataAndSendEmail = async (data: any) => {
     const { emails, type, reason, locations, item, fields, transaction } = data;
 
+    if (!emails || !emails.length){
+        return {
+            sentEmails: false,
+            approved: [],
+            rejected: []
+        }
+    }
+
     const now = new Date();
     const date = now.toLocaleDateString();
     const hours = now.getHours();

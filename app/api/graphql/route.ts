@@ -45,7 +45,7 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
             }
         },
         select: {
-            sessionToken: true
+            userId: true
         }
     });
 
@@ -53,7 +53,8 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
         throw new Error('Invalid user');
     }
 
-    return user.sessionToken;
+
+    return user.userId;
 }
 
 

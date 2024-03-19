@@ -102,6 +102,7 @@ export default function ExportInventoryCSVModal({ exportType, onShowModal }: {
                                     name: 'locationId'
                                 }}
                                 defaultValue={exportOptions}
+                                updatesDefault={true}
                                 fn={{
                                     onChange: updateInventoryLocation,
                                     clear: clearInventoryLocation

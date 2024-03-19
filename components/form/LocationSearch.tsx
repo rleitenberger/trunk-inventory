@@ -7,9 +7,10 @@ import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDo
 import useOrganization from "../providers/useOrganization";
 import { MdLocationOn } from "react-icons/md";
 
-export default function LocationSearch ({ fn, displayOptions, defaultValue=undefined }: {
+export default function LocationSearch ({ fn, displayOptions, updatesDefault=true, defaultValue=undefined }: {
     displayOptions: DropDownDisplayGroup
     fn: DropDownValueFunctionGroup
+    updatesDefault?: boolean;
     defaultValue?: DropDownSearchOption
 }) { 
     const { organizationId, count } = useOrganization();
@@ -50,6 +51,7 @@ export default function LocationSearch ({ fn, displayOptions, defaultValue=undef
                     ...fn
                 }}
                 defaultValue={defaultValue}
+                updatesDefault={updatesDefault}
                 objectName={displayOptions?.name} />
         </>
     )
