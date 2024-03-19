@@ -22,7 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const token = cookies().get('next-auth.session-token')?.value ?? 'no-auth';
+  let token = 'no-auth';
+  if (process.env.NODE_ENV === 'development'){
+    token = cookies().get('next-auth.session-token')?.value ?? token;
+  } else if (process.env.NODE_ENV === 'production'){
+    token = cookies().get('__Secure-next-auth.session-token')?.value ?? token;
+  }
 
   return (
     <SessionWrapper>

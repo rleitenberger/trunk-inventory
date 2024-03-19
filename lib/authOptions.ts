@@ -97,9 +97,8 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
         session: {
             strategy: 'jwt'
         },
-        
-        jwt: {
-            /*
+        jwt: {/*
+            
             encode: async (params): Promise<string> => {
 
                 console.log('###########################################\n\n\n\nENCODE\n', params);
