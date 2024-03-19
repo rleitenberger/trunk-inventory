@@ -18,7 +18,7 @@ export default function NavMobile ({ isExpanded, setter, organizations }: {
         <>
             {!isExpanded && (
                 <div className="fixed top-0 left-0 right-0 h-[50px] bg-[#ececec] flex md:hidden shadow-md
-                    items-center px-4">
+                    items-center px-4 z999">
                     <select className="px-2 py-1 border border-slate-300 rounded-lg outline-none">
                         {organizations?.map((e: Organization) => {
                             return (

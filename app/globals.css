@@ -11,6 +11,14 @@ body {
   background: #f1f1f1;
 }
 
+.z1 {
+  z-index: 1;
+}
+
+.z999 {
+  z-index: 999;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

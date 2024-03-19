@@ -13,7 +13,7 @@ import { PageInfo, TransactionArgs, TransactionInput } from '@/types/paginationT
 import { useApolloClient } from '@apollo/client';
 import Link from 'next/link';
 import React, { useCallback, useEffect, useState } from 'react';
-import { BiChevronLeft, BiChevronRight, BiLinkExternal, BiTransfer } from 'react-icons/bi';
+import { BiChevronLeft, BiChevronRight, BiLinkExternal, BiRightArrowAlt, BiTransfer } from 'react-icons/bi';
 import { FaCaretDown } from 'react-icons/fa';
 import { MdOutlineTableView } from 'react-icons/md';
 
@@ -400,35 +400,45 @@ export default function PageTransactions() {
 
                         return (
                             <div key={`t-${node.transaction_id}`} className={`grid grid-cols-12 gap-2 bg-gray-200 rounded-lg md:rounded-none my-2 md:my-0 ${bgClassname}
-                                px-2 py-1`}>
-                                <div className='col-span-6 md:col-span-1'>
+                                px-2 py-1 text-[.8rem]`}>
+                                <div className='col-span-12 md:col-span-1 flex items-center'>
                                     <p className='font-medium block md:hidden'>Date</p>
-                                    <p className='break-all'>{date.toLocaleDateString()}</p>
+                                    <p className='break-all ml-auto md:ml-none'>{date.toLocaleDateString()}</p>
                                 </div>
                                 {transactionOptions.transactionInput.transferType === '--' && (
-                                    <div className='col-span-6 md:col-span-1 flex items-center'>
-                                    <p className='font-medium block md:hidden ml-auto'>Type: &nbsp;</p>
-                                        <p className='break-all'>{node.transfer_type}</p>
+                                    <div className='col-span-12 md:col-span-1 flex items-center'>
+                                        <p className='font-medium block md:hidden'>Type &nbsp;</p>
+                                        <p className='break-all ml-auto md:ml-0'>{node.transfer_type}</p>
                                     </div>
                                 )}
                                 
-                                <div className='col-span-6 md:col-span-2'>
-                                    <div className='block md:hidden'>
-                                        <p className='font-medium'>Item</p>
-                                    </div>
-                                    <div>
+                                <div className='col-span-12 md:col-span-2 flex items-center'>
+                                    <p className='font-medium block md:hidden'>Item</p>
+                                    <div className='ml-auto md:ml-0'>
                                         <p>{node.item.name} <span className='inline md:hidden'>({node.qty})</span></p>
-                                    </div>
-                                    <div>
-                                        <p className='text-xs font-semibold text-slate-500'>{node.item.sku || 'No SKU'}</p>
+                                        <p className='text-xs font-semibold text-slate-500 text-right md:text-left block'>{node.item.sku || 'No SKU'}</p>
                                     </div>
                                 </div>
-                                <div className='col-span-1 md:col-span-1 hidden md:block'>
-                                    <div>
-                                        <p className='font-medium'>{node.qty}</p>
-                                    </div>
+                                <div className='col-span-1 md:col-span-1 hidden md:flex items-center'>
+                                    <p className='font-medium'>{node.qty}</p>
                                 </div>
-                                <div className="col-span-6 md:col-span-2 block md:flex items-center">
+                                <div className='col-span-12 flex md:hidden items-center gap-2'>
+                                    <p className='block md:hidden font-medium'>Location</p>
+                                    <div className='ml-auto'>
+                                        <Link href={`/i/inventory?name=${node.from_location.name}&value=${node.from_location.location_id}`}
+                                            className=' flex items-center gap-2 text-blue-500'>
+                                            <span>{node.from_location.name}</span>
+                                            <BiLinkExternal className='ml-0 md:ml-auto' />
+                                        </Link>
+                                    </div>
+                                    <BiRightArrowAlt />
+                                    <Link href={`/i/inventory?name=${node.to_location.name}&value=${node.to_location.location_id}`}
+                                        className=' flex items-center gap-2 text-blue-500'>
+                                        <span>{node.to_location.name}</span>
+                                        <BiLinkExternal className='ml-0 md:ml-auto' />
+                                    </Link>
+                                </div>
+                                <div className="col-span-6 md:col-span-2 hidden md:flex items-center">
                                     <div className='block md:hidden'>
                                         <p className='font-medium'>From</p>
                                     </div>
@@ -440,7 +450,7 @@ export default function PageTransactions() {
                                         </Link>
                                     </div>
                                 </div>
-                                <div className="col-span-6 md:col-span-2 block md:flex items-center">
+                                <div className="col-span-6 md:col-span-2 hidden md:flex items-center">
                                     <div className='block md:hidden'>
                                         <p className='font-medium'>To</p>
                                     </div>
@@ -454,28 +464,26 @@ export default function PageTransactions() {
                                 </div>
                                 
                                 {transactionOptions.transactionInput.transferType === '--' ? (
-                                    <div className="col-span-11 md:col-span-2">
-                                        <p className='font-medium'>Reason</p>
-                                        <div className="block md:flex items-center">
-                                            <p>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
-                                        </div>
+                                    <div className="col-span-11 md:col-span-2 flex items-center">
+                                        <p className='font-medium block md:hidden'>Reason</p>
+                                        <p className='ml-auto md:ml-0'>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
                                     </div>
                                 ) : (
-                                    <div className="col-span-11 md:col-span-3">
-                                        <p className='font-medium'>Reason</p>
-                                        <div className="block md:flex items-center">
-                                            <p>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
-                                        </div>
+                                    <div className="col-span-11 md:col-span-3 flex items-center">
+                                        <p className='font-medium block md:hidden'>Reason</p>
+                                        <p className='ml-auto md:ml-0'>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
                                     </div>
                                 )}
                                 {node.reason?.reasons_fields?.length && (
                                     <>
                                         <div className='col-span-1 flex'>
-                                            <button className='ml-auto p-2 transition-all rounded-lg hover:bg-slate-300/40'
+                                            <button className='ml-auto p-1 md:p-2 transition-all rounded-lg hover:bg-slate-300/40'
                                                 onClick={()=>{
                                                     updateShowDetails(node.transaction_id)
+                                                }} style={{
+                                                    zIndex: 1
                                                 }}>
-                                                <FaCaretDown className={rotation} />
+                                                <FaCaretDown className={`${rotation}`} />
                                             </button>
                                         </div>
                                         <div className={`${detailsHeight} transition-all overflow-hidden col-span-12`}>

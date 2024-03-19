@@ -969,7 +969,7 @@ export const resolvers = {
                         body: JSON.stringify({
                             transaction: {
                                 id: transactionId,
-                                url: `${scheme ?? 'http'}://${host}/i/transactions/${transactionId}`,
+                                url: `${scheme ?? 'http'}://${host}/i/transactions/`,//${transactionId}`,
                             },
                             type: transferType,
                             emails: email?.reason_emails?.map((e: any) => {

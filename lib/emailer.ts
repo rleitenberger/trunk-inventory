@@ -32,7 +32,7 @@ export const sendEmail = async ({ to, subject, details, fields, url }: {
             ${fields && (
                 `<h2>Fields</h2>${email.body.transaction(fields)}`
             )}
-            ${url && email.linkButton(url, 'Click here to view the transaction')}`
+            ${url && email.linkButton(url, 'Click here to view all transactions')}`
         )
     });
 
