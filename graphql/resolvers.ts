@@ -740,6 +740,12 @@ export const resolvers = {
             fieldEntries: FieldsEntriesInput[];
             transferType: string;
         }, context: GQLContext) => {
+
+            if (!context.userId){
+                context.userId = '0';
+                //needs to error handle
+            }
+
             const transactionId = randomUUID().toString();
             const entries: ReasonsFieldsEntry[] = fieldEntries.map((e: FieldsEntriesInput): ReasonsFieldsEntry => {
                 return {
@@ -761,6 +767,7 @@ export const resolvers = {
                         item_id: transferInput.itemId,
                         reason_id: transferInput.reasonId,
                         transfer_type: transferType,
+                        created_by: context.userId
                     },
                     select:{ 
                         created: true,
@@ -1227,20 +1234,23 @@ export const resolvers = {
         }
     },
     Transaction: {
-        reason: async (parent: Transaction, args: any, context: any) => {
+        reason: async (parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.reason.load(parent.reason_id);
         },
-        from_location: async (parent: Transaction, args: any, context: any) => {
+        from_location: async (parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.location.load(parent.from_location);
         },
-        to_location: async(parent: Transaction, args: any, context: any) => {
+        to_location: async(parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.location.load(parent.to_location);
         },
-        item: async(parent: any, args: any, context: any) => {
+        item: async(parent: any, args: any, context: GQLContext) => {
             return context.loaders.item.load(parent.item_id);
         },
-        entries: async(parent: Transaction, args: any, context: any) => {
+        entries: async(parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.transactionFieldEntries.load(parent.transaction_id);
+        },
+        created_by: async(parent: Transaction, args: any, context: GQLContext) => {
+            return context.loaders.user.load(parent.created_by);
         }
     },
     Reason: {

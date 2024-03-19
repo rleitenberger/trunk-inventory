@@ -2,7 +2,7 @@ import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { readFileSync } from "fs";
 import { resolvers } from "@/graphql/resolvers";
-import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonEmailsLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader } from "@/graphql/loaders";
+import { conditionReasonFieldLoader, conditionTypesLoader, conditionsLoader, fieldEntriesLoader, itemLoader, locationLoader, reasonEmailsLoader, reasonLoader, reasonsFieldsLoader, transactionFieldEntriesLoader, transactionLoader, transactionTypesLoader, userLoader } from "@/graphql/loaders";
 import { NextRequest } from "next/server";
 import { Prisma, PrismaClient } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -77,7 +77,8 @@ const handler = startServerAndCreateNextHandler(apolloServer, {
             conditionType: conditionTypesLoader,
             transactionFieldEntries: transactionFieldEntriesLoader,
             fieldEntries: fieldEntriesLoader,
-            reasonEmails: reasonEmailsLoader
+            reasonEmails: reasonEmailsLoader,
+            user: userLoader
         },
         userId: userId,
       };

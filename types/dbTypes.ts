@@ -12,6 +12,7 @@ export interface Transaction {
     reason_id: string;
     created: Date;
     expanded?: boolean;
+    created_by: string;
 }
 
 export interface TransactionEdge {

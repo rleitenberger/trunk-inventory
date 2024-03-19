@@ -221,6 +221,7 @@ type Transaction {
     project: String
     transfer_type: String!
     entries: [ReasonsFieldsEntry]!
+    created_by: User!
 }
 
 type TransactionConnection {

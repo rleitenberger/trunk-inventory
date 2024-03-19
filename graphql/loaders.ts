@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 import prisma from '@/lib/prisma';
-import { ReasonsFields } from '@/types/dbTypes';
+import { ReasonsFields, User } from '@/types/dbTypes';
 
 const batchLocations = async (locationIds: any) => {
     const locations = await prisma.locations.findMany({
@@ -240,6 +240,23 @@ const batchReasonEmails = async (reasonIds: any) => {
 
 }
 
+const batchUsers = async (userIds: any) => {
+    const users = await prisma.user.findMany({
+        where: {
+            id: { in: userIds }
+        }
+    });
+
+    const usersMap: any = {};
+    users.forEach((user) => {
+        usersMap[user.id] = user;
+    })
+
+    const res = userIds.map((id: string) => usersMap[id] ?? []);
+    console.log(res);
+    return res;
+}
+
 export const transactionLoader = new DataLoader(batchTransactions);
 export const reasonLoader = new DataLoader(batchReasons);
 export const locationLoader = new DataLoader(batchLocations);
@@ -252,3 +269,4 @@ export const conditionTypesLoader = new DataLoader(batchConditionTypes);
 export const transactionFieldEntriesLoader = new DataLoader(batchTransactionFieldEntries);
 export const fieldEntriesLoader = new DataLoader(batchFieldEntriesLoader);
 export const reasonEmailsLoader = new DataLoader(batchReasonEmails);
+export const userLoader = new DataLoader(batchUsers);

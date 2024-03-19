@@ -106,7 +106,9 @@ model transactions {
   qty                                             Int
   transfer_type                                   String                  @db.VarChar(10)
   created                                         DateTime                @default(now()) @db.Timestamp(0)
+  created_by                                      String                  @db.VarChar(36)
   reasons_fields_entries                          reasons_fields_entries?
+  user                                            user                    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_created_by")
   locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
   items                                           items                   @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_item_id")
   organizations                                   organizations           @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_org_id")
@@ -119,6 +121,7 @@ model transactions {
   @@index([to_location], map: "fk_transactions_to_location_id")
   @@index([created, transaction_id], map: "idx_created_id")
   @@index([item_id], map: "fk_transactions_item_id")
+  @@index([created_by], map: "fk_transactions_created_by")
 }
 
 model reasons {
@@ -290,6 +293,7 @@ model user {
   admins             admins[]
   organization_users organization_users[]
   session            session[]
+  transactions       transactions[]
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

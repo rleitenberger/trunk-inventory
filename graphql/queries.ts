@@ -131,6 +131,10 @@ export const getTransactions = gql`
                         reasons_fields_id
                         field_value
                     }
+                    created_by {
+                        id
+                        name
+                    }
                 }
             }
             pageInfo {
