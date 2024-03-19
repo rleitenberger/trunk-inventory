@@ -38,7 +38,7 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
             secret: secret
         })
     } catch (e) {
-        throw new Error('Could not decode session token')
+        throw new Error('Could not decode session token. submitted: ' + value + ' | secret:' + secret)
     }
 
     let sessionToken = token?.sessionToken ?? '';
