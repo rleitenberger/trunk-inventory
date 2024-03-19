@@ -30,7 +30,7 @@ const validateSessionToken = async (authHeader: string|null): Promise<string|nul
     try {
         token = await decode({
             token: value,
-            secret: process.env.NEXTAUTH_SECRET ?? ''
+            secret: 'D!recTec'
         })
     } catch (e) {
 
