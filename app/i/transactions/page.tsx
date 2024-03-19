@@ -403,7 +403,7 @@ export default function PageTransactions() {
                                 px-2 py-1 text-[.8rem]`}>
                                 <div className='col-span-12 md:col-span-1 flex items-center'>
                                     <p className='font-medium block md:hidden'>Date</p>
-                                    <p className='break-all ml-auto md:ml-none'>{date.toLocaleDateString()}</p>
+                                    <p className='break-all ml-auto md:ml-0'>{date.toLocaleDateString()}</p>
                                 </div>
                                 {transactionOptions.transactionInput.transferType === '--' && (
                                     <div className='col-span-12 md:col-span-1 flex items-center'>
