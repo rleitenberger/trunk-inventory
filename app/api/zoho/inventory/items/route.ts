@@ -93,8 +93,6 @@ const handler = async (req: NextRequest) => {
     return res;
 }
 
-export const config = {
-    runtime: 'edge'
-}
+export const runtime = 'edge';
 
 export { handler as GET, handler as POST };
