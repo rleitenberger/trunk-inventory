@@ -61,7 +61,14 @@ const ScanBarcodeModal = ({ onScanned }: {
                 {scanning && (
                     <video ref={video} />
                 )}
-                <></>
+                <div className="absolute grid grid-cols-2 gap-[200px]" style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)'
+                }}>
+                    <div className="border-l-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px]"></div>
+                    <div className="border-r-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px]"></div>
+                </div>
             </Modal>
             <button onClick={startShowing} className="flex items-center px-2 py-1 
                 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="Scan barcode">
