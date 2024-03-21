@@ -192,7 +192,6 @@ export default function SyncItemsModal () {
                         </button>
                 </div>
                 <button onClick={sync}>test</button>
-                <ScanBarcodeModal />
                 <div>
                     {lastSync && (
                         <div>

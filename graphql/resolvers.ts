@@ -945,6 +945,9 @@ export const resolvers = {
                     reason_emails: {
                         select: {
                             email: true
+                        },
+                        where: {
+                            active: true
                         }
                     }
                 }
@@ -1238,7 +1241,11 @@ export const resolvers = {
         deleteReasonEmail: async(_: any, { reasonEmailId }: {
             reasonEmailId: string;
         }, context: GQLContext) => {
-            const removed = await prisma.reason_emails.delete({
+            const removed = await prisma.reason_emails.update({
+                data: {
+                    active: false,
+                    modified: new Date()
+                },
                 where: {
                     reason_email_id: reasonEmailId
                 }

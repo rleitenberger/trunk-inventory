@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { BrowserMultiFormatReader } from '@zxing/library';
+import { IoBarcodeOutline } from "react-icons/io5";
 
-const ScanBarcodeModal = () => {
+const ScanBarcodeModal = ({ onScanned }: {
+    onScanned?: (result: any) => Promise<void>;
+}) => {
     const [showing, setShowing] = useState<boolean>(false);
     const canvas = useRef<HTMLCanvasElement>(null);
 
@@ -28,8 +31,11 @@ const ScanBarcodeModal = () => {
         }, video.current,
         (result, error) => {
             if (result){
-                alert('found');
-                alert(result);
+                if (onScanned !== undefined){
+                    onScanned(result);
+                }
+                setScanning(false);
+                setShowing(false);
             }
         })
 
@@ -57,7 +63,10 @@ const ScanBarcodeModal = () => {
                 )}
                 <></>
             </Modal>
-            <button onClick={startShowing}>scan barcode</button>
+            <button onClick={startShowing} className="flex items-center px-2 py-1 
+                rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="Scan barcode">
+                <IoBarcodeOutline className="text-xl" />
+            </button>
         </>
     )
 }

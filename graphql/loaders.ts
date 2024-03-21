@@ -220,9 +220,10 @@ const batchFieldEntriesLoader = async (reasonsFieldsIds: any) => {
 const batchReasonEmails = async (reasonIds: any) => {
     const emails = await prisma.reason_emails.findMany({
         where: {
-            reason_id: {
-                in: reasonIds
-            }
+            AND: [
+                { reason_id: { in: reasonIds } },
+                { active: { equals: true } }
+            ]
         }
     });
 
@@ -235,7 +236,11 @@ const batchReasonEmails = async (reasonIds: any) => {
         emailsMap[email.reason_id].push(email);
     })
 
-    const res = reasonIds.map((id: string) => emailsMap[id] ?? []);
+    const res = reasonIds.map((id: string) => {
+        console.log(id, emailsMap[id])
+        return emailsMap[id] ?? []
+    });
+    console.log(res);
     return res;
 
 }

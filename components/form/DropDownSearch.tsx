@@ -6,14 +6,19 @@ import OutsideClickHandler from '../OutsideClickHandler';
 import { PageInfo } from '@/types/paginationTypes';
 import { title } from 'process';
 import { DropDownDisplayGroup, DropDownFunctionGroup } from '@/types/dropDown';
+import ScanBarcodeModal from '../modal/ScanBarcodeModal';
+import Modal from '../modal/Modal';
+import { AiFillPlusCircle } from 'react-icons/ai';
 
 const MAX_DISPLAY: number = 10;
 
-const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, defaultValue=undefined}: { 
+const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, defaultValue=undefined, scannable=false, onScanned=undefined }: { 
     fn: DropDownFunctionGroup
     objectName: string;
     updatesDefault?: boolean;
-    defaultValue?: DropDownSearchOption
+    defaultValue?: DropDownSearchOption;
+    scannable?: boolean;
+    onScanned?: (result: any) => Promise<DropDownSearchOption[]|DropDownSearchOption|null>;
 }, ref) => {
     const [val, setVal] = useState<DropDownSearchOption>({
         name: '',
@@ -266,74 +271,135 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, 
         loaderRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start'});
     }, [isLoadingScroll, isLoading]);
 
+    const onItemScanned = async (result: any) => {
+        if (onScanned === undefined){
+            return;
+        }
+
+        const res = await onScanned(result);
+
+        if (res === null){
+            return;
+        }
+
+        if (Array.isArray(res)){
+            setModalSelectOptions(res);
+            showSelectModal();
+        } else {
+            setOption(res);
+        }
+    }
+
+    const [showingSelectModal, setShowingSelectModal] = useState<boolean>(false);
+    const showSelectModal = (): void => {
+        setShowingSelectModal(true);
+    }
+    const hideSelectModal = (): void => {
+        setShowingSelectModal(false);
+        setModalSelectOptions([]);
+    }
+
+    const [modalSelectOptions, setModalSelectOptions] = useState<DropDownSearchOption[]>([]);
+
+    const selectModalOption = (e: DropDownSearchOption): void => {
+        setOption(e);
+        hideSelectModal();
+    }
+
     return (
-        <div className='rounded-lg bg-white'>
-            {isSearching ? (
-                <OutsideClickHandler onOutsideClick={onFocusLost}>
-                    <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
-                        rounded-lg relative'>
-                        <BiSearch className=' text-slate-500' />
-                        <input type='text' className={`outline-none w-full text-sm ${textboxHidden}`} ref={textBoxRef}
-                            value={searchQuery} onChange={updateSearchQuery} onKeyDown={elementKeyDown}  />
-                        
-                        {isLoading && (
-                            <Loader size='sm' />
-                        )}
-                        
-                        <div className='absolute w-full top-full left-0 grid grid-cols-1'>
-                            {options.length ? (
-                                <div className='mt-2 rounded-lg --nice-scroll shadow-md border border-slate-300 max-h-[200px]
-                                overflow-y-auto' ref={scrollRef}>
-                                    {options?.map((e: DropDownSearchOption ) => {
-                                        const isFocused = focusedItem === e.value ? 'bg-slate-100' : 'bg-white';
-                                        return (
-                                            <button key={`loc-${e.value}`} className={`${isFocused} px-2 py-1 hover:bg-slate-100 text-left text-sm w-full`}
-                                                onClick={() => {setOption(e)}} onMouseDown={(e) => {
-                                                    e.preventDefault();
-                                                }} id={`opt-${e.value}`} title="Select option">{e.name}</button>
-                                        )
-                                    })}
-                                    {isLoadingScroll && (
-                                        <div className="bg-white flex items-center justify-center p-1" ref={loaderRef}>
-                                            <Loader size="sm" />
-                                        </div>
-                                    )}
-                                    {!pageInfo.hasNextPage && (
-                                        <div className='text-center bg-white py-1 text-sm text-gray-500 font-medium'>
-                                            <label>End of results</label>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <>
-                                    {searchQuery.length > 2 && !isLoading && (<div className='bg-white px-2 py-1 text-sm mt-2 border border-slate-300 rounded-lg shadow-md'>No results found</div>)}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </OutsideClickHandler>
-                
-            ) : (
-                <> 
-                    <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
-                        cursor-pointer rounded-lg text-sm' onClick={onClick}>
-                        {val?.value ? (
-                            <> 
-                                <button className='bg-gray-100 px-2 rounded-sm flex items-center gap-2'
-                                    onClick={clearSelectedOption} title="Clear selection">
-                                    {val.name}
-                                    <BiX className='text-lg text-red-600' />
+        <>
+            <Modal title="Select Option" hide={hideSelectModal} showing={showingSelectModal}>
+                <div className='grid grid-cols-12 gap-2'>
+                    {modalSelectOptions?.map(e => {
+                        return (
+                            <div key={`ms-${e.value}`} className='col-span-12 text-sm'>
+                                <button className='outline-none rounded-lg flex items-center gap-2
+                                    hover:bg-slate-300/40 transition-colors w-full px-2 py-1' onClick={() => {
+                                        selectModalOption(e)
+                                    }}>
+                                    <AiFillPlusCircle />
+                                    {e.name}
                                 </button>
-                            </>
+                            </div>
+                        )
+                    })}
+                </div>
+            </Modal>
+            <div className='rounded-lg'>
+                
+                <div className="flex items-center gap-2">
+                    {scannable && (
+                        <ScanBarcodeModal onScanned={onItemScanned} />
+                    )}
+                    <div className='w-full bg-white rounded-lg'>
+                        {isSearching ? (
+                            <OutsideClickHandler onOutsideClick={onFocusLost}>
+                                <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
+                                    rounded-lg relative bg-white'>
+                                    <BiSearch className=' text-slate-500' />
+                                    <input type='text' className={`outline-none w-full text-sm ${textboxHidden}`} ref={textBoxRef}
+                                        value={searchQuery} onChange={updateSearchQuery} onKeyDown={elementKeyDown}  />
+                                    
+                                    {isLoading && (
+                                        <Loader size='sm' />
+                                    )}
+                                    
+                                    <div className='absolute w-full top-full left-0 grid grid-cols-1'>
+                                        {options.length ? (
+                                            <div className='mt-2 rounded-lg --nice-scroll shadow-md border border-slate-300 max-h-[200px]
+                                            overflow-y-auto' ref={scrollRef}>
+                                                {options?.map((e: DropDownSearchOption ) => {
+                                                    const isFocused = focusedItem === e.value ? 'bg-slate-100' : 'bg-white';
+                                                    return (
+                                                        <button key={`loc-${e.value}`} className={`${isFocused} px-2 py-1 hover:bg-slate-100 text-left text-sm w-full`}
+                                                            onClick={() => {setOption(e)}} onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                            }} id={`opt-${e.value}`} title="Select option">{e.name}</button>
+                                                    )
+                                                })}
+                                                {isLoadingScroll && (
+                                                    <div className="bg-white flex items-center justify-center p-1" ref={loaderRef}>
+                                                        <Loader size="sm" />
+                                                    </div>
+                                                )}
+                                                {!pageInfo.hasNextPage && (
+                                                    <div className='text-center bg-white py-1 text-sm text-gray-500 font-medium'>
+                                                        <label>End of results</label>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {searchQuery.length > 2 && !isLoading && (<div className='bg-white px-2 py-1 text-sm mt-2 border border-slate-300 rounded-lg shadow-md'>No results found</div>)}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </OutsideClickHandler>
                         ) : (
-                            <p className='text-slate-400'>No option selected</p>
+                            <> 
+                                <div className='flex items-center gap-2 px-2 py-1 border border-slate-300
+                                    cursor-pointer rounded-lg text-sm' onClick={onClick}>
+                                    {val?.value ? (
+                                        <> 
+                                            <button className='bg-gray-100 px-2 rounded-sm flex items-center gap-2'
+                                                onClick={clearSelectedOption} title="Clear selection">
+                                                {val.name}
+                                                <BiX className='text-lg text-red-600' />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <p className='text-slate-400'>No option selected</p>
+                                    )}
+                                    <BiChevronDown className='ml-auto' />
+                                </div>
+                            </>
                         )}
-                        <BiChevronDown className='ml-auto' />
                     </div>
-                </>
-            )}
-            
-        </div>
+                </div>
+            </div>
+        </>
+        
     )
 });
 

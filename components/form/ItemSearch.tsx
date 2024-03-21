@@ -5,8 +5,10 @@ import { getItems, getItemsAtLocation } from "@/graphql/queries"
 import { DropDownSearchOption, PaginatedDropDownSearchOptions } from "@/types/DropDownSearchOption"
 import useOrganization from "../providers/useOrganization"
 import { DropDownDisplayGroup, DropDownValueFunctionGroup } from "@/types/dropDown"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { FaBox, FaBoxOpen } from "react-icons/fa"
+import { toast } from "react-toastify"
+import { Item } from "@/types/dbTypes"
 
 export default function ItemSearch ({ fn, displayOptions, updatesDefault=false, locationId=undefined, defaultValue=undefined, }: {
     displayOptions: DropDownDisplayGroup
@@ -85,6 +87,43 @@ export default function ItemSearch ({ fn, displayOptions, updatesDefault=false, 
         }
     }
 
+    const onScanned = async (result: any): Promise<DropDownSearchOption[]|DropDownSearchOption|null> => {
+        const { data } = await apolloClient.query({
+            query: getItems,
+            variables: {
+                organizationId: organizationId,
+                search: result.text
+            },
+            fetchPolicy: 'network-only'
+        });
+
+        if (!data?.getItems) {
+            toast.error('An internal server error occured. Please try again later.');
+            return null;
+        }
+
+        const { edges } = data.getItems;
+
+        if (!edges?.length){
+            toast.error(`No items found for input \'${result.text}\'`);
+            return null;
+        }
+
+        if (edges.length === 1) {
+            return {
+                name: edges[0].node.name,
+                value: edges[0].node.item_id
+            }
+        }
+
+        return edges.map((e: any) => {
+            return {
+                name: e.node.name,
+                value: e.node.item_id
+            }
+        });
+    }
+
     return (
         <>
             <div className="flex items-center gap-2">
@@ -99,7 +138,9 @@ export default function ItemSearch ({ fn, displayOptions, updatesDefault=false, 
                 defaultValue={defaultValue}
                 updatesDefault={updatesDefault}
                 objectName={displayOptions.name}
-                ref={ref} />
+                ref={ref}
+                scannable={true}
+                onScanned={onScanned} />
         </>
     )
 }
