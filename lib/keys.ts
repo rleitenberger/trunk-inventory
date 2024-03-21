@@ -1,5 +1,4 @@
 import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
-import crypto from 'crypto';
 import prisma from "@/lib/prisma";
 
 export const addKeys = async (keys: ZohoInventoryApiKeys) => {
@@ -57,9 +56,11 @@ export const loadKeys = async (organizationId: string) : Promise<ZohoInventoryAp
 
 
 export const encrypt = (text: string, iv: Buffer) => {
-    const algorithm = 'aes-256-cbc'
+    return { key: text ?? '' };
+    /*const algorithm = 'aes-256-cbc'
     const password = 'mca2qw3-fr4rqewagrrwww0-aef.fah675w3sw2=1423574sd';
     const salt = '0nc823czmr9q';
+    const crypto = require('crypto');
     const key = crypto.scryptSync(password, salt, 32);
 
     const cipher = crypto.createCipheriv(algorithm, key, iv);
@@ -69,21 +70,23 @@ export const encrypt = (text: string, iv: Buffer) => {
     return {
         iv: iv,
         key: encrypted
-    }
+    }*/
 }
 
 export const decrypt = (text?: string|null, iv?: string|null) => {
+    return text ?? '';
     if (!text || !iv){
         return;
     }
 
-    const algorithm = 'aes-256-cbc'
-    const password = 'mca2qw3-fr4rqewagrrwww0-aef.fah675w3sw2=1423574sd';
-    const salt = '0nc823czmr9q';
-    const key = crypto.scryptSync(password, salt, 32);
+    // const algorithm = 'aes-256-cbc'
+    // const password = 'mca2qw3-fr4rqewagrrwww0-aef.fah675w3sw2=1423574sd';
+    // const salt = '0nc823czmr9q';
+    // const crypto = require('crypto');
+    // const key = crypto.scryptSync(password, salt, 32);
 
-    const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
-    let decrypted = decipher.update(text, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
+    // const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
+    // let decrypted = decipher.update(text, 'hex', 'utf8');
+    // decrypted += decipher.final('utf8');
+    // return decrypted;
 }

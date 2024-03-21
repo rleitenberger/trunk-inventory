@@ -25,7 +25,7 @@ export const verifyZohoAuth = async (organizationId: string): Promise<ZohoAuthRe
     const refreshToken = keys?.refresh_token;
     if (!refreshToken){
 
-        const scope = 'ZohoInventory.items.READ,ZohoInventory.settings.READ';
+        const scope = 'ZohoInventory.items.READ,ZohoInventory.settings.READ,ZohoInventory.compositeitems.READ';
 
         const decryptedClientId = decrypt(keys.client_id, keys.iv);
         let redirectUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${scope}&client_id=${decryptedClientId}&response_type=code&redirect_uri=${REDIRECT}&access_type=offline`;
@@ -52,6 +52,7 @@ export const verifyZohoAuth = async (organizationId: string): Promise<ZohoAuthRe
         accessToken: keys.access_token === null ? undefined : decrypt(keys.access_token, keys.iv),
         redirectUrl: undefined
     }
+
 
     if (reroll){
         const rerollResult = await rerollAccessToken(keys);
@@ -82,6 +83,7 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     const refresh = decrypt(keys.refresh_token, keys.iv);
 
     const url = `https://accounts.zoho.com/oauth/v2/token?refresh_token=${refresh}&client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&redirect_uri=${process.env.NEXTAUTH_URL}/zoho`;
+    console.log(url)
     const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -90,6 +92,8 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     });
 
     const json = await res.json();
+
+    console.log(json);
     if (json?.error){
         return {
             verified: false,

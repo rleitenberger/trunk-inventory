@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BiSync } from "react-icons/bi";
 import Loader from "@/components/Loader";
@@ -25,7 +25,7 @@ export default function SyncItemsModal () {
     const [success, setSuccess] = useState('');
 
     const sync = async() => {
-        const es = new EventSource('/api/zoho/inventory/items', {
+        const es = new EventSource(`/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`, {
             withCredentials: true
         });
 
@@ -117,7 +117,18 @@ export default function SyncItemsModal () {
                 }
             });
             const json = await res.json();
-            setOrganizations(json);
+            if (json?.redirectUrl){
+                if (json.redirectUrl === '[showModal]'){
+                    toast.error('You must add your client keys first.');
+                    setIsSyncing(false);
+                    return;
+                    //trigger show in children
+                }
+                router.push(json.redirectUrl)
+            }else {
+                
+                setOrganizations(json);
+            }
 
             if (json?.length) {
                 setSelectedOrg(json[0]?.organization_id);

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 import { hashBcrypt } from "@/lib/bcrypt";
-import { randomUUID } from "crypto";
+import { common } from "@/lib/common";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -45,7 +45,7 @@ const handler = async(req: NextRequest) => {
 
         const user = await prisma.user.create({
             data: {
-                id: randomUUID(),
+                id: common.createUUID(),
                 name: name,
                 email: email.toLowerCase(),
                 username: username.toLowerCase(),

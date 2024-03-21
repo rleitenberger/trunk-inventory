@@ -28,6 +28,8 @@ const handler = async (req: NextRequest) => {
     });
 
     const json = await res.json();
+
+    console.log(auth);
     return Response.json(json.organizations.map((e: any) => {
         return {
             name: e.name,

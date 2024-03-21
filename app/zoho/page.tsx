@@ -15,12 +15,15 @@ export default function ZohoInventory () {
 
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
+    console.log(organizationId);
+
     useEffect(() => {
         const code = params.get('code');
         const location = params.get('location');
         const server = params.get('accounts-server');
 
-        if (!code || !location || !server || !organizationId){
+        if (!code){
+            console.log(code, location, server, organizationId);
             return;
         }
 
@@ -31,7 +34,7 @@ export default function ZohoInventory () {
                     code: code,
                     server: server,
                     location: location,
-                    organizationId: organizationId
+                    organizationId: 'd33e613c-c4b1-4829-a600-eacf71c3f4ed'
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -39,6 +42,7 @@ export default function ZohoInventory () {
             });
 
             const json = await res.json();
+            console.log(json);
             if (json?.error){
                 setError(json.error);
             } else {
@@ -48,7 +52,9 @@ export default function ZohoInventory () {
 
 
             if (json.updated){
-                
+                const a = document.createElement('a');
+                a.href='/i/admin/items';
+                a.click();
             }
         }
 
