@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 interface Notify {
     log: (msg: any) => void;
     complete: (data: any) => void;
-    error: (error: Error) => void;
+    error: (error: Error|any) => void;
     close: () => void;
 }
 
@@ -22,7 +22,9 @@ const startLoop = async(notify: Notify) => {
             });
             await delay(1000);
         } catch (e) {
-            notify.error('error');
+            notify.error({
+                message: 'error'
+            });
         }
     }
 

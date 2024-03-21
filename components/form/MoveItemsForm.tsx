@@ -268,7 +268,6 @@ export default function MoveItemsForm({ transferType }: {
     return (
         <>
             <Head>
-                <script src="dbr-6.4.1.3.min.js"></script>
                 <meta name="viewport" content="maximum-scale=1" key="max"></meta>
             </Head>
             <h1 className='text-xl font-medium'>{getTitle()}</h1>
