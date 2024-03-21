@@ -8,6 +8,7 @@ import { useApolloClient } from "@apollo/client";
 import useOrganization from "../providers/useOrganization";
 import { toast } from "react-toastify";
 import { SyncDetails } from "@/types/dbTypes";
+import ScanBarcodeModal from "./ScanBarcodeModal";
 
 export interface ZohoOrganization {
     name: string;
@@ -22,6 +23,25 @@ export default function SyncItemsModal () {
     const [showingSyncModal, setShowingSyncModal] = useState<boolean>(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    const sync = async() => {
+        const es = new EventSource('/api/zoho/inventory/items', {
+            withCredentials: true
+        });
+
+        es.onmessage = (event) => {
+            const obj = JSON.parse(event.data);
+            console.log(obj);
+
+            if (obj.status === 2){
+                es.close();
+            }
+        }
+
+        es.onerror = (err) => {
+            es.close();
+        }
+    }
 
     const apolloClient = useApolloClient();
     const { organizationId, count } = useOrganization();
@@ -171,7 +191,8 @@ export default function SyncItemsModal () {
                             )}
                         </button>
                 </div>
-
+                <button onClick={sync}>test</button>
+                <ScanBarcodeModal />
                 <div>
                     {lastSync && (
                         <div>

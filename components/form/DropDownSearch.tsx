@@ -40,9 +40,6 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, 
         if (defaultV === undefined){
             return;
         }
-
-        console.log('dv', defaultV);
-
         setVal(defaultV);
     }, []);
 
@@ -51,7 +48,6 @@ const DropDownSearch = React.forwardRef(({ fn, objectName, updatesDefault=true, 
     }, [defaultValue]);
 
     useEffect(() => {
-        console.log(objectName, 'ud, ' + updatesDefault)
         if (!updatesDefault) {
             return;
         }

@@ -264,8 +264,9 @@ export const resolvers = {
 
             return transactionConnection;
         },
-        getItemsAtLocation: async (_: any, { locationId, search, first, after, last, before, includeNegative } : {
-            locationId: string;
+        getItemsAtLocation: async (_: any, { locationId, itemId, search, first, after, last, before, includeNegative } : {
+            locationId?: string;
+            itemId?: string;
             search?: string;
             first?: number;
             after?: string;
@@ -300,9 +301,10 @@ export const resolvers = {
                 where: {
                     AND: [
                         { qty: includeNegative ? { not: 0 } : { gt: 0 } },
-                        { location_id: { equals: locationId } },
                         { items: { name: { contains: search ? search : undefined } } },
-                        { locations: { active: { equals: true } } }
+                        { locations: { active: { equals: true } } },
+                        (!!locationId ? { location_id: { equals: locationId } } : {}),
+                        (!!itemId ? { item_id: { equals: itemId } } : {})
                     ]
                 },
                 select: {

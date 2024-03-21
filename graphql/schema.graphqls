@@ -11,7 +11,7 @@ type Query {
     getTransactionType(organizationId: String!, slug: String!): TransactionType
     getReasons(transactionTypeId: String!): [Reason]!
     getTransactions(transactionInput: TransactionInput!, paginationInput: PaginationInput!): TransactionConnection!
-    getItemsAtLocation(locationId: String!, search: String, first: Int, after: String, includeNegative: Boolean): LocationItemConnection!
+    getItemsAtLocation(locationId: String, itemId: String, search: String, first: Int, after: String, includeNegative: Boolean): LocationItemConnection!
     getTransactionTypes(organizationId: String): [TransactionType]!
     getConditionTypes(targetDataType: String!): [ConditionType]!
     getFieldConditions(conditionField: String!): [Condition]!

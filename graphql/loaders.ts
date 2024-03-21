@@ -253,7 +253,6 @@ const batchUsers = async (userIds: any) => {
     })
 
     const res = userIds.map((id: string) => usersMap[id] ?? []);
-    console.log(res);
     return res;
 }
 

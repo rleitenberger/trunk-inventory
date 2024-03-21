@@ -6,6 +6,7 @@ import ZohoApiConsoleTutorialModal from "@/components/modal/ZohoApiConsoleTutori
 import SyncItemsModal from "@/components/modal/SyncItemsModal";
 
 export default function PageAdminItems ({  }) {
+
     return (
         <>
             <AdminNav pageName="items" />

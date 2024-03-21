@@ -17,6 +17,7 @@
     "@pothos/plugin-prisma": "^3.64.0",
     "@prisma/client": "^5.11.0",
     "@types/uuid": "^9.0.8",
+    "@zxing/library": "^0.20.0",
     "bcrypt": "^5.1.1",
     "cookies": "^0.9.1",
     "cssnano": "^6.1.0",
@@ -32,6 +33,7 @@
     "react-dom": "^18",
     "react-icons": "^5.0.1",
     "react-toastify": "^10.0.4",
+    "react-webcam": "^7.2.0",
     "sharp": "^0.33.2",
     "uuid": "^9.0.1"
   },

@@ -47,8 +47,8 @@ const handler = async(req: NextRequest) => {
             data: {
                 id: randomUUID(),
                 name: name,
-                email: email,
-                username: username,
+                email: email.toLowerCase(),
+                username: username.toLowerCase(),
                 password: passwordHash
             }
         });

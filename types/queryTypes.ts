@@ -3,7 +3,8 @@ import DataLoader from "dataloader";
 import { NextRequest } from "next/server";
 
 export interface PaginatedLocationItemsArgs {
-    locationId: string;
+    locationId?: string;
+    itemId?: string;
     includeNegative?: boolean;
     after?: string|null;
     before?: string|null;

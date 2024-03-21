@@ -8,6 +8,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { decode, JWT } from 'next-auth/jwt'
 import { typeDefs } from '@/graphql/schema';
+import { hashBcrypt } from "@/lib/bcrypt";
 
 const apolloServer = new ApolloServer({
     typeDefs,

@@ -149,14 +149,18 @@ export const getTransactions = gql`
 `;
 
 export const getItemsAtLocation = gql`
-    query getItemsAtLocation($locationId: String!, $search: String, $first: Int, $after: String, $includeNegative: Boolean) {
-        getItemsAtLocation(locationId: $locationId, search: $search, first: $first, after: $after, includeNegative: $includeNegative) {
+    query getItemsAtLocation($locationId: String, $itemId: String, $search: String, $first: Int, $after: String, $includeNegative: Boolean) {
+        getItemsAtLocation(locationId: $locationId, itemId: $itemId, search: $search, first: $first, after: $after, includeNegative: $includeNegative) {
             edges {
                 node {
                     item {
                       item_id
                       name
                       sku
+                    }
+                    location {
+                        location_id
+                        name
                     }
                     qty
                 }
