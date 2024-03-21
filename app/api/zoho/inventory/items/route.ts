@@ -12,7 +12,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const startLoop = async(notify: Notify) => {
     let i = 0;
 
-    while(i<6){
+    while(i<60){
         try {
 
             i++;
