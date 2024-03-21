@@ -66,8 +66,8 @@ const ScanBarcodeModal = ({ onScanned }: {
                     top: '50%',
                     transform: 'translate(-50%, -50%)'
                 }}>
-                    <div className="border-l-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px]"></div>
-                    <div className="border-r-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px]"></div>
+                    <div className="border-l-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px] z-[10000]"></div>
+                    <div className="border-r-2 border-t-2 border-b-2 border-red-500 border-dashed h-[120px] w-[20px] z-[10000]"></div>
                 </div>
             </Modal>
             <button onClick={startShowing} className="flex items-center px-2 py-1 
