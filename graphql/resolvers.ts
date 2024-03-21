@@ -94,7 +94,7 @@ export const resolvers = {
         },
         getItems: async(_: any, {organizationId, search, first, after }: ItemArgs,
                 context: GQLContext) => {
-            const take = first || 10;
+            const take = first || 10000;
             let cursorCondition = {};
             if (after) {
                 cursorCondition = {
