@@ -40,9 +40,6 @@ const handler = async (req: NextRequest) => {
     });
 
     const json  = await res.json();
-
-    console.log('\n\n\n\n\n\n\n');
-    console.log(json)
     if (json?.error){
         return Response.json(json);
     }

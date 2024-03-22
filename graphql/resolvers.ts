@@ -1232,7 +1232,8 @@ export const resolvers = {
                 data: {
                     reason_id: reasonId,
                     email: email,
-                    reason_email_id: reasonEmailId
+                    reason_email_id: reasonEmailId,
+                    active: true
                 }
             });
 

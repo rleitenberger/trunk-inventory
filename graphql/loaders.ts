@@ -237,10 +237,8 @@ const batchReasonEmails = async (reasonIds: any) => {
     })
 
     const res = reasonIds.map((id: string) => {
-        console.log(id, emailsMap[id])
         return emailsMap[id] ?? []
     });
-    console.log(res);
     return res;
 
 }

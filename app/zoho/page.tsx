@@ -5,6 +5,7 @@ import BoxTimer from "@/components/form/BoxTimer";
 import useOrganization from "@/components/providers/useOrganization";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export default function ZohoInventory () {
     const params= useSearchParams();
@@ -15,15 +16,13 @@ export default function ZohoInventory () {
 
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
-    console.log(organizationId);
-
     useEffect(() => {
         const code = params.get('code');
         const location = params.get('location');
         const server = params.get('accounts-server');
 
         if (!code){
-            console.log(code, location, server, organizationId);
+            toast.error('Url is missing required CODE parameter')
             return;
         }
 
@@ -42,7 +41,6 @@ export default function ZohoInventory () {
             });
 
             const json = await res.json();
-            console.log(json);
             if (json?.error){
                 setError(json.error);
             } else {

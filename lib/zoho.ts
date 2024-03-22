@@ -1,20 +1,35 @@
-import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
+import { ApiKey, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { ZohoAuthResponse } from "@/types/responses";
 import { addKeys, decrypt } from "./keys";
 import prisma from "@/lib/prisma";
 
 const REDIRECT =  process.env.NEXTAUTH_URL + '/zoho'
 
-export const verifyZohoAuth = async (organizationId: string): Promise<ZohoAuthResponse> => {
-    const keys = await prisma.zoho_inventory_keys.findFirst({
-        where: {
-            organization_id: {
-                equals: organizationId
-            }
-        }
+export const verifyZohoAuth = async (organizationId: string, sessionToken?: any): Promise<any> => {
+
+    const res = await fetch(process.env.NEXTAUTH_URL + '/api/hello', {
+        method: 'POST',
+        body: JSON.stringify({
+            organizationId: organizationId,
+            sessionToken: sessionToken as string
+        })
     });
 
-    if (!keys?.client_id || !keys?.iv){
+    const json = await res.json();
+
+    if (!json || json?.error){
+        const response: ZohoAuthResponse = {
+            verified: false,
+            error: 'No keys found',
+            redirectUrl: '[showModal]'
+        }
+
+        return Response.json(response);
+    }
+
+    const keys = json.organizations.zoho_inventory_keys[0];
+
+    if (!keys?.client_id){// || !keys?.iv){
         return {
             verified: false,
             redirectUrl: '[showModal]',
@@ -83,7 +98,6 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     const refresh = decrypt(keys.refresh_token, keys.iv);
 
     const url = `https://accounts.zoho.com/oauth/v2/token?refresh_token=${refresh}&client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&redirect_uri=${process.env.NEXTAUTH_URL}/zoho`;
-    console.log(url)
     const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -92,8 +106,6 @@ const rerollAccessToken = async(keys: ZohoInventoryApiKeys): Promise<ZohoAuthRes
     });
 
     const json = await res.json();
-
-    console.log(json);
     if (json?.error){
         return {
             verified: false,

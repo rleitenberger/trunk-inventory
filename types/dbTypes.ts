@@ -263,8 +263,8 @@ export interface SyncDetails {
     item_sync_log_id: string;
     organization_id?: string;
     status: string;
-    items_added: string;
-    items_updated: string;
-    total_items: string;
+    items_added: number;
+    items_updated: number;
+    total_items: number;
     created: string;
 }

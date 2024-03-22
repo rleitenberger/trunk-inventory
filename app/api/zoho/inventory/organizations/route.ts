@@ -7,12 +7,12 @@ import { NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
-
-    if (!searchParams.get('organizationId')){
+    
+    if (!searchParams.get('organizationId') || !searchParams.get('sessionToken')){
         return Response.json([]);
     }
 
-    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '');
+    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '', searchParams.get('sessionToken'));
 
     if (!auth.verified){
         return Response.json(auth);
@@ -29,7 +29,6 @@ const handler = async (req: NextRequest) => {
 
     const json = await res.json();
 
-    console.log(auth);
     return Response.json(json.organizations.map((e: any) => {
         return {
             name: e.name,

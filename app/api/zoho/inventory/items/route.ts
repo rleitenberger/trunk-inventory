@@ -1,4 +1,3 @@
-import prisma from "@/lib/prisma";
 import { verifyZohoAuth } from "@/lib/zoho";
 import { Item } from "@/types/dbTypes";
 import { ZohoAuthResponse } from "@/types/responses";
@@ -18,32 +17,37 @@ interface Notify {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const startLoop = async(notify: Notify) => {
+const intervalTime: number = (60000 / 30) + 200;
 
-    await prisma.item_sync_logs.update({
-        data: {
+const startLoop = async(notify: Notify) => {
+    await fetch(process.env.NEXTAUTH_URL + '/api/hello/sync/update', {
+        method: 'POST',
+        body: JSON.stringify({
+            logId: notify.syncId,
             status: 'uploading'
-        },
-        where: {
-            item_sync_log_id: notify.syncId
+        })
+    });
+
+    notify.log({
+        type: 'u',
+        data: {
+            status: 'fetching'
         }
     });
 
     const allItems: any = [];
     let index = 1;
 
-    const rate = {
-        limit: 30,
-        time: 60000
+
+    const dbItemsRes = await fetch(process.env.NEXTAUTH_URL + '/api/hello/items?organizationId=' + notify.organizationId, {
+        method: 'GET',
+    });
+    const dbZiItemIds = await dbItemsRes.json();
+
+    if (dbZiItemIds?.error){
+        console.log('no items', dbZiItemIds)
     }
 
-    const dbItems: Item[] = await prisma.items.findMany({
-        where: { organization_id: { equals: notify.organizationId } }
-    });
-
-    const dbZiItemIds = new Set(dbItems.map((item: Item) => item.zi_item_id));
-
-    const intervalTime: number = rate.time / rate.limit + 200;
     let hasMore = true;
 
 
@@ -51,6 +55,8 @@ const startLoop = async(notify: Notify) => {
 
     let added: number = 0;
     let updated: number = 0;
+
+    let current = 0;
 
     while (hasMore){
         const res = await getItems(index, notify.zohoOrgId, notify.organizationId, notify.accessToken);
@@ -66,35 +72,53 @@ const startLoop = async(notify: Notify) => {
         currentBatch.push(...items);
 
         if (currentBatch.length >= 1000 || !hasMore){
-            const itemsToAdd = currentBatch.filter((item: Item) => !dbZiItemIds.has(item.zi_item_id));
+
+            const itemsToAdd = currentBatch.filter((item: Item) => !dbZiItemIds.includes(item.zi_item_id));
             added += itemsToAdd.length;
 
-            const itemsToUpdate = currentBatch.filter((item: Item) => dbZiItemIds.has(item.zi_item_id));
+            const itemsToUpdate = currentBatch.filter((item: Item) => dbZiItemIds.includes(item.zi_item_id));
             updated += itemsToUpdate.length;
 
-            console.log(added, updated);
-
+            console.log(added, updated)
             await upsertBatch(itemsToAdd, itemsToUpdate, notify.organizationId);
             currentBatch = [];
         }
 
+        current += items.length;
+
+        notify.log({
+            type: 'i',
+            data: {
+                current: current
+            }
+        });
+
         await delay(intervalTime);
     }
 
-    await prisma.item_sync_logs.update({
-        data: {
-            status: 'finished',
-            items_added: added,
-            items_updated: updated,
-            total_items: added+updated
-        },
-        where: {
-            item_sync_log_id: notify.syncId
-        }
+    
+    await fetch(process.env.NEXTAUTH_URL + '/api/hello/sync/update', {
+        method: 'POST',
+        body: JSON.stringify({
+            logId: notify.syncId,
+            status: 'completed',
+            items: {
+                added: added,
+                updated: updated,
+                total: added+updated
+            }
+        })
     });
 
+    notify.log({
+        type: 'u',
+        data: {
+            status: 'finished'
+        }
+    })
+
     notify.complete({
-        status: 2
+        type:'done'
     });
 }
 
@@ -105,7 +129,7 @@ const handler = async (req: NextRequest) => {
     let closed = false;
 
     const { searchParams } = new URL(req.url);
-    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '');
+    const auth: ZohoAuthResponse = await verifyZohoAuth(searchParams.get('organizationId') || '', searchParams.get('sessionToken'));
 
     if (!auth.verified || !auth.accessToken){
         return Response.json(auth);
@@ -126,32 +150,61 @@ const handler = async (req: NextRequest) => {
         });
     }
 
-    const syncId = searchParams.get('syncId');
+    let syncId = searchParams.get('syncId');
 
     if (!syncId){
-        const log = await prisma.item_sync_logs.create({
-            data: {
-                item_sync_log_id: common.createUUID(),
-                organization_id: organizationId,
+        const res = await fetch(process.env.NEXTAUTH_URL + '/api/hello/sync', {
+            method: 'POST',
+            body: JSON.stringify({
+                organizationId: organizationId,
                 status: 'downloading'
-            }
+            })
         });
-        return Response.json({
-            success: 'Log created',
-            syncLogId: log.item_sync_log_id
-        });
+
+        const log = await res.json();
+        if (log.error){
+            return Response.json(log);
+        }
+
+        syncId = log.item_sync_log_id;
     }
 
-    const logExists = await prisma.item_sync_logs.findFirst({
-        where: { item_sync_log_id: { equals: syncId } }
+    const logExistsRes = await fetch(process.env.NEXTAUTH_URL + '/api/hello/sync?logId=' + syncId, {
+        method: 'GET'
     });
 
-    if (!logExists){
+    const { exists } = await logExistsRes.json();
+    if (!exists){
         return Response.json({
             error: 'Invalid log ID'
         });
     }
+
     const accessToken= auth.accessToken ?? '';
+
+    const itemCountRes = await fetch(`https://www.zohoapis.com/inventory/v1/items?response_option=2&organization_id=${zohoOrgId}&filter_by=Status.Active`, {  
+        headers: {
+            'Content-Type': 'application/json',
+            'Accepts': 'application/json',
+            'Authorization': `Zoho-oauthtoken ${accessToken}`
+        }
+    });
+    const { page_context } = await itemCountRes.json();
+    
+    const time = {
+        itemCount: page_context.total,
+        estimatedTime: (intervalTime * page_context.total) / 60000
+    };
+
+    writer.write(encoder.encode("data: " + JSON.stringify({
+        type: 'init',
+        data: {
+            ...time,
+            logId: syncId,
+            transitionTime: intervalTime
+        }
+    }) + "\n\n"));
+
 
     try {
         startLoop({
@@ -178,10 +231,10 @@ const handler = async (req: NextRequest) => {
                     closed=true;
                 }
             },
-            syncId: syncId,
+            syncId: syncId as string,
             organizationId: organizationId,
             zohoOrgId: zohoOrgId,
-            accessToken: accessToken
+            accessToken: accessToken,
         }).then(() => {
             if (!closed) {
                 writer.close();
@@ -193,7 +246,6 @@ const handler = async (req: NextRequest) => {
             }
         });
     } catch (e) {
-        console.log(e);
         writer.close();
     }
 
@@ -219,21 +271,19 @@ const upsertBatch = async (add: Item[], update: Item[], orgId: string): Promise<
     //add
     let vals: any = [];
 
-    const adding = await prisma.items.createMany({
-        data: add
+    await fetch(process.env.NEXTAUTH_URL + '/api/hello/items', {
+        method: 'POST',
+        body: JSON.stringify({
+            items: add,
+            action: 'add',
+        })
     });
-
-    update.forEach(async (e: Item) => {
-        await prisma.items.update({
-            data: {
-                description: e.description,
-                sku: e.sku,
-                modified: new Date()  
-            },
-            where: {
-                zi_item_id: e.zi_item_id
-            }
-        });
+    await fetch(process.env.NEXTAUTH_URL + '/api/hello/items', {
+        method: 'POST',
+        body: JSON.stringify({
+            items: update,
+            action: 'update'
+        })
     })
     
     return true;
@@ -252,10 +302,10 @@ const getItems = async(page: number, orgId: string, _orgId: string, accessToken?
 
     const json= await res.json();
 
-    return {
+    const object = {
         items: json?.items?.map((e: any) => {
             return {
-                item_id: common.createUUID(),
+                item_id: createUUID(),
                 zi_item_id: e.item_id,
                 name: e.name,
                 description: e.description,
@@ -264,7 +314,25 @@ const getItems = async(page: number, orgId: string, _orgId: string, accessToken?
             }
         }) ?? [],
         page_context: json.page_context
-    }
+    };
+
+
+    return object;
+}
+
+function createUUID() {
+    let d = new Date().getTime(), d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        let r = Math.random() * 16;
+        if (d > 0) {
+            r = (d + r) % 16 | 0;
+            d = Math.floor(d / 16);
+        } else {
+            r = (d2 + r) % 16 | 0;
+            d2 = Math.floor(d2 / 16);
+        }
+        return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+    });
 }
 
 export const runtime = 'edge';

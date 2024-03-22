@@ -2,36 +2,17 @@ import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import prisma from "@/lib/prisma";
 
 export const addKeys = async (keys: ZohoInventoryApiKeys) => {
-    const { iv } = await prisma.zoho_inventory_keys.findFirst({
-        where: {
-            organization_id: { equals: keys.organization_id }
-        }
-    }) as { iv?: string| null };
-
-    if (!iv) {
-        return false;
-    }
-
-    const buffer = Buffer.from(iv, 'hex');
-    const encrypted = {
-        access: keys.access_token ? encrypt(keys.access_token, buffer) : null,
-        refresh: keys.refresh_token ? encrypt(keys.refresh_token, buffer) : null
-    };
-
-    const now = new Date();
-
-    const updated = await prisma.zoho_inventory_keys.update({
-        where: {
-            zoho_inventory_keys_id: keys.zoho_inventory_keys_id
-        },
-        data: {
-            access_token: encrypted.access?.key,
-            ...(encrypted.refresh?.key && { refresh_token: encrypted.refresh?.key }),
-            expiry: new Date(now.getTime() + 59 * 60000),
-        },
+    console.log('\n\n\n\n\n\n',keys,'\n\n\n\n\n');
+    const res = await fetch(process.env.NEXTAUTH_URL + '/api/hello/keys', {
+        method: 'POST',
+        body: JSON.stringify({
+            organizationId: keys.organization_id,
+            keys: keys
+        })
     });
 
-    return true;
+    const json = await res.json();
+    return Response.json(json);
 }
 
 export const loadKeys = async (organizationId: string) : Promise<ZohoInventoryApiKeys|null> => {
@@ -53,7 +34,6 @@ export const loadKeys = async (organizationId: string) : Promise<ZohoInventoryAp
         client_secret: decrypt(keys.client_secret || '', keys.iv)
     }
 }
-
 
 export const encrypt = (text: string, iv: Buffer) => {
     return { key: text ?? '' };
