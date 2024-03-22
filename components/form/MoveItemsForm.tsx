@@ -252,7 +252,7 @@ export default function MoveItemsForm({ transferType }: {
     const redirectToHome = () => {
         const a = document.createElement('a');
         a.href='/i';
-        a.click();
+        //a.click();
     }
 
     const reasonDesc = useMemo(() => {
@@ -369,7 +369,7 @@ export default function MoveItemsForm({ transferType }: {
                         <BoxTimer
                             delay={5}
                             onDelayReached={redirectToHome}
-                            note='You will be automatically redirected' />
+                            note='' />
                     </>
                     
                             
