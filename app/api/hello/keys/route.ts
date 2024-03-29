@@ -14,7 +14,9 @@ const handler = async(req: NextRequest) => {
     }) as { iv?: string| null };
     
     if (!iv) {
-        return false;
+        return Response.json({
+            error: 'No iv found'
+        });
     }
     
     const buffer = Buffer.from(iv, 'hex');
