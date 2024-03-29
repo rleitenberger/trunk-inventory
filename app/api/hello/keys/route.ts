@@ -36,7 +36,9 @@ const handler = async(req: NextRequest) => {
         },
     });
     
-    return true;
+    return Response.json({
+        updated: true
+    });
 }
 
 export { handler as POST };
