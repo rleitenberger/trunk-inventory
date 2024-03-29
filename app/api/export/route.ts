@@ -34,6 +34,8 @@ const handler = async(req: NextRequest) => {
         const jsonData = await req.json();
         let csvContent = '';
         let fileName = 'download.csv';
+
+        let output;
     
         if (type === 'transactions') {
             const data: TransactionInput = jsonData;
@@ -94,23 +96,62 @@ const handler = async(req: NextRequest) => {
                     },
                     reasons: {
                         select: {
-                            name: true
+                            name: true,
+                            reasons_fields: {
+                                select: {
+                                    field_name: true,
+                                    reasons_fields_id: true,
+                                }
+                            }
+                        }
+                    },
+                    reasons_fields_entries: {
+                        select: {
+                            field_value: true,
+                            reasons_fields_id: true,
+                            reasons_fields: {
+                                select: {
+                                    field_name: true,
+                                }
+                            }
                         }
                     }
                 }
             });
 
-            let header = `Date,${!hasTransferType ? 'Transfer Type,': ''}${!hasItemId ? 'Item Name,' : ''}${!hasItemId ? 'Item SKU,' : ''}From,To,Reason\n`;
+            output = transactions;
+
+            let header = `Date,${!hasTransferType ? 'Transfer Type,': ''}${!hasItemId ? 'Item Name,' : ''}${!hasItemId ? 'Item SKU,' : ''}From,To,Reason,Project,Description\n`;
 
             const transactionsText: string[] = [];
 
             transactions?.forEach(e => {
+                const fields = e.reasons_fields_entries?.reasons_fields;
+                let project = '';
+                let description = '';
+
+                if (fields && e.reasons_fields_entries) {
+                    let hasProjectEntry = fields.field_name.toLowerCase() === 'project name'
+                        || fields.field_name.toLowerCase() === 'customer / project name';
+    
+                    let hasDescription = fields.field_name.toLowerCase() === 'description';
+                    
+                    if (hasProjectEntry){
+                        project = e.reasons_fields_entries.field_value;
+                    }
+
+                    if (hasDescription) {
+                        description = e.reasons_fields_entries.field_value;
+                    }
+                }
+
+                
                 transactionsText.push(
-                    `${e.created},${!hasTransferType ? e.transfer_type + ',' : ''}${!hasItemId ? e.items.name + ',' : ''}${!hasItemId ? e.items.sku + ',': ''}${e.locations_transactions_from_locationTolocations.name},${e.locations_transactions_to_locationTolocations.name},${e.reasons.name}`
+                    `${e.created},${!hasTransferType ? e.transfer_type + ',' : ''}${!hasItemId ? e.items.name + ',' : ''}${!hasItemId ? e.items.sku + ',': ''}${e.locations_transactions_from_locationTolocations.name},${e.locations_transactions_to_locationTolocations.name},${e.reasons.name},${project},${description}`
                 );
             })
 
-            fileName = `Transactions ${date}.csv`;
+            fileName = `Transactions ${hasTransferType ? ('(' + data.transferType + ') ') : ('')}${date}.csv`;
             csvContent = header + transactionsText.join('\n');
 
         } else if (type === 'inventory') {
@@ -168,7 +209,8 @@ const handler = async(req: NextRequest) => {
     
         return Response.json({
             fileName: fileName,
-            content: csvContent
+            content: csvContent,
+            raw: output
         });
     } catch(e: any){
         return Response.json({

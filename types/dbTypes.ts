@@ -31,10 +31,11 @@ export interface TransactionClient {
     created: string;
     entries?: ReasonsFieldsEntry[];
     expanded?: boolean;
+    comments: TransactionComment[];
 }
 
 export interface Item {
-    item_id: string; 
+    item_id: string;
     organization_id: string; 
     zi_item_id: string; 
     name: string; 
@@ -267,4 +268,15 @@ export interface SyncDetails {
     items_updated: number;
     total_items: number;
     created: string;
+}
+
+export interface TransactionComment {
+    transaction_comment_id: string;
+    transaction_id: string;
+    comment: string;
+    user_id: string;
+    user: User;
+    created: string;
+    modified: string;
+    active: boolean;
 }

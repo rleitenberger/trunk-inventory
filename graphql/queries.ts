@@ -135,6 +135,14 @@ export const getTransactions = gql`
                         id
                         name
                     }
+                    comments {
+                        transaction_comment_id
+                        comment
+                        modified
+                        user {
+                            name
+                        }
+                    }
                 }
             }
             pageInfo {

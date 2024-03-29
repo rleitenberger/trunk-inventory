@@ -63,6 +63,10 @@ type Mutation {
     deleteOrgUser(userId: String!, organizationId: String!): Boolean!
 
     updateUserRole(userId: String!, organizationId: String, role: String!): Boolean!
+
+    createComment(transactionId: String!, comment: String!): TransactionComment!
+    updateComment(transactionCommentId: String!, comment: String): TransactionComment!
+    deleteComment(transactionCommentId: String!): Boolean!
 }
 
 type OrgUser {
@@ -225,6 +229,7 @@ type Transaction {
     transfer_type: String!
     entries: [ReasonsFieldsEntry]!
     created_by: User!
+    comments: [TransactionComment]!
 }
 
 type TransactionConnection {
@@ -378,4 +383,15 @@ input BetweenDateInput {
     from: String
     to: String
 }
+
+type TransactionComment {
+    transaction_comment_id: String!
+    transaction_id: String!
+    comment: String!
+    user: User
+    created: String!
+    modified: String!
+    active: Boolean!
+}
+
 `;

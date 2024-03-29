@@ -108,6 +108,7 @@ model transactions {
   created                                         DateTime                @default(now()) @db.Timestamp(0)
   created_by                                      String                  @db.VarChar(36)
   reasons_fields_entries                          reasons_fields_entries?
+  transaction_comments                            transaction_comments[]
   user                                            user                    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_created_by")
   locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
   items                                           items                   @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_item_id")
@@ -177,6 +178,7 @@ model reasons_fields_entries {
   transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_entries_transaction_id")
   reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_id")
 
+  @@unique([transaction_id, reasons_fields_id], map: "reasons_field_entry_unique")
   @@index([reasons_fields_id], map: "fk_reasons_fields_id")
 }
 
@@ -185,7 +187,7 @@ model reason_emails {
   reason_email_id String   @id @db.VarChar(36)
   reason_id       String   @db.VarChar(36)
   email           String   @db.VarChar(200)
-  active          Boolean  @default(false)
+  active          Boolean  @default(true)
   created         DateTime @default(now()) @db.Timestamp(0)
   modified        DateTime @default(now()) @db.Timestamp(0)
   reasons         reasons  @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reason_emails_reason_id")
@@ -315,4 +317,17 @@ model user_invite_requests {
   organizations   organizations @relation(fields: [organization_id], references: [organization_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_invites_org_id")
 
   @@index([organization_id], map: "fk_invites_org_id")
+}
+
+model transaction_comments {
+  transaction_comment_id String       @id @db.VarChar(36)
+  transaction_id         String       @db.VarChar(36)
+  user_id                String       @db.VarChar(36)
+  comment                String       @db.Text
+  created                DateTime     @default(now()) @db.Timestamp(0)
+  modified               DateTime     @default(now()) @db.Timestamp(0)
+  active                 Boolean      @default(true)
+  transactions           transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaction_comments_transaction_id")
+
+  @@index([transaction_id], map: "fk_transaction_comments_transaction_id")
 }

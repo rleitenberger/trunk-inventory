@@ -59,7 +59,6 @@ export default function SyncItemsModal ({ sessionToken }: {
             const obj = JSON.parse(event.data);
             switch (obj.type){
                 case 'init':
-                    console.log(obj.data.itemCount)
                     setEstimatdTime(obj.data.estimatedTime);
                     setTransitionTime(`${obj.data.transitionTime / 1000}s`);
                     setLastSync({

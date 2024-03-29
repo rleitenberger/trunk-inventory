@@ -79,7 +79,6 @@ const startLoop = async(notify: Notify) => {
             const itemsToUpdate = currentBatch.filter((item: Item) => dbZiItemIds.includes(item.zi_item_id));
             updated += itemsToUpdate.length;
 
-            console.log(added, updated)
             await upsertBatch(itemsToAdd, itemsToUpdate, notify.organizationId);
             currentBatch = [];
         }

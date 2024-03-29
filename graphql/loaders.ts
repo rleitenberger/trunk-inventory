@@ -259,6 +259,31 @@ const batchUsers = async (userIds: any) => {
     return res;
 }
 
+const batchComments = async (transactionIds: any) => {
+    const comments = await prisma.transaction_comments.findMany({
+        where: {
+            AND: [
+                {
+                    transaction_id: { in: transactionIds },
+                    active: { equals: true },
+                }
+            ]
+        },
+    });
+
+    const commentsMap: any = {};
+    comments.forEach((comment) => {
+        if (!commentsMap[comment.transaction_id]) {
+            commentsMap[comment.transaction_id] = [];
+        }
+
+        commentsMap[comment.transaction_id].push(comment);
+    })
+
+    const res = transactionIds.map((id: string) => commentsMap[id] ?? []);
+    return res;
+}
+
 export const transactionLoader = new DataLoader(batchTransactions);
 export const reasonLoader = new DataLoader(batchReasons);
 export const locationLoader = new DataLoader(batchLocations);
@@ -272,3 +297,4 @@ export const transactionFieldEntriesLoader = new DataLoader(batchTransactionFiel
 export const fieldEntriesLoader = new DataLoader(batchFieldEntriesLoader);
 export const reasonEmailsLoader = new DataLoader(batchReasonEmails);
 export const userLoader = new DataLoader(batchUsers);
+export const commentLoader = new DataLoader(batchComments);

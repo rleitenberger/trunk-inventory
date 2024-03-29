@@ -236,3 +236,32 @@ export const updateUserRole = gql`
         updateUserRole(userId: $userId, organizationId: $organizationId, role: $role)
     }
 `;
+
+export const createComment = gql`
+    mutation createComment($transactionId: String!, $comment: String!) {
+        createComment(transactionId: $transactionId, comment: $comment) {
+            transaction_comment_id
+            comment
+            modified
+            user {
+                name
+            }
+        }
+    }
+`;
+
+export const updateComment = gql`
+    mutation updateComment($transactionCommentId: String!, $comment: String) {
+        updateComment(transactionCommentId: $transactionCommentId, comment: $comment) {
+            transaction_comment_id
+            comment
+            modified
+        }
+    }
+`;
+
+export const deleteComment = gql`
+    mutation deleteComment($transactionCommentId: String!) {
+        deleteComment(transactionCommentId: $transactionCommentId)
+    }
+`;

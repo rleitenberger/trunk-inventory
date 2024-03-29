@@ -1,5 +1,5 @@
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransactionType, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransactionComment, TransactionType, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
@@ -1317,6 +1317,48 @@ export const resolvers = {
             });
 
             return !location.active;
+        },
+        createComment: async(_:any, { transactionId, comment }:{
+            transactionId: string;
+            comment: string;
+        }, context: GQLContext) => {
+            return await prisma.transaction_comments.create({
+                data: {
+                    transaction_comment_id: randomUUID(),
+                    transaction_id: transactionId,
+                    comment: comment,
+                    user_id: context.userId ?? ''
+                }
+            });
+        },
+        updateComment: async(_: any, { transactionCommentId, comment }: {
+            transactionCommentId: string;
+            comment: string;
+        }, context: GQLContext) => {
+            return await prisma.transaction_comments.update({
+                where: {
+                    transaction_comment_id: transactionCommentId
+                },
+                data: {
+                    comment: comment,
+                    modified: new Date()
+                }
+            });
+        },
+        deleteComment: async(_: any, { transactionCommentId }: {
+            transactionCommentId: string;
+        }) => {
+            const deleted = await prisma.transaction_comments.update({
+                where: {
+                    transaction_comment_id: transactionCommentId
+                },
+                data: {
+                    active: false,
+                    modified: new Date()
+                }
+            });
+
+            return !deleted.active;
         }
     },
     Transaction: {
@@ -1337,6 +1379,9 @@ export const resolvers = {
         },
         created_by: async(parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.user.load(parent.created_by);
+        },
+        comments: async(parent: Transaction, args: any, context: GQLContext) => {
+            return context.loaders.comment.load(parent.transaction_id);
         }
     },
     Reason: {
@@ -1367,6 +1412,11 @@ export const resolvers = {
         },
         condition_type: async(parent: Condition, args: any, context:any) => {
             return context.loaders.conditionType.load(parent.condition_type_id);
+        }
+    },
+    TransactionComment: {
+        user: async(parent: TransactionComment, args: any, context: any) => {
+            return context.loaders.user.load(parent.user_id);
         }
     }
 }

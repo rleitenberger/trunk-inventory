@@ -96,6 +96,7 @@ export default function ExportTransactionCSVModal({ exportType, onShowModal }: {
         a.download = data.fileName;
         a.href = url;
 
+        
         a.click();
 
         URL.revokeObjectURL(url);

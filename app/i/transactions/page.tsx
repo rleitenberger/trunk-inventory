@@ -5,6 +5,7 @@ import AdminGuard from '@/components/auth/AdminGuard';
 import ItemSearch from '@/components/form/ItemSearch';
 import LocationSearch from '@/components/form/LocationSearch';
 import ExportTransactionCSVModal from '@/components/modal/ExportTransactionsCSVModal';
+import TransactionCommentsModal from '@/components/modal/TransactionCommentsModal';
 import useOrganization from '@/components/providers/useOrganization';
 import { getTransactions } from '@/graphql/queries';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
@@ -44,7 +45,7 @@ export default function PageTransactions() {
         paginationInput: {
             before: '',
             after: '',
-            take: 5,
+            take: 25,
         }
     });
 
@@ -477,10 +478,11 @@ export default function PageTransactions() {
                                 {node.reason?.reasons_fields?.length && (
                                     <>
                                         <div className='col-span-1 flex'>
-                                            <button className='ml-auto p-1 md:p-2 transition-all rounded-lg hover:bg-slate-300/40'
+                                            <TransactionCommentsModal comments={node.comments} transactionId={node.transaction_id} />
+                                            <button className='p-1 md:p-2 transition-all rounded-lg hover:bg-slate-300/40'
                                                 onClick={()=>{
                                                     updateShowDetails(node.transaction_id)
-                                                }} style={{
+                                                }} style={{ 
                                                     zIndex: 1
                                                 }}>
                                                 <FaCaretDown className={`${rotation}`} />
