@@ -108,11 +108,11 @@ export const resolvers = {
                 where: {
                     AND: [
                         { organization_id: { equals: organizationId } },
+                        { active: { equals: true } },
                         {
                             OR: [
                                 { name: search ? { contains: search } : undefined },
                                 { sku: search ? { contains: search } : undefined },
-                                { active: { equals: true } }
                             ]
                         },
                         cursorCondition
