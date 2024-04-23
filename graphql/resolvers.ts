@@ -111,7 +111,8 @@ export const resolvers = {
                         {
                             OR: [
                                 { name: search ? { contains: search } : undefined },
-                                { sku: search ? { contains: search } : undefined }
+                                { sku: search ? { contains: search } : undefined },
+                                { active: { equals: true } }
                             ]
                         },
                         cursorCondition
