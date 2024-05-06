@@ -78,7 +78,7 @@ const SelectSalesOrder = ({ customer, onChange, zohoOrgId, sessionToken, disable
                         return (
                             <button className="text-sm px-2 py-1 col-span-12 flex items-center gap-2" onClick={() => {
                                 updateSalesOrder(e)
-                            }}>
+                            }} key={e.salesorder_id}>
                                 <AiFillPlusCircle className="text-green-500" />
                                 <div>
                                     <p className="font-medium">{e.salesorder_number}</p>
