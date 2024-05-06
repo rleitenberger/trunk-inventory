@@ -27,7 +27,7 @@ type Query {
 }
 
 type Mutation {
-    createTransaction(orgId: String!, transferInput: TransferInput!, fieldEntries: [FieldsEntriesInput]!, transferType: String!): CreateTransactionResponse
+    createTransaction(orgId: String!, transferInput: TransferInput!, fieldEntries: [FieldsEntriesInput]!, transferType: String!, salesOrder: SalesOrderInput!): CreateTransactionResponse
     createOrganization(name: String!): Organization
     createItem(name: String!, sku: String, description: String): Item
     createUser(name: String!, email:String!, username:String!, password:String!): User
@@ -67,6 +67,12 @@ type Mutation {
     createComment(transactionId: String!, comment: String!): TransactionComment!
     updateComment(transactionCommentId: String!, comment: String): TransactionComment!
     deleteComment(transactionCommentId: String!): Boolean!
+}
+
+input SalesOrderInput {
+    salesorder_id: String
+    salesorder_number: String
+    shipping: Boolean!
 }
 
 type OrgUser {

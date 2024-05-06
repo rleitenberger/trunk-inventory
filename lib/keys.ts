@@ -2,7 +2,6 @@ import { ApiKey, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import prisma from "@/lib/prisma";
 
 export const addKeys = async (keys: ZohoInventoryApiKeys) => {
-    console.log('\n\n\n\n\n\n',keys,'\n\n\n\n\n');
     const res = await fetch(process.env.NEXTAUTH_URL + '/api/hello/keys', {
         method: 'POST',
         body: JSON.stringify({

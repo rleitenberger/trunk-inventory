@@ -9,8 +9,8 @@ export const createOrganization = gql`
 `;
 
 export const createTransaction = gql`
-    mutation createTransaction($orgId: String!, $transferInput: TransferInput!, $fieldEntries: [FieldsEntriesInput]!, $transferType: String!) {
-        createTransaction(orgId: $orgId, transferInput: $transferInput, fieldEntries: $fieldEntries, transferType: $transferType) {
+    mutation createTransaction($orgId: String!, $transferInput: TransferInput!, $fieldEntries: [FieldsEntriesInput]!, $transferType: String!, $salesOrder: SalesOrderInput!, $shipping: Boolean!) {
+        createTransaction(orgId: $orgId, transferInput: $transferInput, fieldEntries: $fieldEntries, transferType: $transferType, salesOrder: $salesOrder, shipping: shipping) {
             transactionId
             sentEmails
             accepted

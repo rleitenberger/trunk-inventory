@@ -6,6 +6,7 @@ import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
 import { GQLContext } from '@/types/queryTypes';
 import prisma from '@/lib/prisma';
+import { SalesOrderInput } from '@/types/formTypes';
 
 export const resolvers = {
     Query: {
@@ -813,11 +814,12 @@ export const resolvers = {
 
             return added;
         },
-        createTransaction: async (_:any, { orgId, transferInput, fieldEntries, transferType }: {
+        createTransaction: async (_:any, { orgId, transferInput, fieldEntries, transferType, salesOrder }: {
             orgId: string;
             transferInput: TransferInput;
             fieldEntries: FieldsEntriesInput[];
             transferType: string;
+            salesOrder: SalesOrderInput;
         }, context: GQLContext) => {
 
             if (!context.userId){
@@ -846,7 +848,9 @@ export const resolvers = {
                         item_id: transferInput.itemId,
                         reason_id: transferInput.reasonId,
                         transfer_type: transferType,
-                        created_by: context.userId
+                        created_by: context.userId,
+                        salesorder_id: salesOrder.salesorder_id,
+                        salesorder_number: salesOrder.salesorder_number
                     },
                     select:{ 
                         created: true,

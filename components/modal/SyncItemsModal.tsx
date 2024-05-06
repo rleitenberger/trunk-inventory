@@ -81,7 +81,6 @@ export default function SyncItemsModal ({ sessionToken }: {
                     break;
                 case 'i':
                     setCurrentCount(obj.data.current);
-                    console.log(progress, lastSync?.total_items, obj.data.current)
                     break;
                 case 'done':
                     setIsSyncing(false);
@@ -250,7 +249,7 @@ export default function SyncItemsModal ({ sessionToken }: {
                 </div>
                 <div className="flex py-2">
                     <button className="px-3 py-1 bg-blue-500 transition-colors rounded-lg hover:bg-blue-600 text-white outline-none ml-auto
-                        disabled:bg-blue-600 disabled:text-gray-300 flex items-center gap-2" disabled={isSyncing} onClick={sync}>
+                        disabled:bg-blue-600 disabled:text-gray-300 flex items-center gap-2" disabled={isSyncing} onClick={syncItemsFromZoho}>
                             {isSyncing ? (
                                 <>
                                     <BiSync className="--syncing text-lg" />

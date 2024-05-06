@@ -1,5 +1,6 @@
 import React from "react"
 import { Condition } from "./dbTypes"
+import { ZCustomer } from "./zohoTypes"
 
 export interface EditableTextArgs {
     label: string
@@ -35,4 +36,16 @@ export interface FieldEntry {
 export interface FieldEntryValue {
     field_name: string;
     value: string;
+}
+
+export type SalesOrderLinkKey = 'orgId'|'customer'|'salesOrder';
+
+export type SalesOrderLinkOptions = {
+    [key in SalesOrderLinkKey]: string|ZCustomer|null;
+}
+
+export interface SalesOrderInput {
+    salesorder_id: string|null;
+    salesorder_number: string|null;
+    organizationId: string;
 }

@@ -15,6 +15,7 @@ export const verifyZohoAuth = async (organizationId: string, sessionToken?: any)
         })
     });
 
+
     const json = await res.json();
 
     if (!json || json?.error){
@@ -40,7 +41,7 @@ export const verifyZohoAuth = async (organizationId: string, sessionToken?: any)
     const refreshToken = keys?.refresh_token;
     if (!refreshToken){
 
-        const scope = 'ZohoInventory.items.READ,ZohoInventory.settings.READ,ZohoInventory.compositeitems.READ';
+        const scope = 'ZohoInventory.items.READ,ZohoInventory.settings.READ,ZohoInventory.compositeitems.READ,ZohoBooks.salesorders.ALL,ZohoInventory.packages.ALL,ZohoBooks.contacts.READ,ZohoInventory.shipmentorders.ALL';
 
         const decryptedClientId = decrypt(keys.client_id, keys.iv);
         let redirectUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${scope}&client_id=${decryptedClientId}&response_type=code&redirect_uri=${REDIRECT}&access_type=offline`;

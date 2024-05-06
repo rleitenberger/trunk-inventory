@@ -49,11 +49,11 @@ export default function ZohoInventory () {
             setIsLoading(false);
 
 
-            if (json.updated){
-                const a = document.createElement('a');
-                a.href='/i/admin/items';
-                a.click();
-            }
+            // if (json.updated){
+            //     const a = document.createElement('a');
+            //     a.href='/i/admin/items';
+            //     a.click();
+            // }
         }
 
         getTokens();

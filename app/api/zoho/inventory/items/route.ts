@@ -45,7 +45,6 @@ const startLoop = async(notify: Notify) => {
     const dbZiItemIds = await dbItemsRes.json();
 
     if (dbZiItemIds?.error){
-        console.log('no items', dbZiItemIds)
     }
 
     let hasMore = true;

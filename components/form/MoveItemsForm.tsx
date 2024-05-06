@@ -13,7 +13,7 @@ import LocationSearch from '@/components/form/LocationSearch';
 import Loader from '@/components/Loader';
 import { HiOutlineArrowNarrowDown, HiOutlineArrowNarrowRight } from 'react-icons/hi';
 import { DropDownSearchOption } from '@/types/DropDownSearchOption';
-import { FieldEntry, FieldEntryValue, TransferType } from '@/types/formTypes';
+import { FieldEntry, FieldEntryValue, SalesOrderInput, TransferType } from '@/types/formTypes';
 import { moveDefaults } from '@/lib/defaultValues';
 import DynamicForm from '@/components/form/DynamicForm';
 import { TransactionResponse } from '@/types/responses';
@@ -22,13 +22,35 @@ import BoxTimer from '@/components/form/BoxTimer';
 import Head from 'next/head';
 import useOrganization from '@/components/providers/useOrganization';
 import { toast } from 'react-toastify';
+import LinkToSalesOrder from '../zoho/LinkToSalesOrder';
+import { useSession } from 'next-auth/react';
+import type { ZLineItem, ZPackage, ZSalesOrder, ZShipment, ZohoApiResponse } from '@/types/zohoTypes';
+import { useIsAdmin } from '../providers/IsAdminProvider';
 
 export default function MoveItemsForm({ transferType }: {
     transferType: TransferType
 }) {
+
+    const [zohoShipLogs, setZohoShipLogs] = useState<string[]>([]);
+    const addShipLog = (msg: string): void => {
+        setZohoShipLogs((prev: string[]): string[] => {
+            return [...prev, msg];
+        })
+    }
+    
+    const { data: session } = useSession();
+
     const [fieldValues, setFieldValues] = useState<FieldEntryValue[]>([]);
     const client = useApolloClient();
     const { organizationId, count, loading } = useOrganization();
+
+    const [salesOrder, setSalesOrder] = useState<SalesOrderInput>({
+        salesorder_id: null,
+        salesorder_number: null,
+        organizationId: ''
+    });
+
+    const [shipping, setShipping] = useState<boolean>(false);
 
     const [transferOptions, setTransferOptions] = useState<TransferOptions<DropDownSearchOption>>(moveDefaults[transferType]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -107,20 +129,151 @@ export default function MoveItemsForm({ transferType }: {
             transferInput: {
                 ...vals
             },
-            fieldEntries: fieldValues
+            fieldEntries: fieldValues,
+            salesOrder: {
+                salesorder_id: salesOrder.salesorder_id,
+                salesorder_number: salesOrder.salesorder_number
+            },
+            shipping: shipping,
         };
 
-        const { data } = await client.mutate({
-            mutation: createTransaction,
-            variables: variables
-        });
+        if (false) {
+            const { data } = await client.mutate({
+                mutation: createTransaction,
+                variables: variables
+            });
+    
+            if (!data?.createTransaction) {
+                return;
+            }
+            setTransactionResponse(data?.createTransaction);
+        }
 
-        if (!data?.createTransaction) {
+        if (shipping){
+            await shipItem()
+        }
+    }
+
+    const shipItem = async() => {
+        if (transferOptions.qty.value <= 0){
+            toast.error('Cannot pack and ship to zoho if qty <= 0.')
+            return;   
+        }
+
+        //check sales order for item id
+        const res = await fetch(`/api/zoho/books/salesorders?action=getItems&organization_id=${salesOrder.organizationId}&orgId=${organizationId}&salesOrderId=${salesOrder.salesorder_id}&sessionToken=${session?.user.sessionToken}&itemId=${transferOptions.itemId.value}`);
+        const data = await res.json();
+
+        if (!data.zItemId){
+            toast.error('This item is not currently tracked. Sync items from zoho and try again.');
             return;
         }
 
-        setTransactionResponse(data?.createTransaction);
+        const { line_items } = data as { line_items: ZLineItem[] };
+        if (!line_items) {
+            toast.error('No line_items found in response. Please try again later.');
+            return;
+        }
+
+        const exists = line_items.map((e: ZLineItem) => e.item_id).indexOf(data.zItemId);
+
+        if (exists === -1) {
+            //create item
+            
+            line_items.push({
+                item_order: line_items.length - 1,
+                item_id: data.zItemId,
+                quantity: transferOptions.qty.value,
+            });
+        } else {
+            line_items[exists].quantity += transferOptions.qty.value;
+        }
+
+        const updatedItems = await fetch(`/api/zoho/books/salesorders?action=updateItems&organization_id=${salesOrder.organizationId}&orgId=${organizationId}&sessionToken=${session?.user.sessionToken}&salesOrderId=${salesOrder.salesorder_id}&zi_item_id=${data.zItemId}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                line_items: line_items.map((e: ZLineItem) => {
+                    const args = {
+                        item_id: e.item_id,
+                        rate: e.rate,
+                        name: e.name,
+                        description: e.description,
+                        quantity: e.quantity,
+                        discount: e.discount,
+                        tax_id: e.tax_id,
+                        unit: e.unit,
+                        item_custom_fields: e.item_custom_fields,
+                        tax_exemption_id: e.tax_exemption_id,
+                        tax_exemption_code: e.tax_exemption_code,
+                        project_id: e.project_id,
+                        warehouse_id: e.warehouse_id,
+                    } as ZLineItem;
+
+                    if (e.line_item_id){
+                        args.line_item_id = e.line_item_id;
+                    }
+
+                    return args;
+                })
+            })
+        });
+
+        const itemsUpdated = await updatedItems.json() as ZohoApiResponse<ZSalesOrder> & {
+            lineItemId: string;
+        };
+
+        if (itemsUpdated.code !== 0){
+            toast.error(itemsUpdated.message);
+            return;
+        }
+
+        addShipLog(`${transferOptions.qty.value} items added to ${salesOrder.salesorder_number}`);
+
+        const createPackage = await fetch(`/api/zoho/books/salesorders?action=createPackage&organization_id=${salesOrder.organizationId}&orgId=${organizationId}&salesOrderId=${salesOrder.salesorder_id}&sessionToken=${session?.user.sessionToken}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                lineItemId: itemsUpdated.lineItemId,
+                qty: transferOptions.qty.value,
+                salesOrderId: salesOrder.salesorder_id,
+            }),
+        });
+        const createPackageRes = await createPackage.json() as ZohoApiResponse<ZPackage> & {
+            package: ZPackage;
+        };
+
+        if (createPackageRes.code !== 0){
+            toast.error(createPackageRes.message);
+            return;
+        }
+
+        const { package_id, package_number, customer_id } = createPackageRes.package;
+        addShipLog(`Package ${package_number} was created`);
+
+        const createShipment = await fetch(`/api/zoho/books/salesorders?action=createShipment&organization_id=${salesOrder.organizationId}&orgId=${organizationId}&sessionToken=${session?.user.sessionToken}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                packageId: package_id,
+                salesOrderId: salesOrder.salesorder_id,
+                deliveryMethod: 'Delivered',
+            })
+        });
+
+        const createShipmentRes = await createShipment.json() as ZohoApiResponse<ZShipment> & {
+            shipmentorder: ZShipment;
+        };
+
+        if (createShipmentRes.code !== 0){
+            toast.error(createShipmentRes.message);
+            return;
+        }
+
+        const { shipment_id, shipment_number } = createShipmentRes;
+        addShipLog(`Shipment ${shipment_number} was created.`);
+
     }
+
+    
+    const isAdmin = useIsAdmin();
 
     useEffect(() => {
 
@@ -264,6 +417,24 @@ export default function MoveItemsForm({ transferType }: {
 
         return reasons[idx]?.description;
     }, [transferOptions.reasonId]);
+
+    const onSalesOrderChange = (salesOrder: SalesOrderInput): void => {
+        setSalesOrder((prev) => {
+            if (!salesOrder.organizationId){
+                return {
+                    ...prev,
+                    salesorder_id: salesOrder.salesorder_id,
+                    salesorder_number: salesOrder.salesorder_number
+                };
+            }
+
+            return salesOrder;
+        });
+    }
+
+    const onShippingChange = (ship: boolean): void => {
+        setShipping(ship);
+    }
     
     return (
         <>
@@ -348,6 +519,9 @@ export default function MoveItemsForm({ transferType }: {
                     <DynamicForm requiredFields={requiredFields} onChange={updateDynamicField} />
 
                 </div>
+                {(transferType === 'pull' && isAdmin) && (
+                    <LinkToSalesOrder onSalesOrderChange={onSalesOrderChange} onShippingChange={onShippingChange} />
+                )}
                 <div>
                     <button className=' bg-blue-500 transition-colors hover:bg-blue-600 flex items-center gap-2
                     text-sm text-white px-4 py-2 rounded-lg duration-100' onClick={transferItem}>

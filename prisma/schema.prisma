@@ -107,6 +107,8 @@ model transactions {
   transfer_type                                   String                  @db.VarChar(10)
   created                                         DateTime                @default(now()) @db.Timestamp(0)
   created_by                                      String                  @db.VarChar(36)
+  salesorder_id                                   String?                 @db.VarChar(255)
+  salesorder_number                               String?                 @db.VarChar(20)
   reasons_fields_entries                          reasons_fields_entries?
   transaction_comments                            transaction_comments[]
   user                                            user                    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_created_by")

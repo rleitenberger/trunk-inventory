@@ -41,54 +41,58 @@ const handleDataAndSendEmail = async (data: any) => {
     const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
     const time = formattedHours + ':' + formattedMinutes + ' ' + ampm;
 
-    const sent = await sendEmail({
+    let details = [
+        {
+            key: 'Transaction ID',
+            value: transaction.id
+        },
+        {
+            key: 'Transaction Type',
+            value: type
+        },
+        {
+            key: 'From',
+            value: locations.from
+        },
+        {
+            key: 'To',
+            value: locations.to
+        },
+        {
+            key: 'Item',
+            value: item.name || '[No SKU set]'
+        },
+        {
+            key: 'SKU',
+            value: item.sku
+        },
+        {
+            key: 'Quantity',
+            value: item.qty
+        },
+        {
+            key: 'Date',
+            value: date
+        },
+        {
+            key: 'Time',
+            value: time
+        },
+        {
+            key:'Reason',
+            value: reason.name
+        },
+    ];
+
+    let args = {
         to: emails,
         subject: undefined,
-        details: [
-            {
-                key: 'Transaction ID',
-                value: transaction.id
-            },
-            {
-                key: 'Transaction Type',
-                value: type
-            },
-            {
-                key: 'From',
-                value: locations.from
-            },
-            {
-                key: 'To',
-                value: locations.to
-            },
-            {
-                key: 'Item',
-                value: item.name || '[No SKU set]'
-            },
-            {
-                key: 'SKU',
-                value: item.sku
-            },
-            {
-                key: 'Quantity',
-                value: item.qty
-            },
-            {
-                key: 'Date',
-                value: date
-            },
-            {
-                key: 'Time',
-                value: time
-            },
-            {
-                key:'Reason',
-                value: reason.name
-            },
-        ],
+        details: details,
         fields: fields,
         url: transaction.url
-    });
+    };
+
+    const sent = true//await sendEmail(args);
 
     return sent;
 }

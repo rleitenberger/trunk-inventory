@@ -96,7 +96,6 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
             
             encode: async (params): Promise<string> => {
 
-                console.log('###########################################\n\n\n\nENCODE\n', params);
                 if (context.params.nextauth.includes('callback') &&
                     context.params.nextauth.includes('credentials')) {
                     const cookie = cookies().get('next-auth.session-token');
@@ -114,8 +113,6 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
             },
             decode: async (args: JWTDecodeParams): Promise<JWT|null> => {
                 const {token, secret} = args;
-                console.log('###########################################\n\n\n\nDECODE\n', args);
-                console.log('CONTEXT', context)
                 if (context.params.nextauth.includes('callback') &&
                     context.params.nextauth.includes('credentials')) {
                     return null;
