@@ -137,17 +137,15 @@ export default function MoveItemsForm({ transferType }: {
             shipping: shipping,
         };
 
-        if (false) {
-            const { data } = await client.mutate({
-                mutation: createTransaction,
-                variables: variables
-            });
-    
-            if (!data?.createTransaction) {
-                return;
-            }
-            setTransactionResponse(data?.createTransaction);
+        const { data } = await client.mutate({
+            mutation: createTransaction,
+            variables: variables
+        });
+
+        if (!data?.createTransaction) {
+            return;
         }
+        setTransactionResponse(data?.createTransaction);
 
         if (shipping){
             await shipItem()
