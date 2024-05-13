@@ -19,3 +19,14 @@ export interface GQLContext {
     userId: string|null;
     db?: PrismaClient;
 }
+
+export interface UpdateTransactionArgs {
+    transactionId: string;
+    from: string;
+    to: string;
+    qty: number;
+    item: string;
+    transferType: string;
+    salesorder_number?: string|null;
+    salesorder_id?: string|null;
+}

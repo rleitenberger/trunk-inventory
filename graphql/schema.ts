@@ -13,6 +13,7 @@ type Query {
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
     getTransactionType(organizationId: String!, slug: String!): TransactionType
     getReasons(transactionTypeId: String!): [Reason]!
+    getTransaction(transactionId: String!): Transaction
     getTransactions(transactionInput: TransactionInput!, paginationInput: PaginationInput!): TransactionConnection!
     getItemsAtLocation(locationId: String, itemId: String, search: String, first: Int, after: String, includeNegative: Boolean): LocationItemConnection!
     getTransactionTypes(organizationId: String): [TransactionType]!
@@ -28,6 +29,8 @@ type Query {
 
 type Mutation {
     createTransaction(orgId: String!, transferInput: TransferInput!, fieldEntries: [FieldsEntriesInput]!, transferType: String!, salesOrder: SalesOrderInput!): CreateTransactionResponse
+    updateTransaction(args: UpdateTransactionInput!): Transaction
+    
     createOrganization(name: String!): Organization
     createItem(name: String!, sku: String, description: String): Item
     createUser(name: String!, email:String!, username:String!, password:String!): User
@@ -400,6 +403,15 @@ type TransactionComment {
     created: String!
     modified: String!
     active: Boolean!
+}
+
+input UpdateTransactionInput {
+    transactionId: String!
+    from: String!
+    to: String!
+    item: String!
+    qty: Int!
+    transferType: String!
 }
 
 `;

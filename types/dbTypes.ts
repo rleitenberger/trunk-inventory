@@ -15,6 +15,20 @@ export interface Transaction {
     created_by: string;
 }
 
+export interface GetTransaction {
+    transaction_id: string;
+    created: string;
+    from_location: Location;
+    to_location: Location;
+    reason: Reason;
+    item: Item;
+    qty: number;
+    transfer_type: string;
+    created_by: User;
+    comments: TransactionComment[];
+    salesorder_number: string|null;
+}
+
 export interface TransactionEdge {
     node: TransactionClient;
 }

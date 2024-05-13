@@ -157,6 +157,56 @@ export const getTransactions = gql`
     }
 `;
 
+export const getTransaction = gql`
+    query getTransaction($transactionId: String!) {
+        getTransaction(transactionId: $transactionId) {
+            transaction_id
+            created
+            from_location {
+                name
+                location_id
+            }
+            to_location {
+                name
+                location_id
+            }
+            reason {
+                reason_id
+                name
+                description
+                reasons_fields {
+                    reasons_fields_id
+                    field_name
+                }
+            }
+            item {
+                item_id
+                name
+                sku
+            }
+            qty
+            transfer_type
+            entries {
+                reasons_fields_id
+                field_value
+            }
+            created_by {
+                id
+                name
+            }
+            comments {
+                transaction_comment_id
+                comment
+                modified
+                user {
+                    name
+                }
+            }
+            salesorder_number
+        }
+    }
+`;
+
 export const getItemsAtLocation = gql`
     query getItemsAtLocation($locationId: String, $itemId: String, $search: String, $first: Int, $after: String, $includeNegative: Boolean) {
         getItemsAtLocation(locationId: $locationId, itemId: $itemId, search: $search, first: $first, after: $after, includeNegative: $includeNegative) {

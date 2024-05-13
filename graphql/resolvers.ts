@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
-import { GQLContext } from '@/types/queryTypes';
+import { GQLContext, UpdateTransactionArgs } from '@/types/queryTypes';
 import prisma from '@/lib/prisma';
 import { SalesOrderInput } from '@/types/formTypes';
 
@@ -265,6 +265,15 @@ export const resolvers = {
             };
 
             return transactionConnection;
+        },
+        getTransaction: async(_: any, { transactionId }: {
+            transactionId: string;
+        }, ctx: GQLContext) => {
+            return await prisma.transactions.findFirst({
+                where: {
+                    transaction_id: { equals: transactionId }
+                }
+            });
         },
         getItemsAtLocation: async (_: any, { locationId, itemId, search, first, after, last, before, includeNegative } : {
             locationId?: string;
@@ -1020,6 +1029,111 @@ export const resolvers = {
             }
 
             return ret;
+        },
+        updateTransaction: async(_: any, { args }: {
+            args: UpdateTransactionArgs;
+        }, ctx: GQLContext) => {
+            const transaction = await prisma.transactions.findFirst({
+                where: {
+                    transaction_id: { equals: args.transactionId },
+                }
+            });
+
+            console.log(transaction)
+
+            if (!transaction) {
+                return //
+            }
+
+            //update old from qty
+            const updateOldFrom = await prisma.locations_items_qty.update({
+                where: {
+                    location_id_item_id: {
+                        location_id: transaction.from_location,
+                        item_id: transaction.item_id,
+                    }
+                },
+                data: {
+                    qty: {
+                        increment: transaction.qty - args.qty
+                    }
+                }
+            })
+
+            //alter from qty if necessary
+            if (args.from !== transaction.from_location) {
+                await prisma.locations_items_qty.upsert({
+                    where: {
+                        location_id_item_id: {
+                            location_id: args.from,
+                            item_id: args.item
+                        }
+                    },
+                    create: {
+                        location_id: args.from,
+                        item_id: transaction.item_id,
+                        qty: args.qty * -1,
+                    },
+                    update: {
+                        qty: {
+                            decrement: args.qty,
+                        }
+                    }
+                });
+            }
+
+            //update old to location
+            const updateOldTo = await prisma.locations_items_qty.update({
+                where: {
+                    location_id_item_id: {
+                        location_id: transaction.to_location,
+                        item_id: transaction.item_id,
+                    }
+                },
+                data: {
+                    qty: {
+                        decrement: transaction.qty - args.qty,
+                    }
+                }
+            });
+
+            if (args.to !== transaction.to_location) {
+                await prisma.locations_items_qty.upsert({
+                    where: {
+                        location_id_item_id: {
+                            location_id: args.to,
+                            item_id: args.item,
+                        }
+                    },
+                    create: {
+                        location_id: args.to,
+                        item_id: args.item,
+                        qty: args.qty,
+                    },
+                    update: {
+                        qty: {
+                            increment: args.qty,
+                        }
+                    }
+                });
+            }
+
+            const update = await prisma.transactions.update({
+                where: {
+                    transaction_id: args.transactionId,
+                },
+                data: {
+                    transfer_type: args.transferType,
+                    qty: args.qty,
+                    item_id: args.item,
+                    from_location: args.from,
+                    to_location: args.to,
+                    salesorder_id: args.salesorder_id,
+                    salesorder_number: args.salesorder_number,
+                }
+            });
+
+            return update;
         },
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string

@@ -19,6 +19,14 @@ export const createTransaction = gql`
     }
 `;
 
+export const updateTransaction = gql`
+    mutation updateTransaction($args: UpdateTransactionInput!) {
+        updateTransaction(args: $args) {
+            transaction_id
+        }
+    }
+`;
+
 export const updateReasonName = gql`
     mutation updateReasonName($reasonId: String!, $newName: String!) {
         updateReasonName(reasonId: $reasonId, newName: $newName)
