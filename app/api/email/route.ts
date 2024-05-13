@@ -92,7 +92,7 @@ const handleDataAndSendEmail = async (data: any) => {
         url: transaction.url
     };
 
-    const sent = true// await sendEmail(args);
+    const sent = await sendEmail(args);
 
     return sent;
 }
