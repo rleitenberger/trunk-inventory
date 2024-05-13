@@ -132,7 +132,8 @@ export default function MoveItemsForm({ transferType }: {
             fieldEntries: fieldValues,
             salesOrder: {
                 salesorder_id: salesOrder.salesorder_id,
-                salesorder_number: salesOrder.salesorder_number
+                salesorder_number: salesOrder.salesorder_number,
+                shipping: true,
             },
             shipping: shipping,
         };

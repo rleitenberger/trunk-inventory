@@ -143,6 +143,7 @@ export const getTransactions = gql`
                             name
                         }
                     }
+                    salesorder_number
                 }
             }
             pageInfo {

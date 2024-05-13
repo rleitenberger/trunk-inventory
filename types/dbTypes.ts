@@ -32,6 +32,8 @@ export interface TransactionClient {
     entries?: ReasonsFieldsEntry[];
     expanded?: boolean;
     comments: TransactionComment[];
+    salesorder_id?: string|null;
+    salesorder_number?: string|null;
 }
 
 export interface Item {

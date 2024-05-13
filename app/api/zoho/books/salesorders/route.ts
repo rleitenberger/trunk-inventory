@@ -120,6 +120,41 @@ export const POST = async(req: NextRequest) => {
     const body = await req.json();
 
     switch (action) {
+        case 'create':
+            const soDate = formatDate();
+
+            const soItemId = body.itemId;
+            const soQty = body.qty;
+            const customerId = body.customerId;
+
+            const CREATE_SO_URL = `https://www.zohoapis.com/inventory/v1/salesorders?organization_id=${zohoOrgId}`;
+            const createSO = await fetch(CREATE_SO_URL, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    date: soDate,
+                    line_items: [{
+                        item_id: soItemId,
+                        quantity: soQty
+                    }]
+                }),
+            });
+
+            try {
+                const createSORes = await createSO.json() as ZohoApiResponse<ZSalesOrder>;
+                if(createSORes.code !== 0){
+                    return Response.json({
+                        error: createSORes.message
+                    });
+                }
+
+                return Response.json(createSORes);
+            } catch(e: any) {
+                return Response.json({
+                    error: 'Error:' + e
+                });
+            }
         case 'createPackage':
             const formattedDate = formatDate();
 

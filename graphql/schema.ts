@@ -236,6 +236,8 @@ type Transaction {
     entries: [ReasonsFieldsEntry]!
     created_by: User!
     comments: [TransactionComment]!
+    salesorder_id: String
+    salesorder_number: String
 }
 
 type TransactionConnection {

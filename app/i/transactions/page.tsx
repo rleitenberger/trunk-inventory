@@ -490,7 +490,9 @@ export default function PageTransactions() {
                                         </div>
                                         <div className={`${detailsHeight} transition-all overflow-hidden col-span-12`}>
                                             <div className=''>
-                                            <p className='font-medium'>Fields</p>
+                                            {!!node.salesorder_number && (
+                                                <p>Sales Order: {node.salesorder_number}</p>
+                                            )}
                                                 {node.reason?.reasons_fields?.map(r => {
                                                     const entry = entries?.map(e => e.reasons_fields_id).indexOf(r.reasons_fields_id);
                                                     const value = entries[entry]?.field_value;
