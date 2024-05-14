@@ -199,8 +199,27 @@ export default function PageInventory() {
         return locationId;
     }
 
+    const handleScroll = () => {
+        const bottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
+        console.log('hi')
+        if (bottom) {
+            console.log('wecl')
+            //load more pages
+        }
+    }
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll, {
+            passive: true,
+        });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
+
     return (
-        <>
+        <div className='h' onScroll={handleScroll}>
             <div className="flex items-center gap-2">
                 <h1 className='text-xl font-medium'>Inventory</h1>
                 <div className="ml-auto">
@@ -320,6 +339,6 @@ export default function PageInventory() {
                 </div>
             )}
 
-        </>
+        </div>
     )
 }
