@@ -8,9 +8,10 @@ import SearchCustomers from "./SearchCustomers";
 import SelectSalesOrder from "./SelectSalesOrder";
 import { ZCustomer, ZSalesOrder } from "@/types/zohoTypes";
 
-const LinkToSalesOrder = ({ onSalesOrderChange, onShippingChange }: {
+const LinkToSalesOrder = ({ onSalesOrderChange, onShippingChange, canShip=true }: {
     onSalesOrderChange: (salesOrder: SalesOrderInput) => void;
     onShippingChange: (shipping: boolean) => void;
+    canShip: boolean
 }) => {
     const [options, setOptions] = useState<SalesOrderLinkOptions>({
         orgId: '',
@@ -36,7 +37,6 @@ const LinkToSalesOrder = ({ onSalesOrderChange, onShippingChange }: {
     const updateIsShipping = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { checked } = e.target;
         setIsShipping(checked);
-
         onShippingChange(checked);
     }
 
@@ -44,28 +44,30 @@ const LinkToSalesOrder = ({ onSalesOrderChange, onShippingChange }: {
         <div className="px-3 py-2 border border-slate-300 rounded-lg">
             <p className="text-xs uppercase font-medium text-slate-500">Link to sales order</p>
             <div className="grid grid-cols-12 gap-3">
-                <div className="col-span-12 sm:col-span-6 md:col-span-4">
+                <div className="col-span-12 sm:col-span-6">
                     <SelectZohoOrg sessionToken={session?.user.sessionToken} onChange={(orgId: string) => {
                         onChange('orgId', orgId)
                     }} />
                 </div>
-                <div className="col-span-12 sm:col-span-6 md:col-span-4">
+                <div className="col-span-12 sm:col-span-6">
                     <SearchCustomers sessionToken={session?.user.sessionToken} onChange={(customer: ZCustomer) => {
                         onChange('customer', customer)
                     }} disabled={!options.orgId} orgId={options.orgId as string} />
                 </div>
-                <div className="col-span-12 sm:col-span-6 md:col-span-4">
+                <div className="col-span-12 sm:col-span-6">
                     <SelectSalesOrder sessionToken={session?.user.sessionToken} onChange={(salesOrder: SalesOrderInput) => {
                         onChange('salesOrder', salesOrder)
                     }} customer={options.customer as ZCustomer} disabled={!options.customer} zohoOrgId={options.orgId as string} />
                 </div>
             </div>
-            <div>
-                <div className="flex items-center gap-2 my-2">
-                    <input type="checkbox" checked={isShipping} onChange={updateIsShipping} />
-                    <p className="text-sm">Create package & shipment in Zoho Inventory</p>
+            {canShip && (
+                <div>
+                    <div className="flex items-center gap-2 my-2">
+                        <input type="checkbox" checked={isShipping} onChange={updateIsShipping} />
+                        <p className="text-sm">Create package & shipment in Zoho Inventory</p>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

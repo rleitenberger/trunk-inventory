@@ -3,6 +3,7 @@ import { ZohoAuthResponse } from "@/types/responses";
 import { ZLineItem, ZSalesOrder, ZohoApiResponse } from "@/types/zohoTypes";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { formatDate } from "@/lib/util";
 
 export const GET = async(req: NextRequest) => {
     const { searchParams } = new URL(req.url);
@@ -224,12 +225,4 @@ export const POST = async(req: NextRequest) => {
                 lineItemId: lineItemId
             });
     }
-}
-
-const formatDate = (): string => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
 }

@@ -42,7 +42,8 @@ export const authOptions: (context: RouteHandlerContext) => NextAuthOptions = (c
                     return null;
                 }
 
-                const compare = compareBcrypt(credentials?.password, user?.password);
+
+                const compare = await compareBcrypt(credentials?.password, user?.password);
                 if (!compare){
                     return null;
                 }

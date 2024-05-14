@@ -93,8 +93,8 @@ const SearchCustomers = ({ onChange, sessionToken, disabled, orgId }: {
             </Modal>
             <label className="text-xs">Customer</label>
             <div className="flex items-center gap-2">
-                <input type='text' onChange={updateQuery} className='px-2 py-1 text-sm flex-1 rounded-lg
-                    border border-slate-300 outline-none' placeholder="Company or customer name" onKeyDown={onKeyDown} />
+                <input type='text' onChange={updateQuery} className='px-2 py-1 text-sm rounded-lg
+                    border border-slate-300 outline-none min-w-2 flex-1' placeholder="Company or customer name" onKeyDown={onKeyDown} />
                 <button className="px-2 py-1 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors" onClick={searchCustomers}>
                     {searching ? (
                         <div><Loader size="sm" /></div>

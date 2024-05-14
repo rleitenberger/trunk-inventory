@@ -1,12 +1,11 @@
+import { hash, compare } from "bcrypt";
 
 export const hashBcrypt = async (password: string) => {
-    const bcrypt = require('bcrypt');
     const rounds = 10;
 
-    return await bcrypt.hash(password, rounds);
+    return await hash(password, 10);
 }
 
 export const compareBcrypt = async (password: string, hash: string) => {
-    const bcrypt = require('bcrypt');
-    return await bcrypt.compare(password, hash);
+    return await compare(password, hash);
 }

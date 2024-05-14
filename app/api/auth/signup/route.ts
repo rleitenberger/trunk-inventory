@@ -5,6 +5,7 @@ import { hashBcrypt } from "@/lib/bcrypt";
 import { common } from "@/lib/common";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { randomUUID } from "crypto";
 
 const handler = async(req: NextRequest) => {
     try {
@@ -45,7 +46,7 @@ const handler = async(req: NextRequest) => {
 
         const user = await prisma.user.create({
             data: {
-                id: common.createUUID(),
+                id: randomUUID(),
                 name: name,
                 email: email.toLowerCase(),
                 username: username.toLowerCase(),
@@ -123,7 +124,7 @@ const handler = async(req: NextRequest) => {
         });
 
     } catch (e) {
-
+        console.log(e);
     }
 
     return Response.json({ error: 'impossible '});

@@ -1,10 +1,10 @@
 import type { Edge, Connection, ItemArgs, TransactionArgs } from '@/types/paginationTypes';
-import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransactionComment, TransactionType, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
+import type { Condition, ConditionInput, FieldsEntriesInput, Item, Location, LocationItem, Reason, ReasonEmail, ReasonsFields, ReasonsFieldsEntry, Transaction, TransactionComment, TransactionType, TransactionUpdate, TransferInput, User, ZohoClientKeys, ZohoInventoryApiKeys } from "@/types/dbTypes";
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { decrypt, encrypt } from '@/lib/keys';
 import crypto from 'crypto';
-import { GQLContext, UpdateTransactionArgs } from '@/types/queryTypes';
+import { GQLContext, TransactionUpdateLog, UpdateTransactionArgs } from '@/types/queryTypes';
 import prisma from '@/lib/prisma';
 import { SalesOrderInput } from '@/types/formTypes';
 
@@ -1036,17 +1036,29 @@ export const resolvers = {
             const transaction = await prisma.transactions.findFirst({
                 where: {
                     transaction_id: { equals: args.transactionId },
+                },
+                include: {
+                    locations_transactions_from_locationTolocations: true,
+                    locations_transactions_to_locationTolocations: true,
                 }
             });
-
-            console.log(transaction)
 
             if (!transaction) {
                 return //
             }
 
+            const updates: TransactionUpdateLog = {
+                qty: [transaction.qty],
+                from: [transaction.locations_transactions_from_locationTolocations.name],
+                to: [transaction.locations_transactions_to_locationTolocations.name],
+            };
+
+            if (args.qty !== transaction.qty){
+                updates.qty.push(args.qty as never);
+            }
+
             //update old from qty
-            const updateOldFrom = await prisma.locations_items_qty.update({
+            await prisma.locations_items_qty.update({
                 where: {
                     location_id_item_id: {
                         location_id: transaction.from_location,
@@ -1058,10 +1070,18 @@ export const resolvers = {
                         increment: transaction.qty - args.qty
                     }
                 }
-            })
+            });
 
             //alter from qty if necessary
             if (args.from !== transaction.from_location) {
+                const newFromLocation = await prisma.locations.findFirst({
+                    where: { location_id: { equals: args.from } }
+                });
+
+                if (newFromLocation){
+                    updates.from.push(newFromLocation.name as never);
+                }
+
                 await prisma.locations_items_qty.upsert({
                     where: {
                         location_id_item_id: {
@@ -1083,7 +1103,7 @@ export const resolvers = {
             }
 
             //update old to location
-            const updateOldTo = await prisma.locations_items_qty.update({
+            await prisma.locations_items_qty.update({
                 where: {
                     location_id_item_id: {
                         location_id: transaction.to_location,
@@ -1098,6 +1118,14 @@ export const resolvers = {
             });
 
             if (args.to !== transaction.to_location) {
+                const newToLocation = await prisma.locations.findFirst({
+                    where: { location_id: { equals: args.to } }
+                });
+
+                if (newToLocation){
+                    updates.to.push(newToLocation.name as never);
+                }
+
                 await prisma.locations_items_qty.upsert({
                     where: {
                         location_id_item_id: {
@@ -1132,8 +1160,91 @@ export const resolvers = {
                     salesorder_number: args.salesorder_number,
                 }
             });
+            
+            if (updates.qty.length !== 1 || updates.from.length !== 1 || updates.to.length !== 1) {
+                await prisma.transaction_updates.create({
+                    data: {
+                        transaction_update_id: randomUUID(),
+                        update_type: 'update',
+                        changes: JSON.stringify(updates),
+                        user_id: ctx.userId ?? '',
+                        transaction_id: transaction.transaction_id,
+                    }
+                });
+            }
 
             return update;
+        },
+        deleteTransaction: async (_: any, { transactionId }: {
+            transactionId: string
+        }, ctx: GQLContext) => {
+            const t = await prisma.transactions.findFirst({
+                where: { transaction_id: { equals: transactionId } }
+            });
+
+            if (!t) {
+                return false;
+            }
+
+            const { from_location, to_location, item_id, qty } = t;
+
+            //update item qties
+            await prisma.$transaction([
+                prisma.locations_items_qty.upsert({
+                    where: {
+                        location_id_item_id: {
+                            location_id: from_location,
+                            item_id: item_id,
+                        }
+                    },
+                    update: {
+                        qty: {
+                            increment: qty,
+                        }
+                    },
+                    create: {
+                        location_id: from_location,
+                        item_id: item_id,
+                        qty: qty,
+                    }
+                }),
+                prisma.locations_items_qty.upsert({
+                    where: {
+                        location_id_item_id: {
+                            location_id: to_location,
+                            item_id: item_id,
+                        },
+                    },
+                    update: {
+                        qty: {
+                            decrement: qty,
+                        }
+                    },
+                    create: {
+                        location_id: from_location,
+                        item_id: item_id,
+                        qty: -1 * qty,
+                    }
+                }),
+            ]);
+
+            await prisma.transaction_updates.create({
+                data: {
+                    transaction_update_id: randomUUID() as string,
+                    transaction_id: transactionId,
+                    user_id: ctx.userId ?? '',
+                    changes: JSON.stringify({
+                        action: 'delete',
+                    }),
+                    update_type: 'delete',
+                }
+            });
+
+            const rmv = await prisma.transactions.delete({
+                where: { 
+                    transaction_id: transactionId
+                }
+            })
         },
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string
@@ -1501,6 +1612,9 @@ export const resolvers = {
         },
         comments: async(parent: Transaction, args: any, context: GQLContext) => {
             return context.loaders.comment.load(parent.transaction_id);
+        },
+        updates: async(parent: Transaction, args: any, context: GQLContext) => {
+            return context.loaders.updates.load(parent.transaction_id);
         }
     },
     Reason: {
@@ -1536,6 +1650,14 @@ export const resolvers = {
     TransactionComment: {
         user: async(parent: TransactionComment, args: any, context: any) => {
             return context.loaders.user.load(parent.user_id);
+        }
+    },
+    TransactionUpdate: {
+        user: async(parent: TransactionUpdate, args: any, context: any) => {
+            return prisma.user.findFirst({
+                where: { id: { equals: parent.user_id } },
+                select: { id: true, name: true, },
+            });
         }
     }
 }

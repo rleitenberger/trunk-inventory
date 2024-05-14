@@ -111,6 +111,7 @@ model transactions {
   salesorder_number                               String?                 @db.VarChar(20)
   reasons_fields_entries                          reasons_fields_entries?
   transaction_comments                            transaction_comments[]
+  transaction_updates                             transaction_updates[]
   user                                            user                    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_created_by")
   locations_transactions_from_locationTolocations locations               @relation("transactions_from_locationTolocations", fields: [from_location], references: [location_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_from_location_id")
   items                                           items                   @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_item_id")
@@ -165,8 +166,8 @@ model reasons_fields {
   modified                                              DateTime                 @default(now()) @db.Timestamp(0)
   conditions_conditions_condition_fieldToreasons_fields conditions[]             @relation("conditions_condition_fieldToreasons_fields")
   conditions_conditions_dependent_fieldToreasons_fields conditions[]             @relation("conditions_dependent_fieldToreasons_fields")
-  field_types                                           field_types              @relation(fields: [field_type], references: [field_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_field_type")
-  reasons                                               reasons                  @relation(fields: [reason_id], references: [reason_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_reason_id")
+  field_types                                           field_types              @relation(fields: [field_type], references: [field_type_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_reasons_fields_field_type")
+  reasons                                               reasons                  @relation(fields: [reason_id], references: [reason_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_reasons_fields_reason_id")
   reasons_fields_entries                                reasons_fields_entries[]
 
   @@index([reason_id], map: "fk_reasons_fields_reason_id")
@@ -177,8 +178,8 @@ model reasons_fields_entries {
   transaction_id    String         @id @db.VarChar(36)
   reasons_fields_id String         @db.VarChar(36)
   field_value       String         @db.VarChar(200)
-  transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_entries_transaction_id")
-  reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reasons_fields_id")
+  transactions      transactions   @relation(fields: [transaction_id], references: [transaction_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_reasons_fields_entries_transaction_id")
+  reasons_fields    reasons_fields @relation(fields: [reasons_fields_id], references: [reasons_fields_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_reasons_fields_id")
 
   @@unique([transaction_id, reasons_fields_id], map: "reasons_field_entry_unique")
   @@index([reasons_fields_id], map: "fk_reasons_fields_id")
@@ -286,18 +287,19 @@ model session {
 }
 
 model user {
-  id                 String               @id @db.VarChar(36)
-  name               String               @db.VarChar(100)
-  username           String               @db.VarChar(100)
-  password           String               @db.VarChar(255)
-  email              String               @db.VarChar(200)
-  emailVerified      DateTime?            @db.Timestamp(0)
-  image              String?              @db.VarChar(200)
-  account            account?
-  admins             admins[]
-  organization_users organization_users[]
-  session            session[]
-  transactions       transactions[]
+  id                  String                @id @db.VarChar(36)
+  name                String                @db.VarChar(100)
+  username            String                @db.VarChar(100)
+  password            String                @db.VarChar(255)
+  email               String                @db.VarChar(200)
+  emailVerified       DateTime?             @db.Timestamp(0)
+  image               String?               @db.VarChar(200)
+  account             account?
+  admins              admins[]
+  organization_users  organization_users[]
+  session             session[]
+  transaction_updates transaction_updates[]
+  transactions        transactions[]
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -329,7 +331,21 @@ model transaction_comments {
   created                DateTime     @default(now()) @db.Timestamp(0)
   modified               DateTime     @default(now()) @db.Timestamp(0)
   active                 Boolean      @default(true)
-  transactions           transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaction_comments_transaction_id")
+  transactions           transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_transaction_comments_transaction_id")
 
   @@index([transaction_id], map: "fk_transaction_comments_transaction_id")
+}
+
+model transaction_updates {
+  transaction_update_id String       @id @db.VarChar(36)
+  transaction_id        String       @db.VarChar(36)
+  changes               String       @db.Text
+  update_type           String       @db.VarChar(6)
+  user_id               String       @db.VarChar(36)
+  created               DateTime     @default(now()) @db.Timestamp(0)
+  transactions          transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: Restrict, map: "fk_transaction_updates_transactions_transaction_id")
+  user                  user         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaction_updates_user_id")
+
+  @@index([transaction_id], map: "fk_transaction_updates_transactions_transaction_id")
+  @@index([user_id], map: "fk_transaction_updates_user_id")
 }

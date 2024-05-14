@@ -30,3 +30,9 @@ export interface UpdateTransactionArgs {
     salesorder_number?: string|null;
     salesorder_id?: string|null;
 }
+
+export type TransactionUpdateLogKey = 'qty'|'from'|'to';
+
+export type TransactionUpdateLog = {
+    [key in TransactionUpdateLogKey]: string[] | number[];
+};

@@ -23,7 +23,7 @@ export default function Home() {
       <>
         {count > 0 ? (
           <div className="grid grid-cols-12 gap-4 pt-8 md:pt-0">
-            <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
               <Link href='/i/transfer' className="p-4 block">
                 <div>
                   <BiTransfer className="mx-auto text-xl text-gray-700 my-2" />
@@ -32,7 +32,7 @@ export default function Home() {
                 </div>
               </Link>
             </HomeCard>
-            <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
               <Link href='/i/remove' className="p-4 block">
                 <div>
                   <AiFillMinusCircle className="mx-auto text-xl text-gray-700 my-2" />
@@ -41,7 +41,7 @@ export default function Home() {
                   <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Van <BiRightArrowAlt className="text-lg" /> Parts room or customer location</p>          </div>
               </Link>
             </HomeCard>
-            <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
               <Link href='/i/pull' className="p-4 block">
                 <div>
                   <LuMoveUpRight className="mx-auto text-xl text-gray-700 my-2" />
@@ -50,7 +50,7 @@ export default function Home() {
                   <p className="text-xs font-medium my-2 flex items-center gap-2 mx-auto justify-center">Parts Room <BiRightArrowAlt className="text-lg" /> Customer location</p>          </div>
               </Link>
             </HomeCard>
-            <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
               <Link href='/i/return' className="p-4 block">
                 <div>
                   <IoReturnUpBack className="mx-auto text-xl text-gray-700 my-2" />
@@ -59,7 +59,7 @@ export default function Home() {
                 </div>
               </Link>
             </HomeCard>
-            <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+            <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
               <Link href='/i/inventory' className="p-4 block">
                 <div>
                   <MdOutlineInventory className="mx-auto text-xl text-gray-700 my-2" />
@@ -69,7 +69,7 @@ export default function Home() {
             </HomeCard>
             {isAdmin && (
               <>
-                <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+                <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
                   <Link href='/i/transactions' className="p-4 block">
                     <div>
                       <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
@@ -77,7 +77,7 @@ export default function Home() {
                     </div>
                   </Link>
                 </HomeCard>
-                <HomeCard className="col-span-12 sm:col-span-6 md:col-span-4">
+                <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
                   <Link href='/i/admin' className="p-4 block">
                     <div>
                       <MdAdminPanelSettings className="mx-auto text-xl text-gray-700 my-2" />

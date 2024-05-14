@@ -27,6 +27,12 @@ export const updateTransaction = gql`
     }
 `;
 
+export const deleteTransaction = gql`
+    mutation deleteTransaction($transactionId: String!) {
+        deleteTransaction(transactionId: $transactionId)
+    }
+`;
+
 export const updateReasonName = gql`
     mutation updateReasonName($reasonId: String!, $newName: String!) {
         updateReasonName(reasonId: $reasonId, newName: $newName)

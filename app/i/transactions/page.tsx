@@ -465,19 +465,19 @@ export default function PageTransactions() {
                                 </div>
                                 
                                 {transactionOptions.transactionInput.transferType === '--' ? (
-                                    <div className="col-span-11 md:col-span-2 flex items-center">
+                                    <div className="col-span-9 md:col-span-1 flex items-center">
                                         <p className='font-medium block md:hidden'>Reason</p>
                                         <p className='ml-auto md:ml-0'>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
                                     </div>
                                 ) : (
-                                    <div className="col-span-11 md:col-span-3 flex items-center">
+                                    <div className="col-span-9 md:col-span-2 flex items-center">
                                         <p className='font-medium block md:hidden'>Reason</p>
                                         <p className='ml-auto md:ml-0'>{node.reason?.name || <span className='text-slate-600'>Reason was archived</span>}</p>
                                     </div>
                                 )}
                                 {node.reason?.reasons_fields?.length && (
                                     <>
-                                        <div className='col-span-1 flex'>
+                                        <div className='col-span-3 md:col-span-2 flex justify-end'>
                                             <TransactionCommentsModal comments={node.comments} transactionId={node.transaction_id} />
                                             <button className='p-1 md:p-2 transition-all rounded-lg hover:bg-slate-300/40'
                                                 onClick={()=>{
@@ -487,6 +487,11 @@ export default function PageTransactions() {
                                                 }}>
                                                 <FaCaretDown className={`${rotation}`} />
                                             </button>
+                                            <Link href={`/i/transactions/${node.transaction_id}`} className='flex items-center'>
+                                                <button className='p-1 md:p-2 transition-all rounded-lg hover:bg-slate-300/40'>
+                                                    <BiLinkExternal />
+                                                </button>
+                                            </Link>
                                         </div>
                                         <div className={`${detailsHeight} transition-all overflow-hidden col-span-12`}>
                                             <div className=''>

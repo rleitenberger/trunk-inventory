@@ -30,6 +30,7 @@ type Query {
 type Mutation {
     createTransaction(orgId: String!, transferInput: TransferInput!, fieldEntries: [FieldsEntriesInput]!, transferType: String!, salesOrder: SalesOrderInput!): CreateTransactionResponse
     updateTransaction(args: UpdateTransactionInput!): Transaction
+    deleteTransaction(transactionId: String!): Boolean
     
     createOrganization(name: String!): Organization
     createItem(name: String!, sku: String, description: String): Item
@@ -241,6 +242,17 @@ type Transaction {
     comments: [TransactionComment]!
     salesorder_id: String
     salesorder_number: String
+    updates: [TransactionUpdate]!
+}
+
+type TransactionUpdate {
+    transaction_update_id: String!
+    transaction_id: String!
+    created: String!
+    update_type: String!
+    changes: String!
+    user_id: String!
+    user: User!
 }
 
 type TransactionConnection {
@@ -412,6 +424,8 @@ input UpdateTransactionInput {
     item: String!
     qty: Int!
     transferType: String!
+    salesorder_id: String
+    salesorder_number: String
 }
 
 `;

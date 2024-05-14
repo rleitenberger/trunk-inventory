@@ -202,6 +202,16 @@ export const getTransaction = gql`
                     name
                 }
             }
+            updates {
+                transaction_update_id
+                created
+                update_type
+                changes
+                user {
+                    id
+                    name
+                }
+            }
             salesorder_number
         }
     }

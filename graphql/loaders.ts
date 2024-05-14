@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 import prisma from '@/lib/prisma';
-import { ReasonsFields, User } from '@/types/dbTypes';
+import { ReasonsFields, TransactionUpdate, User } from '@/types/dbTypes';
 
 const batchLocations = async (locationIds: any) => {
     const locations = await prisma.locations.findMany({
@@ -284,6 +284,33 @@ const batchComments = async (transactionIds: any) => {
     return res;
 }
 
+export const batchTransactionUpdates = async(transactionIds: readonly string[]): Promise<any> => {
+    const updates = await prisma.transaction_updates.findMany({
+        where: {
+            transaction_id: {
+                in: [...transactionIds]
+            }
+        },
+        orderBy: {
+            created: 'desc'
+        }
+    });
+
+    const updatesMap = {} as {
+        [transactionId: string]: TransactionUpdate[];
+    };
+
+    updates.forEach((e: any) => {
+        if (!updatesMap[e.transaction_id]){
+            updatesMap[e.transaction_id] = [];
+        }
+
+        updatesMap[e.transaction_id].push(e);
+    });
+
+    return transactionIds.map((id: string) => updatesMap[id] ?? []);
+}
+
 export const transactionLoader = new DataLoader(batchTransactions);
 export const reasonLoader = new DataLoader(batchReasons);
 export const locationLoader = new DataLoader(batchLocations);
@@ -298,3 +325,4 @@ export const fieldEntriesLoader = new DataLoader(batchFieldEntriesLoader);
 export const reasonEmailsLoader = new DataLoader(batchReasonEmails);
 export const userLoader = new DataLoader(batchUsers);
 export const commentLoader = new DataLoader(batchComments);
+export const updatesLoader = new DataLoader(batchTransactionUpdates);

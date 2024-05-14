@@ -16,6 +16,7 @@ export interface Transaction {
 }
 
 export interface GetTransaction {
+    updates: TransactionUpdate[] | undefined;
     transaction_id: string;
     created: string;
     from_location: Location;
@@ -295,4 +296,14 @@ export interface TransactionComment {
     created: string;
     modified: string;
     active: boolean;
+}
+
+export interface TransactionUpdate {
+    transaction_update_id: string;
+    transaction_id: string;
+    user_id: string;
+    update_type: 'create'|'update'|'delete';
+    changes: string;
+    created: string;
+    user?: User;
 }
