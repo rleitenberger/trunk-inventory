@@ -215,6 +215,7 @@ export const resolvers = {
                 AND (${v[4]} IS NULL OR ${v[4]} <= created)
                 AND (${v[5]} IS NULL OR ${v[5]} >= created)
                 AND ${cursorCondition}
+                AND active = 1
             ${orderBy}
             LIMIT ${v[8]}`;
 
@@ -1081,6 +1082,21 @@ export const resolvers = {
                 if (newFromLocation){
                     updates.from.push(newFromLocation.name as never);
                 }
+                
+                //get rid of old from location amt
+                await prisma.locations_items_qty.update({
+                    where: {
+                        location_id_item_id: {
+                            location_id: transaction.from_location,
+                            item_id: transaction.item_id
+                        }
+                    },
+                    data: {
+                        qty: {
+                            increment: transaction.qty,
+                        }
+                    }
+                });
 
                 await prisma.locations_items_qty.upsert({
                     where: {
@@ -1096,7 +1112,7 @@ export const resolvers = {
                     },
                     update: {
                         qty: {
-                            decrement: args.qty,
+                            decrement: transaction.qty,
                         }
                     }
                 });
@@ -1125,6 +1141,21 @@ export const resolvers = {
                 if (newToLocation){
                     updates.to.push(newToLocation.name as never);
                 }
+
+                //get rid of old to location amt
+                await prisma.locations_items_qty.update({
+                    where: {
+                        location_id_item_id: {
+                            location_id: transaction.to_location,
+                            item_id: transaction.item_id
+                        }
+                    },
+                    data: {
+                        qty: {
+                            decrement: args.qty
+                        }
+                    }
+                });
 
                 await prisma.locations_items_qty.upsert({
                     where: {
@@ -1233,18 +1264,21 @@ export const resolvers = {
                     transaction_update_id: randomUUID() as string,
                     transaction_id: transactionId,
                     user_id: ctx.userId ?? '',
-                    changes: JSON.stringify({
-                        action: 'delete',
-                    }),
+                    changes: JSON.stringify({}),
                     update_type: 'delete',
                 }
             });
 
-            const rmv = await prisma.transactions.delete({
+            const rmv = await prisma.transactions.update({
                 where: { 
                     transaction_id: transactionId
+                },
+                data: {
+                    active: false
                 }
             })
+
+            return !rmv.active;
         },
         updateReasonName: async (_: any, { reasonId, newName }: {
             reasonId: string

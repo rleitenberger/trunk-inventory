@@ -20,7 +20,56 @@ import { MdOutlineTableView } from 'react-icons/md';
 
 const SORT_COLUMN = 'created';
 
-export default function PageTransactions() {
+interface DefaultTransactionOptions {
+    to: string|null;
+    from: string|null;
+    take: string|null;
+    locationName:string|null;
+    locationId:string|null;
+    itemName:string|null;
+    itemId:string|null;
+    transferType:string|null;
+}
+
+export default function TransactionsURLWrapper() {
+    const [defaultOptions, setDefaultOptions] = useState<DefaultTransactionOptions|null>(null);
+
+    useEffect(() => {
+        if (typeof window === 'undefined'){
+            setDefaultOptions({
+                to: null, from: null, take: null, locationName: null, locationId: null,
+                    itemName: null, itemId: null, transferType: null,
+            });
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        const { searchParams } = url;
+
+        setDefaultOptions({
+            to: searchParams.get('to'),
+            from: searchParams.get('from'),
+            take: searchParams.get('take'),
+            locationName:searchParams.get('locationName'),
+            locationId: searchParams.get('location'),
+            itemName: searchParams.get('itemName'),
+            itemId: searchParams.get('itemId'),
+            transferType: searchParams.get('transferType'),
+        });
+    }, []);
+
+    return defaultOptions === null ? (
+        <div className='h-screen w-screen flex items-center justify-center'>
+            <Loader size='lg' />
+        </div>
+    ) : (
+        <PageTransactions defaultOptions={defaultOptions} />
+    )
+}
+
+function PageTransactions({ defaultOptions }: {
+    defaultOptions: DefaultTransactionOptions;
+}) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const apollo = useApolloClient();
 
@@ -29,23 +78,23 @@ export default function PageTransactions() {
         transactionInput: {
             organizationId: organizationId,
             locationId: {
-                name: '',
-                value: ''
+                name: defaultOptions.locationName ?? '',
+                value: defaultOptions.locationId ?? '',
             },
             itemId: {
-                name: '',
-                value: ''
+                name: defaultOptions.itemName ?? '',
+                value: defaultOptions.itemId ?? '',
             },
-            transferType: '--',
+            transferType: defaultOptions.transferType ?? '--',
             between: {
-                from: '',
-                to: ''
+                from: defaultOptions.from ?? '',
+                to: defaultOptions.to ?? '',
             } as BetweenDate
         },
         paginationInput: {
             before: '',
             after: '',
-            take: 25,
+            take: defaultOptions.take ? parseInt(defaultOptions.take, 10) : 25,
         }
     });
 
@@ -58,6 +107,10 @@ export default function PageTransactions() {
             },
             paginationInput: transactionOptions.paginationInput
         });
+
+        let param = objectName.replace('Id', '');
+        addUrlParam(`${param}Name`, e.name);
+        addUrlParam(`${param}Id`, e.value);
     }
     const [pageInfo, setPageInfo] = useState({
         hasNextPage: false,
@@ -67,7 +120,6 @@ export default function PageTransactions() {
         sortColumnValueStart: '',
         sortColumnValueEnd: ''
     });
-
 
     const updateTransferType = (e: React.ChangeEvent<HTMLSelectElement>):void => {
         const { options, selectedIndex }: {
@@ -82,6 +134,8 @@ export default function PageTransactions() {
             },
             paginationInput: transactionOptions.paginationInput
         });
+
+        addUrlParam('transferType', options[selectedIndex].value)
     }
 
 
@@ -184,6 +238,9 @@ export default function PageTransactions() {
             },
             paginationInput: transactionOptions.paginationInput
         });
+
+        removeUrlParam('locationName');
+        removeUrlParam('locationId');
     }
 
     const clearItem = (): void => {
@@ -197,6 +254,9 @@ export default function PageTransactions() {
             },
             paginationInput: transactionOptions.paginationInput
         });
+
+        removeUrlParam('itemName');
+        removeUrlParam('itemId');
     }
 
     const updateShowDetails = (transactionId: string): void => {
@@ -229,6 +289,8 @@ export default function PageTransactions() {
                 take: parseInt(options[selectedIndex].value, 10)
             }
         });
+
+        addUrlParam('take', options[selectedIndex].value)
     }
 
     const [page,setPage] = useState<number>(1);
@@ -268,6 +330,32 @@ export default function PageTransactions() {
             },
             paginationInput: transactionOptions.paginationInput,
         });
+
+        if (!e.target.value) {
+            removeUrlParam(field);
+        } else {
+            addUrlParam(field, e.target.value);
+        }
+    }
+
+    const addUrlParam = (key: string, value: string): void => {
+        if (typeof window === 'undefined'){
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set(key, value);
+        window.history.replaceState(null,'',url);
+    }
+
+    const removeUrlParam = (key: string) => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        
+        const url = new URL(window.location.href);
+        url.searchParams.delete(key);
+        window.history.replaceState(null,'',url);
     }
 
     const getTransactionOptions = (): TransactionInput => {
@@ -313,7 +401,8 @@ export default function PageTransactions() {
                             }}
                             displayOptions={{
                                 name: 'locationId'
-                            }} />
+                            }}
+                            defaultValue={transactionOptions.transactionInput.locationId} />
                     </div>
                     <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <ItemSearch
@@ -323,7 +412,8 @@ export default function PageTransactions() {
                             }}
                             displayOptions={{
                                 name: 'itemId'
-                            }} />
+                            }}
+                            defaultValue={transactionOptions.transactionInput.itemId} />
                     </div>
                     <div className='col-span-6 md:col-span-4 lg:col-span-3'>
                         <div className='flex items-center gap-2'>

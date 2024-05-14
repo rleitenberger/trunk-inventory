@@ -14,10 +14,11 @@ import { useApolloClient } from "@apollo/client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { BiPencil, BiSave, BiX, BiTrash } from "react-icons/bi";
+import { BiPencil, BiSave, BiX, BiTrash, BiChevronLeft } from "react-icons/bi";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 import TransactionUpdates from "@/components/TransactionUpdates";
+import Link from "next/link";
 
 interface TransactionParams {
     transactionId: string
@@ -119,18 +120,11 @@ export default function Transactions ({ params }: {
 
         if (typeof window !== 'undefined'){
             const anchor = window.location.hash;
-            console.log(anchor, isAdmin)
             if (anchor === '#edit' && isAdmin){
                 setEditing(true);
             }
         }
     }, [transactionId]);
-
-    useEffect(() => {
-        if (editing){
-            console.log(options)
-        }
-    }, [editing])
 
     const enableEditing = () => {
         push('#edit');
@@ -287,7 +281,14 @@ export default function Transactions ({ params }: {
     }
 
     return (
-        loading ? (
+        <>
+            <div className="mb-3">
+                <Link href={'/i/transactions'} className="text-sm flex items-center gap-2">
+                    <BiChevronLeft />
+                    All Transactions
+                </Link>
+            </div>
+            {loading ? (
             <>
                 <Loader size='lg' />
             </>
@@ -476,6 +477,8 @@ export default function Transactions ({ params }: {
                 )}
             </>
         )
+        }
+        </>
     )
 }
 

@@ -109,6 +109,7 @@ model transactions {
   created_by                                      String                  @db.VarChar(36)
   salesorder_id                                   String?                 @db.VarChar(255)
   salesorder_number                               String?                 @db.VarChar(20)
+  active                                          Boolean                 @default(true)
   reasons_fields_entries                          reasons_fields_entries?
   transaction_comments                            transaction_comments[]
   transaction_updates                             transaction_updates[]

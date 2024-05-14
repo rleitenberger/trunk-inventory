@@ -34,8 +34,8 @@ const TransactionUpdates = ({ transactionId, updates }: {
     }
 
     return (
-        <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-12 font-medium text-lg">Logs</div>
+        <div className="grid grid-cols-12">
+            <div className="col-span-12 font-medium text-lg mb-2">Logs</div>
             {updates?.map((e: TransactionUpdate, index: number) => {
                 const bgClassname:string = index % 2 ? 'bg-gray-200' : 'bg-slate-300/20';
 

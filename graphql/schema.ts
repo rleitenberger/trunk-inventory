@@ -243,6 +243,7 @@ type Transaction {
     salesorder_id: String
     salesorder_number: String
     updates: [TransactionUpdate]!
+    active: Boolean!
 }
 
 type TransactionUpdate {

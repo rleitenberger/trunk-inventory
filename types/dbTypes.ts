@@ -13,6 +13,9 @@ export interface Transaction {
     created: Date;
     expanded?: boolean;
     created_by: string;
+    salesorder_id: string|null;
+    salesorder_number: string|null;
+    active: boolean;
 }
 
 export interface GetTransaction {
