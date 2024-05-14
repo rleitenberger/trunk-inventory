@@ -35,8 +35,9 @@ const TransactionUpdates = ({ transactionId, updates }: {
 
     return (
         <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-12 font-medium text-lg">Logs</div>
             {updates?.map((e: TransactionUpdate, index: number) => {
-                const bgClassname:string = index % 2 ? 'md:bg-gray-200' : 'md:bg-slate-300/20';
+                const bgClassname:string = index % 2 ? 'bg-gray-200' : 'bg-slate-300/20';
 
                 const parsed = JSON.parse(e.changes);
                 const date = new Date(parseInt(e.created, 10));

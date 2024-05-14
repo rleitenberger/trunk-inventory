@@ -124,7 +124,7 @@ export default function Transactions ({ params }: {
                 setEditing(true);
             }
         }
-    }, [params]);
+    }, [transactionId]);
 
     useEffect(() => {
         if (editing){
