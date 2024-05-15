@@ -519,7 +519,10 @@ export default function MoveItemsForm({ transferType }: {
 
                 </div>
                 {(transferType === 'pull' && isAdmin) && (
-                    <LinkToSalesOrder onSalesOrderChange={onSalesOrderChange} onShippingChange={onShippingChange} />
+                    <LinkToSalesOrder
+                        onSalesOrderChange={onSalesOrderChange}
+                        onShippingChange={onShippingChange}
+                        canShip={true} />
                 )}
                 <div>
                     <button className=' bg-blue-500 transition-colors hover:bg-blue-600 flex items-center gap-2
