@@ -18,6 +18,16 @@ export const getLocations = gql`
     }
 `;
 
+export const getItem = gql`
+    query getItem($itemId: String!) {
+        getItem(itemId: $itemId) {
+            item_id
+            name
+            shelf
+        }
+    }
+`;
+
 export const getItems = gql`
     query getItems($organizationId: String!, $search: String, $after: String, $first: Int) {
         getItems(organizationId: $organizationId, search: $search, after: $after, first: $first) {

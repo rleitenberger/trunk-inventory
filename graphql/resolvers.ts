@@ -10,6 +10,13 @@ import { SalesOrderInput } from '@/types/formTypes';
 
 export const resolvers = {
     Query: {
+        getItem: async(_: any, { itemId }: {
+            itemId: string;
+        }, context: GQLContext) => {
+            return await prisma.items.findFirst({
+                where: { item_id: { equals: itemId } }
+            });
+        },
         getIsAdmin: async(_: any, { organizationId }: {
             organizationId: string;
         }, context: GQLContext) => {
@@ -461,6 +468,22 @@ export const resolvers = {
         }
     },
     Mutation: {
+        updateShelf: async(_: any, { itemId, shelf }: {
+            itemId: string;
+            shelf: number;
+        }, context: GQLContext) => {
+            const updated = await prisma.items.update({
+                where: {
+                    item_id: itemId,
+                },
+                data: {
+                    shelf: shelf,
+                }
+            });
+
+            if (!updated) { return false; }
+            return updated.shelf === shelf;
+        },
         updateUserRole: async(_: any, { organizationId, userId, role }: {
             organizationId: string;
             userId: string;

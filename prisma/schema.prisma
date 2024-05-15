@@ -34,6 +34,7 @@ model items {
   modified            DateTime              @default(now()) @db.Timestamp(0)
   active              Boolean               @default(true)
   description         String?               @db.Text
+  shelf               Int?
   locations_items_qty locations_items_qty[]
   transactions        transactions[]
 }

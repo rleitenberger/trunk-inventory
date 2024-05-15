@@ -14,7 +14,7 @@ export function AuthGuard({ children }: {
         return (
             <div className="h-full flex items-center justify-center flex-col gap-2">
                 <Loader size='md' />
-                <p className="text-sm">Authorizing</p>
+                <p className="text-sm">{/*Authorizing*/}</p>
             </div>
         )
     }

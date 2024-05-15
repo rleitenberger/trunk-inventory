@@ -10,6 +10,7 @@ type Query {
     getUsers(organizationId: String!, search: String): [OrgUser]!
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!
+    getItem(itemId: String!): Item
     getItems(organizationId: String!, search: String, after: String, first: Int): ItemConnection!
     getTransactionType(organizationId: String!, slug: String!): TransactionType
     getReasons(transactionTypeId: String!): [Reason]!
@@ -71,6 +72,8 @@ type Mutation {
     createComment(transactionId: String!, comment: String!): TransactionComment!
     updateComment(transactionCommentId: String!, comment: String): TransactionComment!
     deleteComment(transactionCommentId: String!): Boolean!
+
+    updateShelf(itemId: String!, shelf: Int!): Boolean!
 }
 
 input SalesOrderInput {
@@ -172,6 +175,7 @@ type Item {
     created: String
     modified: String
     active: Boolean
+    shelf: Int
 }
 
 type ItemConnection {

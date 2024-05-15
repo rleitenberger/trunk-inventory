@@ -279,3 +279,9 @@ export const deleteComment = gql`
         deleteComment(transactionCommentId: $transactionCommentId)
     }
 `;
+
+export const updateShelf = gql`
+    mutation updateShelf($itemId: String!, $shelf: Int!) {
+        updateShelf(itemId: $itemId, shelf: $shelf)
+    }
+`;
