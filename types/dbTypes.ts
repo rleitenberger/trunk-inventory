@@ -66,7 +66,7 @@ export interface Item {
     modified: Date; 
     active: boolean; 
     description: string | null;
-    shelf?: number;
+    shelf?: number | null;
 }
 
 
