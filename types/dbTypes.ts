@@ -30,6 +30,7 @@ export interface GetTransaction {
     transfer_type: string;
     created_by: User;
     comments: TransactionComment[];
+    salesorder_id: string|null;
     salesorder_number: string|null;
 }
 

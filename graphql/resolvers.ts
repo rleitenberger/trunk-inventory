@@ -1071,6 +1071,8 @@ export const resolvers = {
                 return //
             }
 
+            console.log(args)
+
             const updates: TransactionUpdateLog = {
                 qty: [transaction.qty],
                 from: [transaction.locations_transactions_from_locationTolocations.name],
@@ -1081,20 +1083,25 @@ export const resolvers = {
                 updates.qty.push(args.qty as never);
             }
 
+            try {
+
             //update old from qty
-            await prisma.locations_items_qty.update({
-                where: {
-                    location_id_item_id: {
-                        location_id: transaction.from_location,
-                        item_id: transaction.item_id,
+                await prisma.locations_items_qty.update({
+                    where: {
+                        location_id_item_id: {
+                            location_id: transaction.from_location,
+                            item_id: transaction.item_id,
+                        }
+                    },
+                    data: {
+                        qty: {
+                            increment: transaction.qty - args.qty
+                        }
                     }
-                },
-                data: {
-                    qty: {
-                        increment: transaction.qty - args.qty
-                    }
-                }
-            });
+                });
+            } catch (e: any) {
+
+            }
 
             //alter from qty if necessary
             if (args.from !== transaction.from_location) {
@@ -1141,20 +1148,25 @@ export const resolvers = {
                 });
             }
 
+            try { 
+
             //update old to location
-            await prisma.locations_items_qty.update({
-                where: {
-                    location_id_item_id: {
-                        location_id: transaction.to_location,
-                        item_id: transaction.item_id,
+                await prisma.locations_items_qty.update({
+                    where: {
+                        location_id_item_id: {
+                            location_id: transaction.to_location,
+                            item_id: transaction.item_id,
+                        }
+                    },
+                    data: {
+                        qty: {
+                            decrement: transaction.qty - args.qty,
+                        }
                     }
-                },
-                data: {
-                    qty: {
-                        decrement: transaction.qty - args.qty,
-                    }
-                }
-            });
+                });
+            } catch (e: any) {
+
+            }
 
             if (args.to !== transaction.to_location) {
                 const newToLocation = await prisma.locations.findFirst({

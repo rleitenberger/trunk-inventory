@@ -23,6 +23,59 @@ export const updateTransaction = gql`
     mutation updateTransaction($args: UpdateTransactionInput!) {
         updateTransaction(args: $args) {
             transaction_id
+            created
+            from_location {
+                name
+                location_id
+            }
+            to_location {
+                name
+                location_id
+            }
+            reason {
+                reason_id
+                name
+                description
+                reasons_fields {
+                    reasons_fields_id
+                    field_name
+                }
+            }
+            item {
+                item_id
+                name
+                sku
+            }
+            qty
+            transfer_type
+            entries {
+                reasons_fields_id
+                field_value
+            }
+            created_by {
+                id
+                name
+            }
+            comments {
+                transaction_comment_id
+                comment
+                modified
+                user {
+                    name
+                }
+            }
+            updates {
+                transaction_update_id
+                created
+                update_type
+                changes
+                user {
+                    id
+                    name
+                }
+            }
+            salesorder_id
+            salesorder_number
         }
     }
 `;

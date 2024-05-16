@@ -79,6 +79,8 @@ export default function Transactions ({ params }: {
                 value: t.item.item_id,
             },
             qty: t.qty,
+            salesorder_id: t.salesorder_id,
+            salesorder_number: t.salesorder_number
         };
 
         setOptions(opts);
@@ -156,7 +158,7 @@ export default function Transactions ({ params }: {
         }
 
         toast.success('The transaction was updated');
-        setTransaction(transaction);
+        setTransaction(data.updateTransaction);
         setEditing(false);
     }
 

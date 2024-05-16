@@ -222,6 +222,7 @@ export const getTransaction = gql`
                     name
                 }
             }
+            salesorder_id
             salesorder_number
         }
     }
