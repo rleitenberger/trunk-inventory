@@ -101,11 +101,13 @@ export default function SyncItemsModal ({ sessionToken }: {
     const syncItemsFromZoho = async (): Promise<void> => {
         setIsSyncing(true);
 
-        let url = `/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}`;
+        let url = `/api/zoho/inventory/items?organizationId=${organizationId}&zohoOrganizationId=${selectedOrg}&sessionToken=${sessionToken}`;
 
         try {
             const log = await fetch(url);
             const logJson = await log.json();
+
+            console.log(logJson)
 
             if (!logJson.success){
                 throw new Error('There was an error syncing the items. Please try again later.');

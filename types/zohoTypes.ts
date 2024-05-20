@@ -54,6 +54,59 @@ export type ZSalesOrder = {
     line_items?: ZLineItem[];
 }
 
+export type ZItemSalesOrder = {
+    balance?: number;
+    bcy_total?: number;
+    color_code?: string;
+    company_name?: string;
+    created_time: string;
+    currency_code?: string;
+    currency_id?: string;
+    currency_sub_status?: string;
+    currency_sub_status_id?: string;
+    customer_id: string;
+    customer_name: string;
+    date: string;
+    delivery_date?: string;
+    delivery_method?: string;
+    delivery_method_id?: string;
+    due_by_days?: string;
+    due_in_days?: string;
+    email: string;
+    has_attachment?: string;
+    invoiced_status: string;
+    is_backorder: boolean;
+    is_drop_shipment: boolean;
+    is_emailed?: boolean;
+    is_manually_fulfilled?: boolean;
+    item_price: number;
+    item_quantity: number;
+    item_total_price: number;
+    last_modified_time?: string;
+    order_status: string;
+    paid_status?: string;
+    pickup_location_id?: string;
+    quantity: number;
+    quantity_invoiced: number;
+    quantity_packed: number;
+    quantity_shipped: number;
+    reference_number: string;
+    sales_channel?: string;
+    sales_channel_formatted?: string;
+    salesorder_id: string;
+    salesorder_number: string;
+    salesperson_name?: string;
+    shipment_date: string;
+    shipment_days: string;
+    shipped_status: string;
+    source?: string;
+    status: string;
+    total: number;
+    total_invoiced_amount?: number;
+    zcrm_potential_id?: string;
+    zcrm_potential_name?: string;
+}
+
 export type ZShipment = {
     shipment_number: string;
     date: string;
@@ -187,4 +240,20 @@ export type ZCustomer = {
     mobile: string;
     created_time: string;
     last_modified_time: string;
+}
+
+export type ZPageContext = {
+    applied_filter: string;
+    has_more_page: boolean;
+    page: number;
+    per_page: number;
+    report_name?: string;
+    search_criteria: ZSearchCriteria[];
+}
+
+export type ZSearchCriteria = {
+    column_name: string;
+    comparator: string;
+    search_text: string;
+    search_text_formatted: string;
 }

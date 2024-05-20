@@ -1,16 +1,20 @@
 'use client';
 
 import ItemSearch from "@/components/form/ItemSearch";
+import SelectZohoOrg from "@/components/form/SelectZohoOrg";
 import { updateShelf } from "@/graphql/mutations";
 import { getItem } from "@/graphql/queries";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { Item } from "@/types/dbTypes";
 import { useApolloClient } from "@apollo/client";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import useOrganization from "@/components/providers/useOrganization";
 
 const ItemsPage = () => {
     const apolloClient = useApolloClient();
+    const { organizationId } = useOrganization();
     const [selectedItem, setSelectedItem] = useState<DropDownSearchOption>({
         name: '',
         value: '', 
@@ -19,6 +23,16 @@ const ItemsPage = () => {
     const [shelf, setShelf] = useState<number>(0);
     const changeShelf = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setShelf(parseInt(e.target.value,10));
+    }
+
+    useEffect(() => {
+        setPackedCount(-1);
+    }, [selectedItem]);
+
+    const { data: session } = useSession();
+    const [zohoOrg, setZohoOrg] = useState<string>('');
+    const updateZohoOrg = (org: string): void => {
+        setZohoOrg(org);
     }
 
     const updateItem = (e: DropDownSearchOption, objectName: string): void => {
@@ -77,6 +91,23 @@ const ItemsPage = () => {
     }
 
     useEffect(() => {
+        console.log(zohoOrg)
+    }, [zohoOrg])
+
+    const [packedCount, setPackedCount] = useState<number>(-1);
+
+    const getZohoPackedCount = async(): Promise<void> => {
+        const data = await fetch(`/api/zoho/books/salesorders?action=getItem&organization_id=${zohoOrg}&itemId=${selectedItem.value}&sessionToken=${session?.user.sessionToken}&orgId=${organizationId}`);
+        const res = await data.json();
+        if (typeof res?.amount !== 'number'){
+            toast.error('Could not find the item count');
+            return;
+        }
+
+        setPackedCount(res.amount);
+    }
+
+    useEffect(() => {
         if (!selectedItem.value) {
             return;
         }
@@ -110,6 +141,22 @@ const ItemsPage = () => {
                                 <button className="rounded-lg text-white bg-blue-500 hover:bg-blue-600
                                     outline-none px-4 py-1 transition-colors" onClick={modifyShelf}>Save</button>
                             </div>
+                            <div className=" grid grid-cols-12">
+                                <div className="col-span-8">
+                                    <SelectZohoOrg
+                                        sessionToken={session?.user.sessionToken}
+                                        onChange={updateZohoOrg} />
+                                </div>
+                                <div className="col-span-4 flex items-end justify-end">
+                                    <button className="outline-none bg-blue-500 transition-colors hover:bg-blue-600 rounded-lg text-white
+                                        px-2 py-1" onClick={getZohoPackedCount}>
+                                        Get packed count
+                                    </button>
+                                </div>
+                            </div>
+                            {packedCount > -1 && (
+                                <p>Packed count: {packedCount}</p>
+                            )}
                         </div>
                     )}
                 </div>

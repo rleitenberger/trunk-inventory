@@ -1,6 +1,6 @@
 import { verifyZohoAuth } from "@/lib/zoho";
 import { ZohoAuthResponse } from "@/types/responses";
-import { ZLineItem, ZSalesOrder, ZohoApiResponse } from "@/types/zohoTypes";
+import { ZItemSalesOrder, ZLineItem, ZPageContext, ZSalesOrder, ZohoApiResponse } from "@/types/zohoTypes";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { formatDate } from "@/lib/util";
@@ -31,6 +31,57 @@ export const GET = async(req: NextRequest) => {
 
 
     switch (action) {
+        case 'getItem':
+            const item = searchParams.get('itemId');
+            if (!item){
+                return Response.json({
+                    error: 'Item ID is missing'
+                });
+            }
+
+            const zohoItem = await prisma.items.findFirst({
+                where: { item_id: { equals: item } }
+            });
+
+            if (!zohoItem){
+                return Response.json({
+                    error: 'Could not find the specified item'
+                });
+            }
+
+            let page = 1;
+            let hasMore = true;
+
+            let sorders: any[] = [];
+
+            while (hasMore) {
+                const GET_ITEM_URL = `https://www.zohoapis.com/inventory/v1/salesorders?page=${page}&sort_column=created_time&sort_order=D&status=confirmed&item_id=${zohoItem.zi_item_id}&organization_id=${zohoOrgId}`;
+                const itemRes = await fetch(GET_ITEM_URL, options);
+                const itemData = await itemRes.json() as ZohoApiResponse<ZItemSalesOrder> & {
+                    page_context: ZPageContext;
+                    salesorders: ZItemSalesOrder[];
+                }
+
+                sorders.push(...itemData.salesorders);
+
+                hasMore = itemData.page_context.has_more_page;
+                page++;
+            }
+
+            let amtPacked = 0;
+
+            sorders.forEach((e: ZItemSalesOrder) => {
+                if ((e.status === 'confirmed' || e.shipped_status === 'pending') && (e.quantity_packed !== e.quantity_shipped && e.quantity_packed === e.quantity)
+                    && e.quantity_packed > 0 && e.quantity - e.quantity_packed <= e.item_quantity) {
+                    amtPacked += e.item_quantity;
+                }
+            });
+
+
+            return Response.json({
+                amount: amtPacked,
+                reference: sorders
+            });
         case 'getItems':
             const salesorder_id = searchParams.get('salesOrderId');
             const itemId = searchParams.get('itemId');
