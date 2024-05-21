@@ -86,6 +86,8 @@ export const resolvers = {
             organizationId: string
             search: string 
         }, context: GQLContext) => {
+
+            
             return await prisma.locations.findMany({
                 where: {
                     AND: [
@@ -96,7 +98,7 @@ export const resolvers = {
                 },
                 orderBy: [
                     { orderPriority: 'asc' },
-                    { name: 'asc' }
+                    { name: 'asc', }
                 ]
             });
         },

@@ -395,7 +395,9 @@ export default function MoveItemsForm({ transferType }: {
     }, []);
 
     const fromLocationForItemSearch = useMemo(() => {
-        if (transferOptions.from.name === 'Parts Room' || transferOptions.from.name === 'Customer Location'){
+        if (transferOptions.from.name === 'Parts Room' || transferOptions.from.name === 'Customer Location'
+                || transferOptions.from.name === 'Staging Area'
+        ){
             return undefined;
         }
         return transferOptions.from.value; //need to fetch if location can view all items or not
