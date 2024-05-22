@@ -81,8 +81,8 @@ const SelectSalesOrder = ({ customer, onChange, zohoOrgId, sessionToken, disable
                             }} key={e.salesorder_id}>
                                 <AiFillPlusCircle className="text-green-500" />
                                 <div>
-                                    <p className="font-medium">{e.salesorder_number}</p>
-                                    <p className="text-slate-600">{e.reference_number ?? '[No reference number]'}</p>
+                                    <p className="font-medium text-left">{e.salesorder_number}</p>
+                                    <p className="text-slate-600 text-left">{e.reference_number ?? '[No reference number]'}</p>
                                 </div>
                             </button>
                         )
