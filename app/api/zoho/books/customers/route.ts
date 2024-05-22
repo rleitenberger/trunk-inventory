@@ -35,7 +35,8 @@ export const GET = async(req: NextRequest) => {
 
     if (json.code !== 0){
         return Response.json({
-            error: 'An error occured'
+            error: 'An error occured',
+            content: json
         });
     }
 
