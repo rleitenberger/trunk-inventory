@@ -7,6 +7,7 @@ schema {
 }
 
 type Query {
+    getInternalQty(itemId: String!): Int!
     getUsers(organizationId: String!, search: String): [OrgUser]!
     getOrganizations: [Organization]!
     getLocations(organizationId: String!, search: String): [Location]!

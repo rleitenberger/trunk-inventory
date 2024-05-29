@@ -10,6 +10,23 @@ import { SalesOrderInput } from '@/types/formTypes';
 
 export const resolvers = {
     Query: {
+        getInternalQty: async(_:any,{itemId}:{itemId:string},ctx:GQLContext)=>{
+            const amts = await prisma.locations_items_qty.findMany({
+                where: {
+                    item_id: { equals: itemId },
+                    locations: { orderPriority: 2 },
+                }
+            });
+
+            console.log(amts);
+
+            let sum=0;
+            for (let i= 0; i < amts.length; i++) {
+                sum += amts[i].qty;
+            }
+
+            return sum;
+        },
         getItem: async(_: any, { itemId }: {
             itemId: string;
         }, context: GQLContext) => {

@@ -6,7 +6,7 @@ import { updateShelf } from "@/graphql/mutations";
 import { getItem } from "@/graphql/queries";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { Item } from "@/types/dbTypes";
-import { useApolloClient } from "@apollo/client";
+import { gql, useApolloClient } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -27,6 +27,7 @@ const ItemsPage = () => {
 
     useEffect(() => {
         setPackedCount(-1);
+        setQty(-1);
     }, [selectedItem]);
 
     const { data: session } = useSession();
@@ -95,6 +96,7 @@ const ItemsPage = () => {
     }, [zohoOrg])
 
     const [packedCount, setPackedCount] = useState<number>(-1);
+    const [qty, setQty] = useState<number>(-1);
 
     const getZohoPackedCount = async(): Promise<void> => {
         const data = await fetch(`/api/zoho/books/salesorders?action=getItem&organization_id=${zohoOrg}&itemId=${selectedItem.value}&sessionToken=${session?.user.sessionToken}&orgId=${organizationId}`);
@@ -105,6 +107,24 @@ const ItemsPage = () => {
         }
 
         setPackedCount(res.amount);
+
+        const getInternalQty = await apolloClient.query({
+            query: gql`
+                query getInternalQty($itemId: String!) {
+                    getInternalQty(itemId: $itemId)
+                }
+            `,
+            variables: {
+                itemId: selectedItem.value
+            }
+        });
+
+        if (typeof getInternalQty.data?.getInternalQty !== 'number') {
+            toast.error('Error getting item qty');
+            return;
+        }
+
+        setQty(getInternalQty.data.getInternalQty);
     }
 
     useEffect(() => {
@@ -156,6 +176,9 @@ const ItemsPage = () => {
                             </div>
                             {packedCount > -1 && (
                                 <p>Packed count: {packedCount}</p>
+                            )}
+                            {qty > -1 && (
+                                <p>Qty across all trunks: {qty}</p>
                             )}
                         </div>
                     )}
