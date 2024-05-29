@@ -72,7 +72,7 @@ export const GET = async(req: NextRequest) => {
 
             sorders.forEach((e: ZItemSalesOrder) => {
                 if ((e.status === 'confirmed' || e.shipped_status === 'pending') && ((e.quantity_packed !== e.quantity_shipped && e.quantity_packed === e.quantity)
-                    && e.quantity_packed > 0 && e.quantity - e.quantity_packed <= e.item_quantity) || (e.quantity_packed > 0 && e.quantity_shipped === 0)) {
+                    && e.quantity_packed > 0 && e.quantity - e.quantity_packed <= e.item_quantity) || (e.quantity_packed >= e.quantity && e.quantity_shipped === 0)) {
                     amtPacked += e.item_quantity;
                 }
             });
