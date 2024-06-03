@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { AiFillMinusCircle } from "react-icons/ai";
 import { BiRightArrow, BiRightArrowAlt, BiTransfer } from "react-icons/bi";
+import { FaBox } from "react-icons/fa";
 import { IoIosList } from "react-icons/io";
 import { IoReturnUpBack } from "react-icons/io5";
 import { LuMoveUpRight } from "react-icons/lu";
@@ -74,6 +75,14 @@ export default function Home() {
                     <div>
                       <IoIosList className="mx-auto text-xl text-gray-700 my-2" />
                       View Transactions
+                    </div>
+                  </Link>
+                </HomeCard>
+                <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
+                  <Link href='/i/items' className="p-4 block">
+                    <div>
+                      <FaBox className="mx-auto text-xl text-gray-700 my-2" />
+                      Items
                     </div>
                   </Link>
                 </HomeCard>

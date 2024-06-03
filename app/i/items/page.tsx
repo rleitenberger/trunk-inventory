@@ -3,7 +3,7 @@
 import ItemSearch from "@/components/form/ItemSearch";
 import SelectZohoOrg from "@/components/form/SelectZohoOrg";
 import { updateShelf } from "@/graphql/mutations";
-import { getItem } from "@/graphql/queries";
+import { getItem, getTransactions } from "@/graphql/queries";
 import { DropDownSearchOption } from "@/types/DropDownSearchOption";
 import { Item } from "@/types/dbTypes";
 import { gql, useApolloClient } from "@apollo/client";
@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useOrganization from "@/components/providers/useOrganization";
+import { Transaction } from "@/types/dbTypes";
 
 const ItemsPage = () => {
     const apolloClient = useApolloClient();
@@ -24,6 +25,8 @@ const ItemsPage = () => {
     const changeShelf = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setShelf(parseInt(e.target.value,10));
     }
+
+    const transactions = useState<Transaction[]>([]);
 
     useEffect(() => {
         setPackedCount(-1);
@@ -90,10 +93,6 @@ const ItemsPage = () => {
         setShelf(0);
         setItem(null);
     }
-
-    useEffect(() => {
-        console.log(zohoOrg)
-    }, [zohoOrg])
 
     const [packedCount, setPackedCount] = useState<number>(-1);
     const [qty, setQty] = useState<number>(-1);
