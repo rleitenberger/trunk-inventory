@@ -261,7 +261,6 @@ export const resolvers = {
                 cursor: transaction.transaction_id,
             }));
             
-
             if (!edges.length){
                 return {
                     edges: [],
