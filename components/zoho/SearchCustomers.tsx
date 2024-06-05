@@ -83,7 +83,7 @@ const SearchCustomers = ({ onChange, sessionToken, disabled, orgId }: {
                                     <AiFillPlusCircle className="text-green-500" />
                                 </div>
                                 <div>
-                                    <div className="font-medium">{e.company_name}</div>
+                                    <div className="font-medium">{e.contact_name}</div>
                                     <div className="text-slate-600">{e.first_name} {e.last_name}</div>
                                 </div>
                             </button>

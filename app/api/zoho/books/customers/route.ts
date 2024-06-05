@@ -20,7 +20,7 @@ export const GET = async(req: NextRequest) => {
     }
 
     const query = searchParams.get('query');
-    let GET_CUSTOMERS_URL = `https://www.zohoapis.com/books/v3/contacts?organization_id=${zohoOrgId}&company_name_contains=${query}&contact_name_contains=${query}`;
+    let GET_CUSTOMERS_URL = `https://www.zohoapis.com/books/v3/contacts?organization_id=${zohoOrgId}&contact_name_contains=${query}`;
 
     const accessToken= auth.accessToken ?? '';
     const result = await fetch(GET_CUSTOMERS_URL, { 
@@ -32,6 +32,8 @@ export const GET = async(req: NextRequest) => {
         }
     });
     const json: ZohoApiResponse<ZCustomer> = await result.json();
+
+    console.log(json)
 
     if (json.code !== 0){
         return Response.json({
