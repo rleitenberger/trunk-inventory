@@ -341,7 +341,8 @@ export const resolvers = {
                         { items: { name: { contains: search ? search : undefined } } },
                         { locations: { active: { equals: true } } },
                         (!!locationId ? { location_id: { equals: locationId } } : {}),
-                        (!!itemId ? { item_id: { equals: itemId } } : {})
+                        (!!itemId ? { item_id: { equals: itemId } } : {}),
+                        { items: { active: true } }
                     ]
                 },
                 select: {
@@ -350,9 +351,10 @@ export const resolvers = {
                     locations: true,
                     qty: true
                 },
-                take: take + 1,
                 orderBy: {
-                    item_id: order
+                    items: { 
+                        name: 'asc'
+                    }
                 }
             });
 

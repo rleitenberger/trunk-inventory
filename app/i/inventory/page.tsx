@@ -13,6 +13,11 @@ import { useSearchParams } from 'next/navigation';
 import ExportInventoryCSVModal from '@/components/modal/ExportInventoryCSVModal';
 import { Item, LocationItem } from '@/types/dbTypes';
 import ItemSearch from '@/components/form/ItemSearch';
+import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
+
+type CollapsableItemList = {
+    [key: string]: boolean;
+}
 
 export default function PageInventory() {
     const apolloClient = useApolloClient();
@@ -63,6 +68,10 @@ export default function PageInventory() {
 
     const params = useSearchParams();
 
+    useEffect(() => {
+        console.log(items)
+    }, [items]);
+
     const [pageInfo, setPageInfo] = useState<PageInfo>({
         endCursor: '',
         hasNextPage: false
@@ -81,6 +90,7 @@ export default function PageInventory() {
             if (!ret[node.location.location_id]?.items){
                 ret[node.location.location_id] = {
                     name: node.location.name,
+                    locationId: node.location.location_id,
                     items: []
                 }
             }
@@ -218,6 +228,26 @@ export default function PageInventory() {
         }
     }, []);
 
+    const updateViewMap = (key: string): void => {
+        setViewMap((prev: CollapsableItemList|null) => {
+            if(!prev) return null;
+            return {
+                ...prev,
+                [key]: !prev[key]
+            }
+        })
+    }
+
+    const [viewMap, setViewMap] = useState<CollapsableItemList|null>(null);
+    useEffect(() => {
+        setViewMap(
+            formattedInventoryKeys.reduce((acc, key) => {
+                acc[key] = false;
+                return acc;
+            }, {} as CollapsableItemList)
+        )
+    }, [formattedInventoryKeys]);
+
     return (
         <div className='h' onScroll={handleScroll}>
             <div className="flex items-center gap-2">
@@ -281,48 +311,65 @@ export default function PageInventory() {
                             
                             {formattedInventoryKeys.map((e: string) => {
                                 let obj = formattedInventory[e];
+                                const collapsed = !viewMap ? false : viewMap[obj.locationId];
+
                                 return (
                                     <React.Fragment key={`loc-${e}`}>
                                         {!locationId.value && (
-                                            <div className='grid grid-cols-12 mt-4'>
+                                            <div className='mt-4 mb-1 flex items-center'>
                                                 <div className='col-span-12 px-2 py-1'>{obj.name}</div>
+                                                <button className='ml-auto p-1 rounded-lg transition-colors hover:bg-slate-300/40 text-lg'
+                                                    onClick={()=>{ updateViewMap(e) }}>
+                                                    {collapsed ? (
+                                                        <BiChevronDown />
+                                                    ) : (
+                                                        <BiChevronUp />
+                                                    )}
+                                                </button>
                                             </div>
                                         )}
-                                        <div className='grid grid-cols-12 gap-2 font-medium bg-gray-200'>
-                                            <div className='col-span-4 md:col-span-3 break-words px-2 py-1'>
-                                                <p>SKU</p>
-                                            </div>
-                                            <div className='col-span-6 md:col-span-4 break-words px-2 py-1'>
-                                                <p>Item Name</p>
-                                            </div>
-                                            <div className='col-span-2 md:col-span-1 break-words px-2 py-1'>
-                                                <p>Qty</p>
-                                            </div>
-                                            <div className='hidden md:block col-span-4 break-words px-2 py-1'>
-                                                <p>Description</p>
-                                            </div>
-                                        </div>
-                                        {obj?.items?.map((itemObj: any, index: number) => {
-                                            const bgClassname:string = index % 2 ? 'bg-gray-200' : 'bg-slate-300/20';
-                                            const { item, qty } = itemObj as { item: Item, qty: number };
-
-                                            return (
-                                                <div key={`${item.item_id}-${e}`} className={`grid grid-cols-12 gap-x-2 gap-y-0 ${bgClassname}`}>
+                                        {!collapsed ? (
+                                            <>
+                                                <div className='grid grid-cols-12 gap-2 font-medium bg-gray-200'>
                                                     <div className='col-span-4 md:col-span-3 break-words px-2 py-1'>
-                                                        <p>{item.sku || <span className='text-slate-600 font-medium text-xs'>No SKU set</span>}</p>
+                                                        <p>SKU</p>
                                                     </div>
                                                     <div className='col-span-6 md:col-span-4 break-words px-2 py-1'>
-                                                        <p className='elip'>{item.name}</p>
+                                                        <p>Item Name</p>
                                                     </div>
                                                     <div className='col-span-2 md:col-span-1 break-words px-2 py-1'>
-                                                        <p className=''>{qty}</p>
+                                                        <p>Qty</p>
                                                     </div>
-                                                    <div className='col-span-12 md:col-span-4 px-2 py-1'>
-                                                        <p className='elip'>{item.description || <span className='text-slate-600 font-medium text-xs'>No description set</span>}</p>
+                                                    <div className='hidden md:block col-span-4 break-words px-2 py-1'>
+                                                        <p>Description</p>
                                                     </div>
                                                 </div>
-                                            )
-                                        })}
+                                                {obj?.items?.map((itemObj: any, index: number) => {
+                                                    const bgClassname:string = index % 2 ? 'bg-gray-200' : 'bg-slate-300/20';
+                                                    const { item, qty } = itemObj as { item: Item, qty: number };
+
+                                                    return (
+                                                        <div key={`${item.item_id}-${e}`} className={`grid grid-cols-12 gap-x-2 gap-y-0 ${bgClassname}`}>
+                                                            <div className='col-span-4 md:col-span-3 break-words px-2 py-1'>
+                                                                <p>{item.sku || <span className='text-slate-600 font-medium text-xs'>No SKU set</span>}</p>
+                                                            </div>
+                                                            <div className='col-span-6 md:col-span-4 break-words px-2 py-1'>
+                                                                <p className='elip'>{item.name}</p>
+                                                            </div>
+                                                            <div className='col-span-2 md:col-span-1 break-words px-2 py-1'>
+                                                                <p className=''>{qty}</p>
+                                                            </div>
+                                                            <div className='col-span-12 md:col-span-4 px-2 py-1'>
+                                                                <p className='elip'>{item.description || <span className='text-slate-600 font-medium text-xs'>No description set</span>}</p>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </>
+                                        ) : (
+                                            <div className='h-[1px] w-full bg-slate-300 my-2'></div>
+                                        )}
+                                        
                                     </React.Fragment>
                                     
                                 )
