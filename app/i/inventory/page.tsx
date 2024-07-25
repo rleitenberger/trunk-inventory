@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 import ExportInventoryCSVModal from '@/components/modal/ExportInventoryCSVModal';
 import { Item, LocationItem } from '@/types/dbTypes';
 import ItemSearch from '@/components/form/ItemSearch';
-import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
+import { BiChevronDown, BiChevronLeft, BiChevronRight, BiChevronUp } from 'react-icons/bi';
 
 type CollapsableItemList = {
     [key: string]: boolean;
@@ -68,10 +68,6 @@ export default function PageInventory() {
 
     const params = useSearchParams();
 
-    useEffect(() => {
-        console.log(items)
-    }, [items]);
-
     const [pageInfo, setPageInfo] = useState<PageInfo>({
         endCursor: '',
         hasNextPage: false
@@ -79,6 +75,12 @@ export default function PageInventory() {
 
 
     const [page, setPage] = useState(0);
+
+    const [showCount, setShowCount] = useState<number>(-1);
+    const updateShowCount = (e: React.ChangeEvent<HTMLSelectElement>): void => { 
+        const { options, selectedIndex } = e.target;
+        setShowCount(parseInt(options[selectedIndex].value, 10));
+    };
 
     const formattedInventory = useMemo(() => {
         let ret: any = {};
@@ -91,6 +93,7 @@ export default function PageInventory() {
                 ret[node.location.location_id] = {
                     name: node.location.name,
                     locationId: node.location.location_id,
+                    page: 0,
                     items: []
                 }
             }
@@ -107,6 +110,15 @@ export default function PageInventory() {
     const formattedInventoryKeys = useMemo(() => {
         return Object.keys(formattedInventory);
     }, [formattedInventory]);
+
+    const [pages, setPages] = useState<{ [key: string]: number }>({});
+    useEffect(() => {
+        setPages(
+            formattedInventoryKeys.reduce((acc, key) => {
+                acc[key] = 0;
+                return acc;
+            }, {} as { [key: string]: number} ));
+    }, [formattedInventoryKeys]);
 
     const fetchInventory = useCallback(async (dir: 'forward'|'backward'): Promise<any> => {
         const variables: PaginatedLocationItemsArgs = {
@@ -137,22 +149,6 @@ export default function PageInventory() {
 
         return data.getItemsAtLocation.edges;
     }, [locationId, itemId, apolloClient, pageInfo]);
-
-    const prevPage = () => {
-        if (page === 0){
-            return;
-        }
-
-        setPage(page - 1);
-    }
-
-    const nextPage = () => {
-        if (!pageInfo.hasNextPage){
-            return;
-        }
-
-        setPage(page + 1);
-    }
 
     const hasPrevPage = useMemo(() => {
         return page > 0;
@@ -211,7 +207,6 @@ export default function PageInventory() {
 
     const handleScroll = () => {
         const bottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
-        console.log('hi')
         if (bottom) {
             console.log('wecl')
             //load more pages
@@ -247,6 +242,33 @@ export default function PageInventory() {
             }, {} as CollapsableItemList)
         )
     }, [formattedInventoryKeys]);
+
+    const prevPage = (locationId: string): void => {
+        if (pages[locationId] <= 0){
+            return;
+        }
+
+        setPages((prev) => {
+            return {
+                ...prev,
+                [locationId]: prev[locationId] - 1,
+            }
+        })
+    }
+
+    const nextPage = (locationId: string): void => {
+        const max = Math.ceil(formattedInventory[locationId].items.length / showCount) - 1;
+        if (pages[locationId] >= max) {
+            return;
+        }
+
+        setPages((prev) => {
+            return {
+                ...prev,
+                [locationId]: prev[locationId] + 1,
+            }
+        })
+    }
 
     return (
         <div className='h' onScroll={handleScroll}>
@@ -298,6 +320,18 @@ export default function PageInventory() {
                         title: 'Item'
                     }} />
                 </div>
+                <div className="col-span-12 sm:col-span-6 md:col-span-4 text-sm">
+                    <label># of entries</label>
+                    <div>
+                        <select className='px-2 py-1 border border-slate-300 rounded-lg w-full outline-none'
+                            onChange={updateShowCount}>
+                            <option value='-1'>All</option>
+                            <option value='10'>10</option>
+                            <option value='25'>25</option>
+                            <option value='50'>50</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             {isLoading ? (
@@ -311,14 +345,39 @@ export default function PageInventory() {
                             
                             {formattedInventoryKeys.map((e: string) => {
                                 let obj = formattedInventory[e];
+                                let locationId = obj.locationId;
                                 const collapsed = !viewMap ? false : viewMap[obj.locationId];
+
+                                let startIndex = pages[obj.locationId] * showCount;
+                                let endIndex = startIndex + showCount;
+                                let items = showCount === -1 ? obj.items : obj.items.slice(startIndex, endIndex)
 
                                 return (
                                     <React.Fragment key={`loc-${e}`}>
                                         {!locationId.value && (
                                             <div className='mt-4 mb-1 flex items-center'>
                                                 <div className='col-span-12 px-2 py-1'>{obj.name}</div>
-                                                <button className='ml-auto p-1 rounded-lg transition-colors hover:bg-slate-300/40 text-lg'
+                                                {showCount !== -1 && (
+                                                    <div className='ml-auto'>
+                                                        <button className='rounded-lg transition-colors hover:bg-slate-300/40 p-1'
+                                                            onClick={() => {
+                                                                prevPage(locationId)
+                                                            }}>
+                                                            <BiChevronLeft />
+                                                        </button>
+                                                        <span>{pages[locationId] * showCount} - {showCount > obj.items?.length ? obj.items.length : showCount + pages[locationId] * showCount}</span>
+                                                        <span>&nbsp;of&nbsp;</span>
+                                                        <span>{obj.items?.length ?? 0}</span>
+                                                        <button className='rounded-lg transition-colors hover:bg-slate-300/40 p-1'
+                                                            onClick={() => {
+                                                                nextPage(locationId)
+                                                            }}>
+                                                            <BiChevronRight />
+                                                        </button>
+                                                    </div>  
+                                                )}
+                                                
+                                                <button className={`${showCount === -1 ? 'ml-auto':''} p-1 rounded-lg transition-colors hover:bg-slate-300/40 text-lg`}
                                                     onClick={()=>{ updateViewMap(e) }}>
                                                     {collapsed ? (
                                                         <BiChevronDown />
@@ -344,7 +403,7 @@ export default function PageInventory() {
                                                         <p>Description</p>
                                                     </div>
                                                 </div>
-                                                {obj?.items?.map((itemObj: any, index: number) => {
+                                                {items?.map((itemObj: any, index: number) => {
                                                     const bgClassname:string = index % 2 ? 'bg-gray-200' : 'bg-slate-300/20';
                                                     const { item, qty } = itemObj as { item: Item, qty: number };
 
