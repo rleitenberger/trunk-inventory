@@ -27,6 +27,7 @@ type Query {
     getLastItemSync(organizationId: String!): ItemSyncLog
     getIsAdmin(organizationId: String!): Boolean
     getUserInvites(organizationId: String!): [UserInvite]!
+    cycleCountItems(count: Int!): [Item]!
 }
 
 type Mutation {
@@ -97,6 +98,16 @@ type AddOrgUserResponse {
     added: Boolean!
     message: String!
     invite: UserInvite!
+}
+
+type InventoryCount {
+    count_id: Int!
+    cycles: [CycleCount]!
+}
+
+type CycleCount {
+    cycle_count_id: Int!
+    items: [Item]!
 }
 
 type UserInvite {

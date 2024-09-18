@@ -7,7 +7,7 @@ import useOrganization from "@/components/providers/useOrganization";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
-import { AiFillMinusCircle } from "react-icons/ai";
+import { AiFillMinusCircle, AiOutlineLoading, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiRightArrow, BiRightArrowAlt, BiTransfer } from "react-icons/bi";
 import { FaBox } from "react-icons/fa";
 import { IoIosList } from "react-icons/io";
@@ -91,6 +91,14 @@ export default function Home() {
                     <div>
                       <MdAdminPanelSettings className="mx-auto text-xl text-gray-700 my-2" />
                       Admin
+                    </div>
+                  </Link>
+                </HomeCard>
+                <HomeCard className="col-span-12 sm:col-span-6 lg:col-span-4">
+                  <Link href='/i/cycle-count' className="p-4 block">
+                    <div>
+                      <AiOutlineLoading3Quarters className="mx-auto text-xl text-gray-700 my-2" />
+                      Cycle Count
                     </div>
                   </Link>
                 </HomeCard>

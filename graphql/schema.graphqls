@@ -230,7 +230,7 @@ type TransactionConnection {
 }
 
 type TransactionEdge {
-    node: Transaction!
+    node: Transaction
     cursor: String!
 }
 

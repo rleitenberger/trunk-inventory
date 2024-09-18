@@ -10,6 +10,23 @@ import { SalesOrderInput } from '@/types/formTypes';
 
 export const resolvers = {
     Query: {
+        cycleCountItems: async(_:any, {count}: { count: number}, ctx:GQLContext) => {
+            return await prisma.items.findMany({
+                where: {
+                    active: true,
+                    /*NOT: {
+                        name: {
+                            startsWith: 'z'
+                        },
+                    }*/
+                },
+                orderBy: {
+                    item_id: 'asc',
+                },
+                skip: Math.floor(Math.random() * ( 8000 - count)),
+                take: count
+            });
+        },
         getInternalQty: async(_:any,{itemId}:{itemId:string},ctx:GQLContext)=>{
             const amts = await prisma.locations_items_qty.findMany({
                 where: {
@@ -256,7 +273,9 @@ export const resolvers = {
                 transactions.reverse();
             }
 
-            let edges: Edge<Transaction>[] = transactions.map(transaction => ({
+            let edges: Edge<Transaction>[] = transactions
+            .filter(transaction => transaction !== null)
+            .map(transaction => ({
                 node: transaction,
                 cursor: transaction.transaction_id,
             }));
@@ -289,7 +308,6 @@ export const resolvers = {
                     sortColumnValueEnd: edges[edges.length - 1].node.created
                 }
             };
-
             return transactionConnection;
         },
         getTransaction: async(_: any, { transactionId }: {

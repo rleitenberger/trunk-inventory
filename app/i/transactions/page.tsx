@@ -480,6 +480,7 @@ function PageTransactions({ defaultOptions }: {
                     )}
                     
                     {transactions.map((e: any, index:number) => {
+                        if (e === null) return <></>;
                         const { node } = e as { node: TransactionClient };
 
                         const bgClassname:string = index % 2 ? 'md:bg-gray-200' : 'md:bg-slate-300/20';
